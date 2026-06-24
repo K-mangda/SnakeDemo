@@ -40,13 +40,13 @@ export default function HeroSection() {
             </Button>
           </div>
           
-          <div className="mt-12 grid grid-cols-3 gap-6 pt-8 border-t border-zinc-900">
+          <div className="mt-12 w-full grid grid-cols-1 sm:grid-cols-3 gap-8 sm:gap-6 pt-8 border-t border-zinc-900">
             {[
               { icon: ShieldCheck, label: 'Verified', val: 'Human-in-the-loop' },
               { icon: Database, label: 'Data', val: 'QSMI Referenced' },
               { icon: Zap, label: 'Latency', val: '< 200ms API' }
             ].map((stat, i) => (
-              <div key={i} className="flex flex-col gap-2">
+              <div key={i} className="flex flex-col items-center lg:items-start gap-2">
                 <stat.icon size={18} className="text-zinc-500" />
                 <span className="text-xs text-zinc-500 uppercase tracking-widest">{stat.label}</span>
                 <span className="text-sm font-medium text-zinc-300">{stat.val}</span>
