@@ -55,7 +55,7 @@ export default function ExpertPage() {
   }, [images, currentFilter, sortMode])
 
   return (
-    <main className="min-h-screen pt-28 px-6 pb-20">
+    <main className="min-h-screen pt-24 sm:pt-28 px-4 sm:px-6 pb-20">
       <div className="max-w-[1400px] mx-auto">
         <ExpertHeader />
 

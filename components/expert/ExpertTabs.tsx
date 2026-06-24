@@ -33,7 +33,7 @@ export default function ExpertTabs({
   setViewMode
 }: ExpertTabsProps) {
   return (
-    <div className="flex items-end justify-between border-b border-zinc-800 mb-8 gap-4">
+    <div className="flex flex-col sm:flex-row sm:items-end justify-between border-b border-zinc-800 mb-8 gap-4">
       {/* Tabs (scrollable on small screens) */}
       <div className="flex items-center gap-6 overflow-x-auto scrollbar-none flex-1 min-w-0">
         {TAB_CONFIG.map(tab => {
