@@ -14,7 +14,7 @@ export default function FeaturesSection() {
 
   return (
     <section className="py-24 border-t border-zinc-900 bg-zinc-950">
-      <div className="max-w-7xl mx-auto px-6">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6">
         <div className="mb-16">
           <h2 className="text-2xl font-medium text-zinc-100 mb-4">System Capabilities</h2>
           <p className="text-zinc-400 font-light max-w-2xl">Core infrastructure combining machine learning, human expertise, and medical databases.</p>

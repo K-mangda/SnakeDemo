@@ -6,7 +6,7 @@ import { ChevronRight } from 'lucide-react'
 export default function SpeciesStrip() {
   return (
     <section className="py-24 border-t border-zinc-900 bg-zinc-950/50">
-      <div className="max-w-7xl mx-auto px-6">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6">
         <div className="flex items-end justify-between mb-12">
           <div>
             <h2 className="text-2xl font-medium text-zinc-100 mb-2">Taxonomic Coverage</h2>
