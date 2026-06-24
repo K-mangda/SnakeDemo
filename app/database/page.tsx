@@ -31,7 +31,7 @@ export default function SnakesPage() {
   return (
     <main 
       ref={containerRef}
-      className="min-h-screen pt-28 px-6 pb-20 relative overflow-hidden"
+      className="min-h-screen pt-24 sm:pt-28 px-4 sm:px-6 pb-20 relative overflow-hidden"
     >
       {/* Particle Interaction Layer */}
       <ParticleBackground />
@@ -84,7 +84,7 @@ export default function SnakesPage() {
           </div>
         </header>
 
-        <div className="overflow-x-auto rounded-xl border border-zinc-800 bg-zinc-900/20 shadow-sm">
+        <div className="overflow-x-auto rounded-xl border border-zinc-800 bg-zinc-900/20 shadow-sm -mx-4 sm:mx-0">
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="border-b border-zinc-800 text-xs uppercase tracking-wider text-zinc-500 bg-zinc-900/60">

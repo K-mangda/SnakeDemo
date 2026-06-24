@@ -35,7 +35,7 @@ export default function PredictPage() {
   }
 
   return (
-    <main className="min-h-screen pt-28 px-6 pb-20 relative overflow-hidden">
+    <main className="min-h-screen pt-24 sm:pt-28 px-4 sm:px-6 pb-20 relative overflow-hidden">
       <div className="max-w-4xl mx-auto relative z-10">
         <header className="mb-12 border-b border-zinc-900 pb-8">
           <h1 className="text-3xl font-medium text-zinc-100 mb-2">Subject Analysis</h1>
