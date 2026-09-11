@@ -35,9 +35,6 @@ export default function HeroSection() {
             <Button href="/predict" size="lg" className="bg-zinc-100 text-zinc-900 hover:bg-white font-semibold w-full sm:w-auto justify-center">
               Initialize Analysis <ArrowRight size={18} />
             </Button>
-            <Button href="/database" variant="secondary" size="lg" className="w-full sm:w-auto justify-center">
-              View Database
-            </Button>
           </div>
           
           <div className="mt-12 w-full grid grid-cols-1 sm:grid-cols-3 gap-8 sm:gap-6 pt-8 border-t border-zinc-900">

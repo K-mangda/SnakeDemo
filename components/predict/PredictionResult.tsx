@@ -1,6 +1,5 @@
 import { PredictionView } from '@/lib/prediction'
 import Badge from '@/components/ui/Badge'
-import Button from '@/components/ui/Button'
 import { getDangerColor } from '@/lib/utils'
 
 interface PredictionResultProps {
@@ -44,10 +43,6 @@ export default function PredictionResult({ result }: PredictionResultProps) {
           <div className="flex justify-between items-center py-3 border-b border-zinc-800/50"><span className="text-sm text-zinc-500">Antivenom Protocol</span><span className="text-sm text-zinc-300 text-right max-w-[200px] truncate" title={result.reference.antivenom}>{result.reference.antivenom}</span></div>
         </> : <p className="rounded-lg border border-amber-500/30 bg-amber-500/5 p-3 text-sm text-amber-200">พบชนิดจากโมเดลแล้ว แต่ยังไม่มีข้อมูลคำเตือนที่ผ่านการอ้างอิงในระบบ โปรดหลีกเลี่ยงการสัมผัสและติดต่อหน่วยแพทย์หากถูกกัด</p>}
       </div>
-
-      {result.reference && <Button href={`/database/${result.reference.id}`} variant="secondary" className="w-full">
-        View Full Medical Protocol
-      </Button>}
     </div>
   )
 }
