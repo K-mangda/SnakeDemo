@@ -3,12 +3,13 @@ import StatusBadge from '@/components/expert/StatusBadge'
 import { FilterStatus } from '@/components/expert/ExpertTabs'
 
 interface ImageItem {
-  id: number;
-  filename: string;
+  id: string;
+  originalFilename: string;
+  imageUrl: string | null;
   status: string;
-  bounding_box: { x: number, y: number, w: number, h: number };
-  ai_confidence: number | string;
-  ai_prediction: { scientific: string, name_th: string };
+  bbox: { x: number, y: number, width: number, height: number } | null;
+  confidence: number | null;
+  prediction: { scientific: string, nameTh: string | null };
 }
 
 interface ImageListProps {
@@ -37,7 +38,7 @@ export default function ImageList({ filtered, currentFilter }: ImageListProps) {
 
       {filtered.map((img) => {
         const isPending = img.status === 'pending'
-        const conf      = parseFloat(String(img.ai_confidence))
+        const conf = (img.confidence ?? 0) * 100
 
         return (
           <div
@@ -49,30 +50,27 @@ export default function ImageList({ filtered, currentFilter }: ImageListProps) {
           >
             {/* Thumbnail */}
             <div className="w-16 h-11 bg-zinc-900 rounded-lg overflow-hidden relative shrink-0">
-              <img src={img.filename} alt="" className="w-full h-full object-cover" />
-              <div
+              {img.imageUrl && <img src={img.imageUrl} alt="" className="w-full h-full object-cover" />}
+              {img.bbox && <div
                 className="absolute border border-emerald-500/60"
                 style={{
-                  left:   `${img.bounding_box.x}%`,
-                  top:    `${img.bounding_box.y}%`,
-                  width:  `${img.bounding_box.w}%`,
-                  height: `${img.bounding_box.h}%`,
+                  left: `${img.bbox.x}%`, top: `${img.bbox.y}%`, width: `${img.bbox.width}%`, height: `${img.bbox.height}%`,
                 }}
-              />
+              />}
             </div>
 
             {/* Species / File */}
             <div className="min-w-0">
-              <p className="text-sm font-medium text-zinc-200 truncate italic">{img.ai_prediction.scientific}</p>
+              <p className="text-sm font-medium text-zinc-200 truncate italic">{img.prediction.scientific}</p>
               <p className="text-xs text-zinc-500 truncate">
-                {img.ai_prediction.name_th} &middot; IMG_{String(img.id).padStart(4, '0')}.jpg
+                {img.prediction.nameTh ?? 'No mapped reference'} &middot; {img.originalFilename}
               </p>
             </div>
 
             {/* Confidence — text only, color-coded */}
             <div className="hidden md:block text-center">
               <span className={`font-mono text-sm font-semibold ${confTextColor(conf)}`}>
-                {img.ai_confidence}%
+                {conf.toFixed(1)}%
               </span>
             </div>
 

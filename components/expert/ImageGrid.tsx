@@ -3,12 +3,13 @@ import StatusBadge from '@/components/expert/StatusBadge'
 import { FilterStatus } from '@/components/expert/ExpertTabs'
 
 interface ImageItem {
-  id: number;
-  filename: string;
+  id: string;
+  originalFilename: string;
+  imageUrl: string | null;
   status: string;
-  bounding_box: { x: number, y: number, w: number, h: number };
-  ai_confidence: number | string;
-  ai_prediction: { scientific: string, name_th: string };
+  bbox: { x: number, y: number, width: number, height: number } | null;
+  confidence: number | null;
+  prediction: { scientific: string, nameTh: string | null };
 }
 
 interface ImageGridProps {
@@ -30,30 +31,27 @@ export default function ImageGrid({ filtered, currentFilter }: ImageGridProps) {
           >
             {/* Top row */}
             <div className="flex justify-between items-start mb-4 gap-2">
-              <span className="font-mono text-xs text-zinc-500 truncate" title={img.filename}>
-                IMG_{String(img.id).padStart(4, '0')}.jpg
+              <span className="font-mono text-xs text-zinc-500 truncate" title={img.originalFilename}>
+                {img.originalFilename}
               </span>
               <div className="shrink-0"><StatusBadge status={img.status} /></div>
             </div>
 
             {/* Image */}
             <div className="aspect-video bg-zinc-900 border border-zinc-800/50 rounded-lg mb-4 flex items-center justify-center relative overflow-hidden">
-              <img src={img.filename} alt="Subject" className="w-full h-full object-cover" />
-              <div
+              {img.imageUrl ? <img src={img.imageUrl} alt="Saved subject" className="w-full h-full object-cover" /> : <span className="text-xs text-zinc-600">Image unavailable</span>}
+              {img.bbox && <div
                 className="absolute border-2 border-emerald-500 bg-emerald-500/20"
                 style={{
-                  left:   `${img.bounding_box.x}%`,
-                  top:    `${img.bounding_box.y}%`,
-                  width:  `${img.bounding_box.w}%`,
-                  height: `${img.bounding_box.h}%`,
+                  left: `${img.bbox.x}%`, top: `${img.bbox.y}%`, width: `${img.bbox.width}%`, height: `${img.bbox.height}%`,
                 }}
-              />
+              />}
             </div>
 
             {/* Prediction info */}
             <div className="mb-4">
-              <p className="text-xs text-zinc-500 mb-0.5">AI Prediction ({img.ai_confidence}%)</p>
-              <p className="text-sm font-medium text-zinc-300 italic">{img.ai_prediction.scientific}</p>
+              <p className="text-xs text-zinc-500 mb-0.5">AI Prediction ({((img.confidence ?? 0) * 100).toFixed(1)}%)</p>
+              <p className="text-sm font-medium text-zinc-300 italic">{img.prediction.scientific}</p>
             </div>
 
             {/* ── Single CTA ── */}

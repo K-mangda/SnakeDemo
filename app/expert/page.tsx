@@ -1,31 +1,51 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { User } from 'lucide-react'
-import { MOCK_IMAGES } from '@/lib/data'
+import { supabase } from '@/lib/supabase/client'
 
 import ExpertHeader from '@/components/expert/ExpertHeader'
 import ExpertTabs, { FilterStatus, ViewMode, SortMode } from '@/components/expert/ExpertTabs'
 import ImageGrid from '@/components/expert/ImageGrid'
 import ImageList from '@/components/expert/ImageList'
 
-// จำลอง: ภาพที่ expert คนนี้โหวตไปแล้ว (ในระบบจริงจะมาจาก API)
-// My Queue = pending ทั้งหมด ยกเว้นที่โหวตไปแล้ว
-const ALREADY_VOTED_IDS = new Set([1, 9]) // expert คนนี้เคยโหวตไป 2 ใบแล้ว
+type WorkspaceImage = {
+  id: string
+  originalFilename: string
+  imageUrl: string | null
+  status: 'pending' | 'verified' | 'unclear' | 'waiting_for_new_class'
+  confidence: number | null
+  bbox: { x: number; y: number; width: number; height: number } | null
+  createdAt: string
+  prediction: { scientific: string; nameTh: string | null }
+}
 
 export default function ExpertPage() {
   const [currentFilter, setCurrentFilter] = useState<FilterStatus>('my_queue')
   const [viewMode, setViewMode]           = useState<ViewMode>('grid')
   const [sortMode, setSortMode]           = useState<SortMode>('confidence_asc')
-  
-  // local override: id → new status (quick action)
-  const [overrides] = useState<Record<number, string>>({})
+  const [images, setImages] = useState<WorkspaceImage[]>([])
+  const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState<string | null>(null)
 
-  // Merge mock data with quick-action overrides
-  const images = useMemo(
-    () => MOCK_IMAGES.map(img => ({ ...img, status: overrides[img.id] ?? img.status })),
-    [overrides]
-  )
+  useEffect(() => {
+    async function loadImages() {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session) return
+
+      const response = await fetch('/api/expert/images', {
+        headers: { Authorization: `Bearer ${session.access_token}` },
+      })
+      const payload = await response.json()
+      if (!response.ok) {
+        setLoadError(payload.detail ?? 'Could not load saved scans.')
+      } else {
+        setImages(payload.images)
+      }
+      setLoading(false)
+    }
+    loadImages()
+  }, [])
 
   // Count per filter
   const counts: Record<FilterStatus, number> = useMemo(() => ({
@@ -34,7 +54,7 @@ export default function ExpertPage() {
     verified:              images.filter(i => i.status === 'verified').length,
     unclear:               images.filter(i => i.status === 'unclear').length,
     waiting_for_new_class: images.filter(i => i.status === 'waiting_for_new_class').length,
-    my_queue:              images.filter(i => i.status === 'pending' && !ALREADY_VOTED_IDS.has(i.id)).length,
+    my_queue:              images.filter(i => i.status === 'pending').length,
   }), [images])
 
   // Filter + Sort
@@ -42,14 +62,13 @@ export default function ExpertPage() {
     let list = [...images]
 
     if (currentFilter === 'my_queue') {
-      list = list.filter(i => i.status === 'pending' && !ALREADY_VOTED_IDS.has(i.id))
+      list = list.filter(i => i.status === 'pending')
     } else if (currentFilter !== 'all') {
       list = list.filter(i => i.status === currentFilter)
     }
 
-    if (sortMode === 'confidence_asc')  list.sort((a, b) => +a.ai_confidence - +b.ai_confidence)
-    if (sortMode === 'confidence_desc') list.sort((a, b) => +b.ai_confidence - +a.ai_confidence)
-    // 'date' keeps original insertion order
+    if (sortMode === 'confidence_asc')  list.sort((a, b) => (a.confidence ?? 0) - (b.confidence ?? 0))
+    if (sortMode === 'confidence_desc') list.sort((a, b) => (b.confidence ?? 0) - (a.confidence ?? 0))
 
     return list
   }, [images, currentFilter, sortMode])
@@ -74,21 +93,24 @@ export default function ExpertPage() {
           <div className="mb-6 flex items-center gap-2 text-zinc-500 text-xs">
             <User size={13} className="shrink-0" />
             <span>
-              <span className="text-zinc-300">{counts.my_queue}</span> images awaiting your vote
-              {' '}· <span className="text-zinc-300">{ALREADY_VOTED_IDS.size}</span> already voted, hidden from this view
+              <span className="text-zinc-300">{counts.my_queue}</span> saved scans awaiting review
             </span>
           </div>
         )}
 
         {/* ── Empty state ───────────────────────────────────────── */}
-        {filtered.length === 0 && (
+        {loading && <p className="py-20 text-center text-sm text-zinc-500">Loading saved scans…</p>}
+
+        {loadError && <p className="py-20 text-center text-sm text-red-400">{loadError}</p>}
+
+        {!loading && !loadError && filtered.length === 0 && (
           <div className="py-20 text-center border border-zinc-800 border-dashed rounded-xl bg-zinc-900/10">
             <p className="text-zinc-500">No images found for this filter.</p>
           </div>
         )}
 
-        {viewMode === 'grid' && <ImageGrid filtered={filtered} currentFilter={currentFilter} />}
-        {viewMode === 'list' && <ImageList filtered={filtered} currentFilter={currentFilter} />}
+        {!loading && !loadError && viewMode === 'grid' && <ImageGrid filtered={filtered} currentFilter={currentFilter} />}
+        {!loading && !loadError && viewMode === 'list' && <ImageList filtered={filtered} currentFilter={currentFilter} />}
       </div>
     </main>
   )
