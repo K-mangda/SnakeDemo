@@ -4,8 +4,12 @@ export const runtime = 'nodejs'
 
 const MAX_IMAGE_BYTES = 10 * 1024 * 1024
 
+function originalFilename(filename: string) {
+  return filename.normalize('NFC').replace(/[\\/:*?"<>|\u0000-\u001F]/g, '_').slice(-120) || 'scan.jpg'
+}
+
 function safeFilename(filename: string) {
-  return filename.replace(/[^a-zA-Z0-9._-]/g, '_').slice(-120) || 'scan.jpg'
+  return originalFilename(filename).replace(/[^a-zA-Z0-9._-]/g, '_')
 }
 
 async function savePrediction(image: File, payload: { top_detection: { scientific: string; confidence: number; bbox: unknown } | null }) {
@@ -30,7 +34,7 @@ async function savePrediction(image: File, payload: { top_detection: { scientifi
 
   const { error: insertError } = await admin.from('snake_images').insert({
     storage_path: storagePath,
-    original_filename: safeFilename(image.name),
+    original_filename: originalFilename(image.name),
     predicted_species_id: speciesId,
     predicted_scientific: payload.top_detection?.scientific ?? null,
     confidence: payload.top_detection?.confidence ?? null,

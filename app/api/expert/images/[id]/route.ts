@@ -7,6 +7,7 @@ type StoredImage = {
   original_filename: string
   status: string
   confidence: number | null
+  created_at: string
   predicted_scientific: string | null
   predicted_bbox: { x: number; y: number; width: number; height: number } | null
   predicted_species: { id: number; scientific_name: string; name_th: string | null; name_en: string | null }[] | null
@@ -39,7 +40,7 @@ export async function GET(request: Request, context: RouteContext<'/api/expert/i
 
   const { data: image, error } = await admin
     .from('snake_images')
-    .select('id, storage_path, original_filename, status, confidence, predicted_scientific, predicted_bbox, predicted_species:snake_species!snake_images_predicted_species_id_fkey(id, scientific_name, name_th, name_en)')
+    .select('id, storage_path, original_filename, status, confidence, created_at, predicted_scientific, predicted_bbox, predicted_species:snake_species!snake_images_predicted_species_id_fkey(id, scientific_name, name_th, name_en)')
     .eq('id', id)
     .single()
   if (error || !image) return Response.json({ detail: 'Saved scan not found.' }, { status: 404 })
@@ -58,6 +59,7 @@ export async function GET(request: Request, context: RouteContext<'/api/expert/i
     image: {
       id: stored.id,
       originalFilename: stored.original_filename,
+      createdAt: stored.created_at,
       imageUrl: signed.signedUrl,
       status: stored.status,
       confidence: stored.confidence,

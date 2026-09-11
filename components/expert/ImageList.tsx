@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import StatusBadge from '@/components/expert/StatusBadge'
 import { FilterStatus } from '@/components/expert/ExpertTabs'
+import { formatScanLabel } from '@/lib/scan-label'
 
 interface ImageItem {
   id: string;
@@ -9,6 +10,7 @@ interface ImageItem {
   status: string;
   bbox: { x: number, y: number, width: number, height: number } | null;
   confidence: number | null;
+  createdAt: string;
   prediction: { scientific: string, nameTh: string | null };
 }
 
@@ -63,7 +65,7 @@ export default function ImageList({ filtered, currentFilter }: ImageListProps) {
             <div className="min-w-0">
               <p className="text-sm font-medium text-zinc-200 truncate italic">{img.prediction.scientific}</p>
               <p className="text-xs text-zinc-500 truncate">
-                {img.prediction.nameTh ?? 'No mapped reference'} &middot; {img.originalFilename}
+                {img.prediction.nameTh ?? 'No mapped reference'} &middot; {formatScanLabel(img.createdAt)}
               </p>
             </div>
 

@@ -1,6 +1,7 @@
 import Button from '@/components/ui/Button'
 import StatusBadge from '@/components/expert/StatusBadge'
 import { FilterStatus } from '@/components/expert/ExpertTabs'
+import { formatScanLabel } from '@/lib/scan-label'
 
 interface ImageItem {
   id: string;
@@ -9,6 +10,7 @@ interface ImageItem {
   status: string;
   bbox: { x: number, y: number, width: number, height: number } | null;
   confidence: number | null;
+  createdAt: string;
   prediction: { scientific: string, nameTh: string | null };
 }
 
@@ -31,8 +33,8 @@ export default function ImageGrid({ filtered, currentFilter }: ImageGridProps) {
           >
             {/* Top row */}
             <div className="flex justify-between items-start mb-4 gap-2">
-              <span className="font-mono text-xs text-zinc-500 truncate" title={img.originalFilename}>
-                {img.originalFilename}
+              <span className="font-mono text-xs text-zinc-500 truncate" title={`Original file: ${img.originalFilename}`}>
+                {formatScanLabel(img.createdAt)}
               </span>
               <div className="shrink-0"><StatusBadge status={img.status} /></div>
             </div>
