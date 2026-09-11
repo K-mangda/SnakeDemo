@@ -2,14 +2,16 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useState, useEffect } from 'react'
-import { Menu, X, Hexagon } from 'lucide-react'
+import { Menu, X, Hexagon, LogOut } from 'lucide-react'
 import Button from '@/components/ui/Button'
 import { cn } from '@/lib/utils'
+import { supabase } from '@/lib/supabase/client'
 
 export default function Navbar() {
   const pathname = usePathname()
   const [scrolled, setScrolled] = useState(false)
   const [mobileMenu, setMobileMenu] = useState(false)
+  const [role, setRole] = useState<'admin' | 'expert' | null>(null)
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 20)
@@ -19,12 +21,32 @@ export default function Navbar() {
 
   useEffect(() => { setMobileMenu(false) }, [pathname])
 
+  useEffect(() => {
+    let active = true
+    async function loadAccess() {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user || !active) return
+      const { data: profiles } = await supabase.rpc('current_profile')
+      const profile = profiles?.[0]
+      if (active && profile?.status === 'active') setRole(profile.role as 'admin' | 'expert')
+    }
+    loadAccess()
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(() => loadAccess())
+    return () => { active = false; subscription.unsubscribe() }
+  }, [])
+
+  const signOut = async () => {
+    await supabase.auth.signOut()
+    setRole(null)
+    window.location.assign('/login')
+  }
+
   const links = [
     { href: '/predict', label: 'Analysis' },
     { href: '/database', label: 'Database' },
     { href: '/export', label: 'Export' },
-    { href: '/expert', label: 'Workspace' },
-    { href: '/admin', label: 'System' },
+    ...(role ? [{ href: '/expert', label: 'Workspace' }] : []),
+    ...(role === 'admin' ? [{ href: '/admin', label: 'System' }] : []),
   ]
 
   return (
@@ -55,6 +77,11 @@ export default function Navbar() {
               </Link>
             ))}
           </div>
+          {role ? (
+            <Button variant="ghost" size="sm" onClick={signOut}>Sign out <LogOut size={14} /></Button>
+          ) : (
+            <Button variant="ghost" href="/login" size="sm">Sign in</Button>
+          )}
           <Button href="/predict" size="sm">New Scan</Button>
         </div>
 
@@ -80,6 +107,11 @@ export default function Navbar() {
             </Link>
           ))}
           <div className="pt-4 pb-2 px-2 mt-2 border-t border-zinc-800/50">
+            {role ? (
+              <Button variant="ghost" onClick={signOut} className="w-full justify-center py-3">Sign out <LogOut size={14} /></Button>
+            ) : (
+              <Button variant="ghost" href="/login" className="w-full justify-center py-3">Sign in</Button>
+            )}
             <Button href="/predict" className="w-full justify-center py-3">New Scan</Button>
           </div>
         </div>

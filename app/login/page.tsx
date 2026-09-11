@@ -1,9 +1,12 @@
 'use client'
 import { useRouter } from 'next/navigation'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import Link from 'next/link'
 import Button from '@/components/ui/Button'
-import { Hexagon, Lock } from 'lucide-react'
+import { Lock, LogIn } from 'lucide-react'
 import { useToast } from '@/components/ui/Toast'
+import { supabase } from '@/lib/supabase/client'
+import AuthShell from '@/components/auth/AuthShell'
 
 export default function LoginPage() {
   const router = useRouter()
@@ -11,56 +14,98 @@ export default function LoginPage() {
   const [password, setPassword] = useState('')
   const { showToast } = useToast()
 
-  const handleLogin = (e: React.FormEvent) => {
+  const [loading, setLoading] = useState(false)
+  const [setupOpen, setSetupOpen] = useState(false)
+
+  useEffect(() => {
+    async function checkInitialAdmin() {
+      const { data } = await supabase.rpc('initial_admin_exists')
+      setSetupOpen(data === false)
+    }
+    checkInitialAdmin()
+  }, [])
+
+  useEffect(() => {
+    let active = true
+
+    async function continueExistingSession() {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session || !active) return
+
+      const { data: profiles } = await supabase.rpc('current_profile')
+      const profile = profiles?.[0]
+
+      if (active && profile?.status === 'active') {
+        router.replace(profile.role === 'admin' ? '/admin' : '/expert')
+      }
+    }
+
+    continueExistingSession()
+    return () => { active = false }
+  }, [router])
+
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
-    showToast('Login successful! Redirecting...')
-    if (email.includes('admin')) router.push('/admin')
-    else router.push('/expert')
+    setLoading(true)
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password })
+    if (error || !data.user) {
+      showToast(error?.message ?? 'Unable to sign in')
+      setLoading(false)
+      return
+    }
+    const { data: profiles, error: profileError } = await supabase.rpc('current_profile')
+    const profile = profiles?.[0]
+    setLoading(false)
+    if (profileError || !profile) {
+      showToast('This account has not been assigned access. Contact an administrator.')
+      await supabase.auth.signOut()
+      return
+    }
+    if (profile.status !== 'active') {
+      showToast('This account is not active')
+      await supabase.auth.signOut()
+      return
+    }
+    showToast('Signed in successfully')
+    router.push(profile.role === 'admin' ? '/admin' : '/expert')
   }
 
   return (
-    <main className="min-h-screen flex items-center justify-center px-4 bg-zinc-950">
-      <div className="w-full max-w-sm border border-zinc-800 bg-zinc-900/50 rounded-2xl p-8 backdrop-blur-xl">
-        <div className="flex flex-col items-center mb-8">
-          <div className="w-12 h-12 bg-zinc-800 rounded-xl flex items-center justify-center mb-4">
-            <Hexagon size={24} className="text-emerald-500" />
-          </div>
-          <h1 className="text-xl font-medium text-zinc-100">System Authentication</h1>
-          <p className="text-sm text-zinc-500 mt-1">Authorized personnel only</p>
-        </div>
-
-        <form onSubmit={handleLogin} className="space-y-4">
+    <AuthShell label="" title="" description="">
+        <form onSubmit={handleLogin} className="space-y-5">
           <div>
-            <label className="block text-xs uppercase tracking-widest text-zinc-500 mb-1">Email</label>
+            <label className="mb-2 block text-xs font-medium text-zinc-400">Email</label>
             <input 
               type="email" 
               required
+              autoComplete="email"
               value={email}
               onChange={e => setEmail(e.target.value)}
-              className="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-4 py-2 text-zinc-200 focus:outline-none focus:border-emerald-500 transition-colors"
+              placeholder="name@example.com"
+              className="w-full rounded-xl border border-white/[0.09] bg-white/[0.04] px-4 py-3 text-sm text-zinc-100 outline-none transition placeholder:text-zinc-600 focus:border-emerald-400/70 focus:bg-emerald-400/[0.04]"
             />
           </div>
           <div>
-            <label className="block text-xs uppercase tracking-widest text-zinc-500 mb-1">Password</label>
+            <label className="mb-2 block text-xs font-medium text-zinc-400">Password</label>
             <input 
               type="password" 
               required
+              autoComplete="current-password"
               value={password}
               onChange={e => setPassword(e.target.value)}
-              className="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-4 py-2 text-zinc-200 focus:outline-none focus:border-emerald-500 transition-colors"
+              className="w-full rounded-xl border border-white/[0.09] bg-white/[0.04] px-4 py-3 text-sm text-zinc-100 outline-none transition placeholder:text-zinc-600 focus:border-emerald-400/70 focus:bg-emerald-400/[0.04]"
             />
           </div>
-          <Button className="w-full mt-4" size="lg">
-            Authenticate <Lock size={16} />
+          <Button className="w-full !rounded-xl !py-3.5" size="lg" disabled={loading}>
+            {loading ? 'Checking access...' : <>Sign in <LogIn size={17} /></>}
           </Button>
         </form>
 
-        <div className="mt-8 pt-6 border-t border-zinc-800/50 text-xs text-zinc-500 font-mono">
-          <p className="mb-2 uppercase tracking-widest text-[10px]">Demo Credentials</p>
-          <div className="flex justify-between mb-1"><span>Expert:</span> <span className="text-zinc-400">expert@snake.ai / demo1234</span></div>
-          <div className="flex justify-between"><span>Admin:</span> <span className="text-zinc-400">admin@snake.ai / admin1234</span></div>
+        <div className="mt-7 flex items-center gap-3 border-t border-white/[0.07] pt-5 text-xs text-zinc-500">
+          <Lock size={13} className="shrink-0 text-emerald-400" />
+          <span>Secure role-based access.</span>
         </div>
-      </div>
-    </main>
+        {setupOpen && <p className="mt-4 text-center text-xs text-zinc-500">First-time setup? <Link href="/setup" className="font-medium text-emerald-400 hover:text-emerald-300">Create administrator access</Link></p>}
+    </AuthShell>
   )
 }

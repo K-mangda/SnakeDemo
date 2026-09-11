@@ -13,7 +13,7 @@ html { scroll-behavior: smooth; }
 body {
   background-color: var(--bg-primary);
   color: #fafafa;
-  font-family: 'Inter', system-ui, sans-serif;
+  font-family: 'Leelawadee UI', 'Noto Sans Thai', Tahoma, system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
   overflow-x: hidden;
 }

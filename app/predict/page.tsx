@@ -3,6 +3,7 @@ import { useState, useRef } from 'react'
 import { Loader2, Image as ImageIcon } from 'lucide-react'
 import { SNAKE_DATA } from '@/lib/data'
 import { Snake } from '@/lib/types'
+import { Detection, InferenceResponse, PredictionView } from '@/lib/prediction'
 import Button from '@/components/ui/Button'
 import { useToast } from '@/components/ui/Toast'
 import ImageUploader from '@/components/predict/ImageUploader'
@@ -10,7 +11,8 @@ import PredictionResult from '@/components/predict/PredictionResult'
 
 export default function PredictPage() {
   const [loading, setLoading] = useState(false)
-  const [result, setResult] = useState<Snake | null>(null)
+  const [result, setResult] = useState<PredictionView | null>(null)
+  const [detections, setDetections] = useState<Detection[]>([])
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const { showToast } = useToast()
@@ -20,18 +22,32 @@ export default function PredictPage() {
     if (file) {
       setPreviewUrl(URL.createObjectURL(file))
       setResult(null)
+      setDetections([])
     }
   }
 
-  const handlePredict = () => {
-    if (!previewUrl) return
+  const handlePredict = async () => {
+    const file = fileInputRef.current?.files?.[0]
+    if (!file) return
     setLoading(true)
     setResult(null)
-    setTimeout(() => {
-      setResult(SNAKE_DATA[0]) // Mock prediction to Naja kaouthia
+    setDetections([])
+    try {
+      const form = new FormData()
+      form.append('image', file)
+      const response = await fetch('/api/predict', { method: 'POST', body: form })
+      const payload = await response.json() as InferenceResponse & { detail?: string }
+      if (!response.ok) throw new Error(payload.detail ?? 'AI analysis could not be completed.')
+      if (!payload.top_detection) throw new Error('No snake was detected in this image.')
+      const reference = SNAKE_DATA.find((snake) => snake.scientific === payload.top_detection?.scientific)
+      setDetections(payload.detections)
+      setResult({ detection: payload.top_detection, reference })
       setLoading(false)
       showToast('Subject analysis complete. Match found.')
-    }, 2000)
+    } catch (error) {
+      setLoading(false)
+      showToast(error instanceof Error ? error.message : 'AI analysis could not be completed.', 'error')
+    }
   }
 
   return (
@@ -48,7 +64,7 @@ export default function PredictPage() {
             <ImageUploader 
               previewUrl={previewUrl}
               loading={loading}
-              result={result}
+              detections={detections}
               fileInputRef={fileInputRef}
               handleFileChange={handleFileChange}
             />

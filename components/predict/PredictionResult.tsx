@@ -1,10 +1,10 @@
-import { Snake } from '@/lib/types'
+import { PredictionView } from '@/lib/prediction'
 import Badge from '@/components/ui/Badge'
 import Button from '@/components/ui/Button'
 import { getDangerColor } from '@/lib/utils'
 
 interface PredictionResultProps {
-  result: Snake | null;
+  result: PredictionView | null;
 }
 
 export default function PredictionResult({ result }: PredictionResultProps) {
@@ -16,37 +16,38 @@ export default function PredictionResult({ result }: PredictionResultProps) {
     )
   }
 
+  const isLowConfidence = result.detection.confidence < 0.65
+
   return (
     <div className="flex-1 border border-zinc-800 rounded-xl bg-zinc-900/40 p-6 flex flex-col">
       <div className="flex items-center justify-between mb-6">
         <Badge variant="success" className="animate-fade-up">Classification Complete</Badge>
-        <span className="text-xs font-mono text-emerald-500">CONFIDENCE: {result.confidence_avg}%</span>
+        <span className="text-xs font-mono text-emerald-500">CONFIDENCE: {(result.detection.confidence * 100).toFixed(1)}%</span>
       </div>
 
       <div className="mb-8">
-        <p className="text-xs text-zinc-500 uppercase tracking-widest mb-1">{result.scientific}</p>
-        <h2 className="text-2xl font-medium text-zinc-100">{result.name_en}</h2>
-        <p className="text-zinc-400 text-sm mt-1">{result.name_th}</p>
+        <p className="text-xs text-zinc-500 uppercase tracking-widest mb-1">{result.detection.scientific}</p>
+        <h2 className="text-2xl font-medium text-zinc-100">{result.reference?.name_en ?? result.detection.scientific}</h2>
+        {result.reference && <p className="text-zinc-400 text-sm mt-1">{result.reference.name_th}</p>}
+      </div>
+
+      <div className={`mb-5 rounded-lg border p-3 text-sm leading-5 ${isLowConfidence ? 'border-amber-500/40 bg-amber-500/10 text-amber-100' : 'border-zinc-700 bg-zinc-900/60 text-zinc-300'}`}>
+        {isLowConfidence
+          ? 'ความมั่นใจของผลลัพธ์ต่ำ จึงไม่ควรใช้ยืนยันชนิดงู โปรดหลีกเลี่ยงการสัมผัสและให้ผู้เชี่ยวชาญตรวจสอบเพิ่มเติม'
+          : 'ผลลัพธ์นี้เป็นการคัดกรองด้วย AI ไม่ใช่คำวินิจฉัยทางการแพทย์'}
       </div>
 
       <div className="space-y-4 mb-8 flex-1">
-        <div className="flex justify-between items-center py-3 border-b border-zinc-800/50">
-          <span className="text-sm text-zinc-500">Toxicity Profile</span>
-          <span className={`text-sm font-medium ${getDangerColor(result.danger_level)}`}>{result.danger_label}</span>
-        </div>
-        <div className="flex justify-between items-center py-3 border-b border-zinc-800/50">
-          <span className="text-sm text-zinc-500">Venom Type</span>
-          <span className="text-sm text-zinc-300 capitalize">{result.venom_type}</span>
-        </div>
-        <div className="flex justify-between items-center py-3 border-b border-zinc-800/50">
-          <span className="text-sm text-zinc-500">Antivenom Protocol</span>
-          <span className="text-sm text-zinc-300 text-right max-w-[200px] truncate" title={result.antivenom}>{result.antivenom}</span>
-        </div>
+        {result.reference ? <>
+          <div className="flex justify-between items-center py-3 border-b border-zinc-800/50"><span className="text-sm text-zinc-500">Toxicity Profile</span><span className={`text-sm font-medium ${getDangerColor(result.reference.danger_level)}`}>{result.reference.danger_label}</span></div>
+          <div className="flex justify-between items-center py-3 border-b border-zinc-800/50"><span className="text-sm text-zinc-500">Venom Type</span><span className="text-sm text-zinc-300 capitalize">{result.reference.venom_type}</span></div>
+          <div className="flex justify-between items-center py-3 border-b border-zinc-800/50"><span className="text-sm text-zinc-500">Antivenom Protocol</span><span className="text-sm text-zinc-300 text-right max-w-[200px] truncate" title={result.reference.antivenom}>{result.reference.antivenom}</span></div>
+        </> : <p className="rounded-lg border border-amber-500/30 bg-amber-500/5 p-3 text-sm text-amber-200">พบชนิดจากโมเดลแล้ว แต่ยังไม่มีข้อมูลคำเตือนที่ผ่านการอ้างอิงในระบบ โปรดหลีกเลี่ยงการสัมผัสและติดต่อหน่วยแพทย์หากถูกกัด</p>}
       </div>
 
-      <Button href={`/database/${result.id}`} variant="secondary" className="w-full">
+      {result.reference && <Button href={`/database/${result.reference.id}`} variant="secondary" className="w-full">
         View Full Medical Protocol
-      </Button>
+      </Button>}
     </div>
   )
 }

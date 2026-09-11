@@ -1,20 +1,12 @@
 import type { Metadata } from 'next'
-import { Prompt } from 'next/font/google'
 import './globals.css'
-import Navbar from '@/components/layout/Navbar'
-import Footer from '@/components/layout/Footer'
+import AppChrome from '@/components/layout/AppChrome'
 import { ToastProvider } from '@/components/ui/Toast'
 import { Toaster } from 'sonner'
 
-const prompt = Prompt({ 
-  weight: ['300', '400', '500', '600', '700'],
-  subsets: ['latin', 'thai'],
-  display: 'swap',
-})
-
 export const metadata: Metadata = {
-  title: 'NSTRUVision | Toxicological Classification System',
-  description: 'AI-assisted venomous snake classification system with human-in-the-loop verification.',
+  title: 'Thai Snake Classifier',
+  description: 'Thai snake image classification with expert data verification.',
 }
 
 export default function RootLayout({
@@ -23,12 +15,10 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="th" className="dark">
-      <body className={prompt.className + " bg-zinc-950 text-zinc-100 antialiased"}>
+    <html lang="en" className="dark">
+      <body className="bg-zinc-950 text-zinc-100 antialiased">
         <ToastProvider>
-          <Navbar />
-          {children}
-          <Footer />
+          <AppChrome>{children}</AppChrome>
         </ToastProvider>
         <Toaster theme="dark" position="top-center" toastOptions={{
           style: {

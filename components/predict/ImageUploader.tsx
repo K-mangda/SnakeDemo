@@ -1,10 +1,10 @@
 import { UploadCloud } from 'lucide-react'
-import { Snake } from '@/lib/types'
+import { Detection } from '@/lib/prediction'
 
 interface ImageUploaderProps {
   previewUrl: string | null;
   loading: boolean;
-  result: Snake | null;
+  detections: Detection[];
   fileInputRef: React.RefObject<HTMLInputElement | null>;
   handleFileChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
 }
@@ -12,7 +12,7 @@ interface ImageUploaderProps {
 export default function ImageUploader({
   previewUrl,
   loading,
-  result,
+  detections,
   fileInputRef,
   handleFileChange
 }: ImageUploaderProps) {
@@ -48,18 +48,17 @@ export default function ImageUploader({
               </div>
             )}
 
-            {result && !loading && (
-              <div className="absolute inset-2 pointer-events-none animate-fade-up">
+            {!loading && detections.map((detection, index) => (
+              <div key={`${detection.scientific}-${index}`} className="absolute inset-2 pointer-events-none animate-fade-up">
                 <div className="relative w-full h-full flex items-center justify-center">
-                  {/* Mock Bounding Box */}
-                  <div className="absolute border-2 border-emerald-500 bg-emerald-500/20 shadow-[0_0_15px_rgba(16,185,129,0.3)]" style={{ left: '15%', top: '15%', width: '70%', height: '70%' }}>
+                  <div className="absolute border-2 border-emerald-500 bg-emerald-500/20 shadow-[0_0_15px_rgba(16,185,129,0.3)]" style={{ left: `${detection.bbox.x}%`, top: `${detection.bbox.y}%`, width: `${detection.bbox.width}%`, height: `${detection.bbox.height}%` }}>
                      <div className="absolute -top-7 left-[-2px] bg-emerald-500 text-zinc-950 text-xs font-bold px-2 py-1 rounded-t-md">
-                       {result.scientific} {result.confidence_avg}%
+                       {detection.scientific} {(detection.confidence * 100).toFixed(1)}%
                      </div>
                   </div>
                 </div>
               </div>
-            )}
+            ))}
           </>
         ) : (
           <div className="flex flex-col items-center gap-4 text-zinc-500 text-center transition-transform duration-300 group-hover:-translate-y-2">
