@@ -70,11 +70,16 @@ export default function PredictPage() {
             />
 
             {previewUrl && (
-              <Button onClick={handlePredict} disabled={loading} className="w-full flex justify-center items-center gap-2 py-3">
+              <Button onClick={result ? () => fileInputRef.current?.click() : handlePredict} disabled={loading} className="w-full flex justify-center items-center gap-2 py-3">
                 {loading ? (
                   <>
                     <Loader2 size={18} className="animate-spin" />
                     Processing...
+                  </>
+                ) : result ? (
+                  <>
+                    <ImageIcon size={18} />
+                    Analyze another image
                   </>
                 ) : (
                   <>
