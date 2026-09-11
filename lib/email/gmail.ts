@@ -1,7 +1,7 @@
 import 'server-only'
 import nodemailer from 'nodemailer'
 
-export async function sendInvitationEmail({ to, subject, html }: { to: string; subject: string; html: string }) {
+export async function sendSystemEmail({ to, subject, html }: { to: string; subject: string; html: string }) {
   const user = process.env.GMAIL_SMTP_USER
   const appPassword = process.env.GMAIL_SMTP_APP_PASSWORD
   if (!user || !appPassword) throw new Error('Gmail SMTP is not configured.')

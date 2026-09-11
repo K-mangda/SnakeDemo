@@ -16,6 +16,9 @@ export default function LoginPage() {
 
   const [loading, setLoading] = useState(false)
   const [setupOpen, setSetupOpen] = useState(false)
+  const [resetOpen, setResetOpen] = useState(false)
+  const [resetEmail, setResetEmail] = useState('')
+  const [resetSending, setResetSending] = useState(false)
 
   useEffect(() => {
     async function checkInitialAdmin() {
@@ -70,6 +73,26 @@ export default function LoginPage() {
     router.push(profile.role === 'admin' ? '/admin' : '/expert')
   }
 
+  const requestPasswordReset = async (event: React.FormEvent) => {
+    event.preventDefault()
+    setResetSending(true)
+    try {
+      const response = await fetch('/api/auth/password-reset', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: resetEmail }),
+      })
+      if (!response.ok) throw new Error('Unable to send a reset link right now.')
+      showToast('If this email has an account, a reset link has been sent. Check Gmail and Spam.')
+      setResetOpen(false)
+      setResetEmail('')
+    } catch (error) {
+      showToast(error instanceof Error ? error.message : 'Unable to send a reset link right now.')
+    } finally {
+      setResetSending(false)
+    }
+  }
+
   return (
     <AuthShell label="" title="" description="">
         <form onSubmit={handleLogin} className="space-y-5">
@@ -100,6 +123,18 @@ export default function LoginPage() {
             {loading ? 'Checking access...' : <>Sign in <LogIn size={17} /></>}
           </Button>
         </form>
+
+        <div className="mt-4 text-right">
+          <button type="button" onClick={() => setResetOpen(!resetOpen)} className="text-xs font-medium text-emerald-400 transition hover:text-emerald-300">
+            Forgot password?
+          </button>
+        </div>
+        {resetOpen && <form onSubmit={requestPasswordReset} className="mt-4 rounded-xl border border-white/[0.08] bg-white/[0.025] p-4">
+          <p className="text-sm font-medium text-zinc-200">Reset your password</p>
+          <p className="mt-1 text-xs leading-5 text-zinc-500">Enter your account email. We&apos;ll send a secure reset link through Gmail.</p>
+          <input type="email" required autoComplete="email" value={resetEmail} onChange={event => setResetEmail(event.target.value)} placeholder="name@example.com" className="mt-3 w-full rounded-lg border border-white/[0.09] bg-zinc-950 px-3 py-2.5 text-sm text-zinc-100 outline-none transition placeholder:text-zinc-600 focus:border-emerald-400/70" />
+          <div className="mt-3 flex justify-end gap-2"><Button type="button" variant="ghost" size="sm" onClick={() => setResetOpen(false)}>Cancel</Button><Button size="sm" disabled={resetSending}>{resetSending ? 'Sending…' : 'Send reset link'}</Button></div>
+        </form>}
 
         <div className="mt-7 flex items-center gap-3 border-t border-white/[0.07] pt-5 text-xs text-zinc-500">
           <Lock size={13} className="shrink-0 text-emerald-400" />
