@@ -48,6 +48,7 @@ async function savePrediction(image: File, payload: { top_detection: { scientifi
 }
 
 export async function POST(request: Request) {
+  const saveNoDetection = new URL(request.url).searchParams.get('save_no_detection') === '1'
   const incoming = await request.formData()
   const image = incoming.get('image')
   if (!(image instanceof File)) {
@@ -72,6 +73,7 @@ export async function POST(request: Request) {
     const response = await fetch(`${backendUrl}/predict`, { method: 'POST', body: outgoing })
     const payload = await response.json()
     if (!response.ok) return Response.json(payload, { status: response.status })
+    if (!payload.top_detection && !saveNoDetection) return Response.json({ ...payload, recorded: false })
 
     try {
       await savePrediction(image, payload)

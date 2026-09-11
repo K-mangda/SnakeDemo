@@ -1,13 +1,18 @@
 import { PredictionView } from '@/lib/prediction'
 import Badge from '@/components/ui/Badge'
 import { getDangerColor } from '@/lib/utils'
-import { ScanLine } from 'lucide-react'
+import { ScanLine, SearchX } from 'lucide-react'
 
 interface PredictionResultProps {
   result: PredictionView | null;
+  noDetection?: boolean;
+  noDetectionSaved?: boolean;
 }
 
-export default function PredictionResult({ result }: PredictionResultProps) {
+export default function PredictionResult({ result, noDetection = false, noDetectionSaved = false }: PredictionResultProps) {
+  if (!result && noDetection) {
+    return <div className="flex-1 rounded-xl border border-zinc-800 bg-zinc-900/40 p-6"><Badge variant={noDetectionSaved ? 'info' : 'muted'}>{noDetectionSaved ? 'Sent for expert review' : 'No AI detection'}</Badge><div className="mt-7 flex items-start gap-3"><div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-zinc-700 bg-zinc-900 text-zinc-400"><SearchX size={20} /></div><div><p className="text-[11px] uppercase tracking-[0.18em] text-zinc-500">Detection outcome</p><h2 className="mt-1 text-xl font-medium text-zinc-100">No snake detected</h2></div></div><p className="mt-6 rounded-lg border border-zinc-700 bg-zinc-900/60 p-3 text-sm leading-5 text-zinc-300">{noDetectionSaved ? 'This image has been saved as a no-detection case for expert review.' : 'This image was not saved. If you believe it contains a snake, send it for expert review so the model can be checked.'}</p></div>
+  }
   if (!result) {
     return (
       <div className="flex-1 border border-zinc-800/50 rounded-xl bg-zinc-900/10 flex items-center justify-center text-zinc-600 text-sm p-6 text-center">

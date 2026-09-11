@@ -13,6 +13,8 @@ export default function PredictPage() {
   const [loading, setLoading] = useState(false)
   const [result, setResult] = useState<PredictionView | null>(null)
   const [detections, setDetections] = useState<Detection[]>([])
+  const [noDetection, setNoDetection] = useState(false)
+  const [noDetectionSaved, setNoDetectionSaved] = useState(false)
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const { showToast } = useToast()
@@ -23,22 +25,35 @@ export default function PredictPage() {
       setPreviewUrl(URL.createObjectURL(file))
       setResult(null)
       setDetections([])
+      setNoDetection(false)
+      setNoDetectionSaved(false)
     }
   }
 
-  const handlePredict = async () => {
+  const handlePredict = async (saveNoDetection = false) => {
     const file = fileInputRef.current?.files?.[0]
     if (!file) return
     setLoading(true)
-    setResult(null)
-    setDetections([])
+    if (!saveNoDetection) {
+      setResult(null)
+      setDetections([])
+      setNoDetection(false)
+      setNoDetectionSaved(false)
+    }
     try {
       const form = new FormData()
       form.append('image', file)
-      const response = await fetch('/api/predict', { method: 'POST', body: form })
+      const response = await fetch(saveNoDetection ? '/api/predict?save_no_detection=1' : '/api/predict', { method: 'POST', body: form })
       const payload = await response.json() as InferenceResponse & { detail?: string }
       if (!response.ok) throw new Error(payload.detail ?? 'AI analysis could not be completed.')
-      if (!payload.top_detection) throw new Error('No snake was detected in this image.')
+      if (!payload.top_detection) {
+        setDetections(payload.detections)
+        setNoDetection(true)
+        setNoDetectionSaved(payload.recorded === true)
+        setLoading(false)
+        showToast(payload.recorded ? 'No-detection image saved for expert review.' : 'No snake detected. The image was not saved.')
+        return
+      }
       const reference = SNAKE_DATA.find((snake) => snake.scientific === payload.top_detection?.scientific)
       setDetections(payload.detections)
       setResult({ detection: payload.top_detection, reference })
@@ -71,17 +86,19 @@ export default function PredictPage() {
             />
 
             {previewUrl && (
-              <Button onClick={result ? () => fileInputRef.current?.click() : handlePredict} disabled={loading} className="w-full flex justify-center items-center gap-2 py-3">
+              <Button onClick={result || noDetectionSaved ? () => fileInputRef.current?.click() : noDetection ? () => handlePredict(true) : () => handlePredict()} disabled={loading} className="w-full flex justify-center items-center gap-2 py-3">
                 {loading ? (
                   <>
                     <Loader2 size={18} className="animate-spin" />
                     Processing...
                   </>
-                ) : result ? (
+                ) : result || noDetectionSaved ? (
                   <>
                     <ImageIcon size={18} />
                     Analyze another image
                   </>
+                ) : noDetection ? (
+                  <>Send for expert review</>
                 ) : (
                   <>
                     <ImageIcon size={18} />
@@ -94,7 +111,7 @@ export default function PredictPage() {
 
           {/* Results Area */}
           <div className="flex flex-col h-full">
-            <PredictionResult result={result} />
+            <PredictionResult result={result} noDetection={noDetection} noDetectionSaved={noDetectionSaved} />
           </div>
         </div>
       </div>
