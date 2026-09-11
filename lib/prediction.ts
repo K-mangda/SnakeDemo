@@ -10,6 +10,7 @@ export interface Detection {
 export interface InferenceResponse {
   detections: Detection[]
   top_detection: Detection | null
+  recorded?: boolean
 }
 
 export interface PredictionView {

@@ -43,7 +43,7 @@ export default function PredictPage() {
       setDetections(payload.detections)
       setResult({ detection: payload.top_detection, reference })
       setLoading(false)
-      showToast('Subject analysis complete. Match found.')
+      showToast(payload.recorded ? 'Subject analysis complete. Saved for expert review.' : 'Subject analysis complete. Match found.')
     } catch (error) {
       setLoading(false)
       showToast(error instanceof Error ? error.message : 'AI analysis could not be completed.', 'error')
