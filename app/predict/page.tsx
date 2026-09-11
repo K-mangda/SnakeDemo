@@ -80,7 +80,7 @@ export default function PredictPage() {
             <ImageUploader 
               previewUrl={previewUrl}
               loading={loading}
-              detections={detections}
+              detections={result ? [result.detection] : detections}
               fileInputRef={fileInputRef}
               handleFileChange={handleFileChange}
             />
