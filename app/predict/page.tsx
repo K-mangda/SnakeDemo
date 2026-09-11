@@ -85,7 +85,7 @@ export default function PredictPage() {
               handleFileChange={handleFileChange}
             />
 
-            <p className="flex gap-2 rounded-lg border border-zinc-800/70 bg-zinc-900/20 px-3 py-2.5 text-xs leading-5 text-zinc-500"><Database size={15} className="mt-0.5 shrink-0 text-emerald-400" />Images with an AI detection are saved for expert verification and may be used to improve future model training. Upload only images you are permitted to share.</p>
+            <p className="flex items-center gap-2 px-1 text-[11px] leading-4 text-zinc-500"><Database size={13} className="shrink-0 text-emerald-400" />Images with an AI detection may be saved for expert review and model improvement.</p>
 
             {previewUrl && (
               <Button onClick={result || noDetectionSaved ? () => fileInputRef.current?.click() : noDetection ? () => handlePredict(true) : () => handlePredict()} disabled={loading} className="w-full flex justify-center items-center gap-2 py-3">
