@@ -13,8 +13,10 @@ export default function ExpertHeader() {
     async function loadProfile() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) return
-      const { data } = await supabase.rpc('current_profile_details')
-      if (data?.[0]) setProfile(data[0] as Profile)
+      const { data: { session } } = await supabase.auth.getSession()
+      const response = session ? await fetch('/api/expert/profile', { headers: { Authorization: `Bearer ${session.access_token}` } }) : null
+      const payload = response?.ok ? await response.json() : null
+      if (payload?.profile) setProfile(payload.profile as Profile)
       else setProfile({
         full_name: typeof user.user_metadata.full_name === 'string' ? user.user_metadata.full_name : user.email?.split('@')[0] ?? 'Expert reviewer',
         role: 'expert',
@@ -27,6 +29,7 @@ export default function ExpertHeader() {
   const roleLabel = profile?.role === 'admin' ? 'Administrator' : 'Expert reviewer'
   const displayName = profile?.full_name?.trim() || 'Expert reviewer'
   const initials = displayName.split(/\s+/).filter(Boolean).slice(0, 2).map(name => name[0]).join('').toUpperCase()
+  const identityLabel = profile?.specialty ? `${roleLabel} · ${profile.specialty}` : roleLabel
 
   return (
     <header className="mb-8 border-b border-zinc-900 pb-8 flex flex-col sm:flex-row sm:items-end justify-between gap-6">
@@ -40,7 +43,7 @@ export default function ExpertHeader() {
         </div>
         <div className="min-w-0">
           <span className="block truncate text-sm font-medium text-zinc-200">{displayName}</span>
-          <span className="mt-0.5 flex items-center gap-1.5 text-[11px] text-zinc-500"><i className="h-1.5 w-1.5 rounded-full bg-emerald-400" />{profile?.specialty || roleLabel}</span>
+          <span className="mt-0.5 flex items-center gap-1.5 text-[11px] text-zinc-500"><i className="h-1.5 w-1.5 rounded-full bg-emerald-400" />{identityLabel}</span>
         </div>
       </div>
     </header>
