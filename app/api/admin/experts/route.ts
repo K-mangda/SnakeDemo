@@ -105,3 +105,20 @@ export async function PATCH(request: Request) {
   if (error) return Response.json({ detail: error.message }, { status: 400 })
   return Response.json({ ok: true })
 }
+
+export async function DELETE(request: Request) {
+  const access = await requireAdmin(request)
+  if ('error' in access) return Response.json({ detail: access.error }, { status: access.status })
+  const body = await request.json()
+  if (typeof body.id !== 'string') return Response.json({ detail: 'Expert account is required.' }, { status: 400 })
+  const [{ data: expert }, { count, error: verificationError }] = await Promise.all([
+    access.admin.from('profiles').select('id').eq('id', body.id).eq('role', 'expert').single(),
+    access.admin.from('verification_history').select('*', { count: 'exact', head: true }).eq('expert_id', body.id),
+  ])
+  if (!expert) return Response.json({ detail: 'Expert account was not found.' }, { status: 404 })
+  if (verificationError) return Response.json({ detail: 'Could not check the verification history.' }, { status: 500 })
+  if ((count ?? 0) > 0) return Response.json({ detail: 'Accounts with verification history cannot be removed. Suspend access instead.' }, { status: 409 })
+  const { error } = await access.admin.auth.admin.deleteUser(body.id)
+  if (error) return Response.json({ detail: error.message }, { status: 400 })
+  return Response.json({ ok: true })
+}
