@@ -38,7 +38,7 @@
 - Python และ YOLO สำหรับการทำนาย Object Detection
 - Supabase PostgreSQL สำหรับ Account, Snake_Image, Snake_Species และ Verification_History
 - Supabase Storage สำหรับไฟล์ภาพงู
-- Resend สำหรับส่งข้อมูลบัญชีผู้เชี่ยวชาญ
+- Gmail SMTP สำหรับส่งข้อมูลบัญชีผู้เชี่ยวชาญ
 - ใช้ RLS เพื่อกำหนดสิทธิ์ Admin และ Expert
 
 ## กติกาการพัฒนา
