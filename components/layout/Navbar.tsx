@@ -2,7 +2,7 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useState, useEffect } from 'react'
-import { Menu, X, Hexagon, LogOut, UserRound } from 'lucide-react'
+import { Menu, X, Hexagon, LogOut } from 'lucide-react'
 import Button from '@/components/ui/Button'
 import { cn } from '@/lib/utils'
 import { supabase } from '@/lib/supabase/client'
@@ -77,10 +77,7 @@ export default function Navbar() {
             ))}
           </div>
           {role ? (
-            <div className="flex items-center gap-1">
-              <Button variant="ghost" href="/account" size="sm">Account <UserRound size={14} /></Button>
-              <Button variant="ghost" size="sm" onClick={signOut}>Sign out <LogOut size={14} /></Button>
-            </div>
+            <Button variant="ghost" size="sm" onClick={signOut}>Sign out <LogOut size={14} /></Button>
           ) : (
             <Button variant="ghost" href="/login" size="sm">Sign in</Button>
           )}
@@ -110,10 +107,7 @@ export default function Navbar() {
           ))}
           <div className="pt-4 pb-2 px-2 mt-2 border-t border-zinc-800/50">
             {role ? (
-              <>
-                <Button variant="ghost" href="/account" className="mb-2 w-full justify-center py-3">Account <UserRound size={14} /></Button>
-                <Button variant="ghost" onClick={signOut} className="w-full justify-center py-3">Sign out <LogOut size={14} /></Button>
-              </>
+              <Button variant="ghost" onClick={signOut} className="w-full justify-center py-3">Sign out <LogOut size={14} /></Button>
             ) : (
               <Button variant="ghost" href="/login" className="w-full justify-center py-3">Sign in</Button>
             )}
