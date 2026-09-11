@@ -19,9 +19,19 @@ function SetPasswordForm() {
     async function verifyInvite() {
       const tokenHash = searchParams.get('token_hash')
       const type = searchParams.get('type')
-      if (!tokenHash || type !== 'invite') { setMessage('This invitation link is invalid or has expired.'); return }
-      const { error } = await supabase.auth.verifyOtp({ token_hash: tokenHash, type: 'invite' })
-      if (error) { setMessage(error.message); return }
+      const code = searchParams.get('code')
+      if (code) {
+        const { error } = await supabase.auth.exchangeCodeForSession(code)
+        if (error) { setMessage(error.message); return }
+        setReady(true); setMessage(''); return
+      }
+      if (tokenHash && (type === 'invite' || type === 'recovery')) {
+        const { error } = await supabase.auth.verifyOtp({ token_hash: tokenHash, type })
+        if (error) { setMessage(error.message); return }
+        setReady(true); setMessage(''); return
+      }
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session) { setMessage('This invitation link is invalid or has expired.'); return }
       setReady(true); setMessage('')
     }
     verifyInvite()

@@ -43,9 +43,14 @@ export async function POST(request: Request) {
   const specialty = typeof body.specialty === 'string' ? body.specialty.trim() : ''
   if (!fullName || !email || !email.includes('@')) return Response.json({ detail: 'Name and a valid email are required.' }, { status: 400 })
   const inviteUrl = new URL('/set-password', request.url).toString()
-  const { data: linkData, error: linkError } = await access.admin.auth.admin.generateLink({
+  let { data: linkData, error: linkError } = await access.admin.auth.admin.generateLink({
     type: 'invite', email, options: { redirectTo: inviteUrl, data: { full_name: fullName, specialty } },
   })
+  if (linkError) {
+    const recovery = await access.admin.auth.admin.generateLink({ type: 'recovery', email, options: { redirectTo: inviteUrl } })
+    linkData = recovery.data
+    linkError = recovery.error
+  }
   if (linkError || !linkData.properties?.action_link) return Response.json({ detail: linkError?.message ?? 'Could not create an invitation link.' }, { status: 400 })
 
   try {
