@@ -97,12 +97,12 @@ export default function LoginPage() {
   return (
     <AuthShell label="" title="" description="">
       {resetOpen ? <>
-        <div className="mb-7 text-center"><h1 className="text-xl font-semibold tracking-tight text-zinc-100">Reset your password</h1><p className="mt-2 text-sm text-zinc-500">We&apos;ll email you a secure password-reset link.</p></div>
+        <div className="mb-7 text-center"><h1 className="text-xl font-semibold tracking-tight text-zinc-100">Reset password</h1></div>
         <form onSubmit={requestPasswordReset} className="space-y-5">
-          <div><label className="mb-2 block text-xs font-medium text-zinc-400">Email</label><input type="email" required autoFocus autoComplete="email" value={resetEmail} onChange={event => setResetEmail(event.target.value)} placeholder="name@example.com" className="w-full rounded-xl border border-white/[0.09] bg-white/[0.04] px-4 py-3 text-sm text-zinc-100 outline-none transition placeholder:text-zinc-600 focus:border-emerald-400/70 focus:bg-emerald-400/[0.04]" /></div>
+          <div><label className="mb-2 block text-xs font-medium text-zinc-400">Email address</label><input type="email" required autoFocus autoComplete="email" value={resetEmail} onChange={event => setResetEmail(event.target.value)} placeholder="name@example.com" className="w-full rounded-xl border border-white/[0.09] bg-white/[0.04] px-4 py-3 text-sm text-zinc-100 outline-none transition placeholder:text-zinc-600 focus:border-emerald-400/70 focus:bg-emerald-400/[0.04]" /></div>
           <Button className="w-full !rounded-xl !py-3.5" size="lg" disabled={resetSending}>{resetSending ? 'Sending link…' : 'Send reset link'}</Button>
         </form>
-        <div className="mt-4 text-center"><button type="button" onClick={() => setResetOpen(false)} className="text-xs font-medium text-zinc-500 transition hover:text-zinc-200">← Back to sign in</button></div>
+        <p className="mt-5 text-center text-xs text-zinc-500">Remember your password? <button type="button" onClick={() => setResetOpen(false)} className="font-medium text-emerald-400 transition hover:text-emerald-300">Sign in</button></p>
       </> : <>
         <form onSubmit={handleLogin} className="space-y-5">
           <div>
@@ -144,11 +144,11 @@ export default function LoginPage() {
         </div>
       </>}
 
-        <div className="mt-7 flex items-center gap-3 border-t border-white/[0.07] pt-5 text-xs text-zinc-500">
+        {!resetOpen && <><div className="mt-7 flex items-center gap-3 border-t border-white/[0.07] pt-5 text-xs text-zinc-500">
           <Lock size={13} className="shrink-0 text-emerald-400" />
           <span>Secure role-based access.</span>
         </div>
-        {setupOpen && <p className="mt-4 text-center text-xs text-zinc-500">First-time setup? <Link href="/setup" className="font-medium text-emerald-400 hover:text-emerald-300">Create administrator access</Link></p>}
+        {setupOpen && <p className="mt-4 text-center text-xs text-zinc-500">First-time setup? <Link href="/setup" className="font-medium text-emerald-400 hover:text-emerald-300">Create administrator access</Link></p>}</>}
     </AuthShell>
   )
 }
