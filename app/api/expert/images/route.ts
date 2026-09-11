@@ -1,3 +1,4 @@
+import { createClient } from '@supabase/supabase-js'
 import { getSupabaseAdmin } from '@/lib/supabase/admin'
 
 type StoredImage = {
@@ -15,19 +16,24 @@ export async function GET(request: Request) {
   const token = request.headers.get('authorization')?.replace(/^Bearer\s+/i, '')
   if (!token) return Response.json({ detail: 'Sign in is required.' }, { status: 401 })
 
-  const admin = getSupabaseAdmin()
-  const { data: authData, error: authError } = await admin.auth.getUser(token)
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const publishableKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
+  if (!url || !publishableKey) return Response.json({ detail: 'Workspace configuration is incomplete.' }, { status: 500 })
+
+  const authClient = createClient(url, publishableKey, {
+    global: { headers: { Authorization: `Bearer ${token}` } },
+  })
+  const { data: authData, error: authError } = await authClient.auth.getUser(token)
   if (authError || !authData.user) return Response.json({ detail: 'Your session has expired.' }, { status: 401 })
 
-  const { data: profile, error: profileError } = await admin
-    .from('profiles')
-    .select('role, status')
-    .eq('id', authData.user.id)
-    .single()
+  const { data: profiles, error: profileError } = await authClient.rpc('current_profile')
+  const profile = profiles?.[0]
 
   if (profileError || !profile || profile.status !== 'active' || !['admin', 'expert'].includes(profile.role)) {
     return Response.json({ detail: 'You do not have access to this workspace.' }, { status: 403 })
   }
+
+  const admin = getSupabaseAdmin()
 
   const { data, error } = await admin
     .from('snake_images')
