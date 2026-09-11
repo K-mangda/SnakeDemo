@@ -2,7 +2,7 @@
 
 import { Suspense, useEffect, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { CheckCircle2, ShieldCheck } from 'lucide-react'
+import { CheckCircle2, Eye, EyeOff, ShieldCheck } from 'lucide-react'
 import Button from '@/components/ui/Button'
 import { supabase } from '@/lib/supabase/client'
 
@@ -14,9 +14,13 @@ function SetPasswordForm() {
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [saving, setSaving] = useState(false)
+  const [showPassword, setShowPassword] = useState(false)
+  const [showConfirmation, setShowConfirmation] = useState(false)
+  const preview = searchParams.get('preview') === '1'
 
   useEffect(() => {
     async function verifyInvite() {
+      if (preview) { setReady(true); setMessage(''); return }
       const tokenHash = searchParams.get('token_hash')
       const type = searchParams.get('type')
       const code = searchParams.get('code')
@@ -35,10 +39,11 @@ function SetPasswordForm() {
       setReady(true); setMessage('')
     }
     verifyInvite()
-  }, [searchParams])
+  }, [preview, searchParams])
 
   async function submit(event: React.FormEvent) {
     event.preventDefault()
+    if (preview) { setMessage('Preview mode only — no password was changed.'); return }
     if (password.length < 8) { setMessage('Use at least 8 characters.'); return }
     if (password !== confirmPassword) { setMessage('Passwords do not match.'); return }
     setSaving(true)
@@ -51,7 +56,7 @@ function SetPasswordForm() {
     setTimeout(() => router.replace('/login'), 1800)
   }
 
-  return <main className="grid min-h-screen place-items-center bg-zinc-950 px-5"><section className="w-full max-w-md rounded-2xl border border-zinc-800 bg-zinc-900/40 p-8 shadow-2xl"><div className="mb-7 flex items-center gap-3"><div className="grid h-10 w-10 place-items-center rounded-xl bg-emerald-500/10 text-emerald-400"><ShieldCheck size={20} /></div><div><p className="font-semibold text-zinc-100">NSTRU Vision</p><p className="text-xs text-zinc-500">Expert workspace</p></div></div><h1 className="text-2xl font-medium text-zinc-100">Set your password</h1>{ready ? <form onSubmit={submit} className="mt-6 space-y-4"><label className="block text-sm text-zinc-400">New password<input type="password" value={password} onChange={event => setPassword(event.target.value)} className="mt-2 w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2.5 text-zinc-100 outline-none focus:border-emerald-500" /></label><label className="block text-sm text-zinc-400">Confirm password<input type="password" value={confirmPassword} onChange={event => setConfirmPassword(event.target.value)} className="mt-2 w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2.5 text-zinc-100 outline-none focus:border-emerald-500" /></label><Button disabled={saving} className="mt-2 w-full">{saving ? 'Saving…' : 'Set password'}</Button></form> : <p className={`mt-5 text-sm ${message.includes('invalid') || message.includes('expired') ? 'text-red-400' : 'text-zinc-400'}`}>{message}</p>}{ready && message && <p className="mt-4 flex items-center gap-2 text-sm text-emerald-400"><CheckCircle2 size={16} />{message}</p>}</section></main>
+  return <main className="grid min-h-screen place-items-center bg-zinc-950 px-5"><section className="w-full max-w-lg rounded-2xl border border-zinc-800 bg-zinc-900/40 p-8 shadow-2xl sm:p-9"><div className="mb-8 flex items-center gap-3"><div className="grid h-11 w-11 place-items-center rounded-xl bg-emerald-500/10 text-emerald-400"><ShieldCheck size={21} /></div><div><p className="font-semibold text-zinc-100">NSTRU Vision</p><p className="text-xs text-zinc-500">Expert workspace invitation</p></div></div><h1 className="text-2xl font-medium text-zinc-100">Create your password</h1><p className="mt-2 text-sm leading-6 text-zinc-400">Set a password to access the expert workspace.</p>{preview && <p className="mt-4 rounded-lg border border-sky-500/20 bg-sky-500/10 px-3 py-2 text-xs text-sky-300">Preview mode — no password will be changed.</p>}{ready ? <form onSubmit={submit} className="mt-7 space-y-5"><label className="block text-sm text-zinc-300">New password<div className="relative mt-2"><input type={showPassword ? 'text' : 'password'} value={password} onChange={event => setPassword(event.target.value)} className="w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-3 pr-11 text-zinc-100 outline-none focus:border-emerald-500" /><button type="button" onClick={() => setShowPassword(!showPassword)} aria-label={showPassword ? 'Hide password' : 'Show password'} className="absolute inset-y-0 right-0 grid w-11 place-items-center text-zinc-500 hover:text-zinc-300">{showPassword ? <EyeOff size={17} /> : <Eye size={17} />}</button></div><span className="mt-1.5 block text-xs text-zinc-500">At least 8 characters</span></label><label className="block text-sm text-zinc-300">Confirm password<div className="relative mt-2"><input type={showConfirmation ? 'text' : 'password'} value={confirmPassword} onChange={event => setConfirmPassword(event.target.value)} className="w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-3 pr-11 text-zinc-100 outline-none focus:border-emerald-500" /><button type="button" onClick={() => setShowConfirmation(!showConfirmation)} aria-label={showConfirmation ? 'Hide password' : 'Show password'} className="absolute inset-y-0 right-0 grid w-11 place-items-center text-zinc-500 hover:text-zinc-300">{showConfirmation ? <EyeOff size={17} /> : <Eye size={17} />}</button></div></label><Button disabled={saving} className="mt-2 w-full py-3">{saving ? 'Saving…' : preview ? 'Preview only' : 'Set password'}</Button></form> : <p className={`mt-6 text-sm ${message.includes('invalid') || message.includes('expired') ? 'text-red-400' : 'text-zinc-400'}`}>{message}</p>}{ready && message && <p className="mt-5 flex items-center gap-2 text-sm text-emerald-400"><CheckCircle2 size={16} />{message}</p>}</section></main>
 }
 
 export default function SetPasswordPage() {

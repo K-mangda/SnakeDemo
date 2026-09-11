@@ -6,7 +6,7 @@ import Footer from '@/components/layout/Footer'
 
 export default function AppChrome({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
-  const isAccessPage = pathname === '/login' || pathname === '/setup'
+  const isAccessPage = pathname === '/login' || pathname === '/setup' || pathname === '/set-password'
 
   return (
     <>
