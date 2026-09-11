@@ -13,12 +13,8 @@ export default function ExpertHeader() {
     async function loadProfile() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) return
-      const { data } = await supabase
-        .from('profiles')
-        .select('full_name, role, specialty')
-        .eq('id', user.id)
-        .single()
-      if (data) setProfile(data as Profile)
+      const { data } = await supabase.rpc('current_profile_details')
+      if (data?.[0]) setProfile(data[0] as Profile)
       else setProfile({
         full_name: typeof user.user_metadata.full_name === 'string' ? user.user_metadata.full_name : user.email?.split('@')[0] ?? 'Expert reviewer',
         role: 'expert',
