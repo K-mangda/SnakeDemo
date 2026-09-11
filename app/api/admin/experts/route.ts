@@ -44,7 +44,7 @@ export async function POST(request: Request) {
   const resendKey = process.env.RESEND_API_KEY
   if (!resendKey) return Response.json({ detail: 'Email service is not configured.' }, { status: 500 })
 
-  const inviteUrl = new URL('/login', request.url).toString()
+  const inviteUrl = new URL('/set-password', request.url).toString()
   const { data: linkData, error: linkError } = await access.admin.auth.admin.generateLink({
     type: 'invite', email, options: { redirectTo: inviteUrl, data: { full_name: fullName, specialty } },
   })
@@ -56,7 +56,7 @@ export async function POST(request: Request) {
     headers: { Authorization: `Bearer ${resendKey}`, 'Content-Type': 'application/json' },
     body: JSON.stringify({
       from, to: [email], subject: 'Invitation to NSTRU Vision expert workspace',
-      html: `<main style="font-family:Arial,sans-serif;max-width:560px;margin:auto;color:#18181b"><h1>NSTRU Vision</h1><p>Hello ${escapeHtml(fullName)},</p><p>You have been invited to the expert verification workspace.</p><p><a href="${linkData.properties.action_link}" style="display:inline-block;padding:12px 18px;background:#059669;color:white;text-decoration:none;border-radius:8px">Set your password</a></p><p>After setting your password, your account must be approved by an administrator before you can access the workspace.</p></main>`,
+      html: `<main style="font-family:Arial,sans-serif;max-width:560px;margin:0 auto;padding:32px;color:#e4e4e7;background:#09090b"><p style="margin:0 0 28px;font-weight:700;font-size:20px">NSTRU<span style="color:#a1a1aa;font-weight:400">Vision</span></p><h1 style="margin:0 0 14px;font-size:26px">Expert workspace invitation</h1><p style="color:#a1a1aa;line-height:1.6">Hello ${escapeHtml(fullName)},</p><p style="color:#d4d4d8;line-height:1.6">You have been invited to help verify snake classifications for the NSTRU Vision research system.</p><p style="margin:28px 0"><a href="${linkData.properties.action_link}" style="display:inline-block;padding:13px 20px;background:#059669;color:#fff;text-decoration:none;border-radius:8px;font-weight:600">Set your password</a></p><p style="color:#a1a1aa;line-height:1.6;font-size:13px">After setting your password, an administrator must approve your account before Workspace access is enabled.</p></main>`,
     }),
   })
   if (!emailResponse.ok) {
