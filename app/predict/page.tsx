@@ -1,6 +1,6 @@
 'use client'
 import { useState, useRef } from 'react'
-import { Loader2, Image as ImageIcon } from 'lucide-react'
+import { Database, Loader2, Image as ImageIcon } from 'lucide-react'
 import { SNAKE_DATA } from '@/lib/data'
 import { Snake } from '@/lib/types'
 import { Detection, InferenceResponse, PredictionView } from '@/lib/prediction'
@@ -84,6 +84,8 @@ export default function PredictPage() {
               fileInputRef={fileInputRef}
               handleFileChange={handleFileChange}
             />
+
+            <p className="flex gap-2 rounded-lg border border-zinc-800/70 bg-zinc-900/20 px-3 py-2.5 text-xs leading-5 text-zinc-500"><Database size={15} className="mt-0.5 shrink-0 text-emerald-400" />Images with an AI detection are saved for expert verification and may be used to improve future model training. Upload only images you are permitted to share.</p>
 
             {previewUrl && (
               <Button onClick={result || noDetectionSaved ? () => fileInputRef.current?.click() : noDetection ? () => handlePredict(true) : () => handlePredict()} disabled={loading} className="w-full flex justify-center items-center gap-2 py-3">
