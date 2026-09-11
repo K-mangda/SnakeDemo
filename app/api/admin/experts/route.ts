@@ -1,0 +1,58 @@
+import { createClient } from '@supabase/supabase-js'
+import { getSupabaseAdmin } from '@/lib/supabase/admin'
+
+async function requireAdmin(request: Request) {
+  const token = request.headers.get('authorization')?.replace(/^Bearer\s+/i, '')
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const key = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
+  if (!token) return { error: 'Sign in is required.', status: 401 as const }
+  if (!url || !key) return { error: 'Admin configuration is incomplete.', status: 500 as const }
+  const client = createClient(url, key, { global: { headers: { Authorization: `Bearer ${token}` } } })
+  const { data: authData, error: authError } = await client.auth.getUser(token)
+  if (authError || !authData.user) return { error: 'Your session has expired.', status: 401 as const }
+  const { data: profiles } = await client.rpc('current_profile')
+  const profile = profiles?.[0]
+  if (!profile || profile.role !== 'admin' || profile.status !== 'active') return { error: 'Administrator access is required.', status: 403 as const }
+  return { admin: getSupabaseAdmin() }
+}
+
+export async function GET(request: Request) {
+  const access = await requireAdmin(request)
+  if ('error' in access) return Response.json({ detail: access.error }, { status: access.status })
+  const [{ data: profiles, error }, { data: verifications }] = await Promise.all([
+    access.admin.from('profiles').select('id, full_name, specialty, status, created_at').eq('role', 'expert').order('created_at', { ascending: false }),
+    access.admin.from('verification_history').select('expert_id'),
+  ])
+  if (error) return Response.json({ detail: 'Could not load expert accounts.' }, { status: 500 })
+  const counts = new Map<string, number>()
+  verifications?.forEach(item => counts.set(item.expert_id, (counts.get(item.expert_id) ?? 0) + 1))
+  return Response.json({ experts: profiles?.map(profile => ({ ...profile, verificationCount: counts.get(profile.id) ?? 0 })) ?? [] })
+}
+
+export async function POST(request: Request) {
+  const access = await requireAdmin(request)
+  if ('error' in access) return Response.json({ detail: access.error }, { status: access.status })
+  const body = await request.json()
+  const fullName = typeof body.fullName === 'string' ? body.fullName.trim() : ''
+  const email = typeof body.email === 'string' ? body.email.trim().toLowerCase() : ''
+  const specialty = typeof body.specialty === 'string' ? body.specialty.trim() : ''
+  if (!fullName || !email || !email.includes('@')) return Response.json({ detail: 'Name and a valid email are required.' }, { status: 400 })
+  const { error } = await access.admin.auth.admin.inviteUserByEmail(email, { data: { full_name: fullName, specialty } })
+  if (error) return Response.json({ detail: error.message }, { status: 400 })
+  return Response.json({ ok: true })
+}
+
+export async function PATCH(request: Request) {
+  const access = await requireAdmin(request)
+  if ('error' in access) return Response.json({ detail: access.error }, { status: access.status })
+  const body = await request.json()
+  if (typeof body.id !== 'string') return Response.json({ detail: 'Expert account is required.' }, { status: 400 })
+  const update = {
+    full_name: typeof body.fullName === 'string' ? body.fullName.trim() : undefined,
+    specialty: typeof body.specialty === 'string' ? body.specialty.trim() : undefined,
+    status: ['active', 'inactive', 'pending'].includes(body.status) ? body.status : undefined,
+  }
+  const { error } = await access.admin.from('profiles').update(update).eq('id', body.id).eq('role', 'expert')
+  if (error) return Response.json({ detail: error.message }, { status: 400 })
+  return Response.json({ ok: true })
+}
