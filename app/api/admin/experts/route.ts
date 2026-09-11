@@ -38,18 +38,37 @@ export async function POST(request: Request) {
   const access = await requireAdmin(request)
   if ('error' in access) return Response.json({ detail: access.error }, { status: access.status })
   const body = await request.json()
-  const fullName = typeof body.fullName === 'string' ? body.fullName.trim() : ''
-  const email = typeof body.email === 'string' ? body.email.trim().toLowerCase() : ''
-  const specialty = typeof body.specialty === 'string' ? body.specialty.trim() : ''
-  if (!fullName || !email || !email.includes('@')) return Response.json({ detail: 'Name and a valid email are required.' }, { status: 400 })
+  let fullName = typeof body.fullName === 'string' ? body.fullName.trim() : ''
+  let email = typeof body.email === 'string' ? body.email.trim().toLowerCase() : ''
+  let specialty = typeof body.specialty === 'string' ? body.specialty.trim() : ''
   const inviteUrl = new URL('/set-password', request.url).toString()
-  let { data: linkData, error: linkError } = await access.admin.auth.admin.generateLink({
-    type: 'invite', email, options: { redirectTo: inviteUrl, data: { full_name: fullName, specialty } },
-  })
-  if (linkError) {
+  let linkData: Awaited<ReturnType<typeof access.admin.auth.admin.generateLink>>['data']
+  let linkError: Error | null = null
+
+  if (typeof body.expertId === 'string') {
+    const [{ data: expert }, { data: authUser, error: authError }] = await Promise.all([
+      access.admin.from('profiles').select('full_name, specialty, status').eq('id', body.expertId).eq('role', 'expert').single(),
+      access.admin.auth.admin.getUserById(body.expertId),
+    ])
+    if (!expert || expert.status !== 'pending' || authError || !authUser.user?.email) return Response.json({ detail: 'This pending account could not be found.' }, { status: 404 })
+    fullName = expert.full_name
+    specialty = expert.specialty ?? ''
+    email = authUser.user.email
     const recovery = await access.admin.auth.admin.generateLink({ type: 'recovery', email, options: { redirectTo: inviteUrl } })
     linkData = recovery.data
     linkError = recovery.error
+  } else {
+    if (!fullName || !email || !email.includes('@')) return Response.json({ detail: 'Name and a valid email are required.' }, { status: 400 })
+    const invitation = await access.admin.auth.admin.generateLink({
+      type: 'invite', email, options: { redirectTo: inviteUrl, data: { full_name: fullName, specialty } },
+    })
+    linkData = invitation.data
+    linkError = invitation.error
+    if (linkError) {
+      const recovery = await access.admin.auth.admin.generateLink({ type: 'recovery', email, options: { redirectTo: inviteUrl } })
+      linkData = recovery.data
+      linkError = recovery.error
+    }
   }
   if (linkError || !linkData.properties?.action_link) return Response.json({ detail: linkError?.message ?? 'Could not create an invitation link.' }, { status: 400 })
 
