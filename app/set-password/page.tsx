@@ -43,9 +43,11 @@ function SetPasswordForm() {
     if (password !== confirmPassword) { setMessage('Passwords do not match.'); return }
     setSaving(true)
     const { error } = await supabase.auth.updateUser({ password })
+    if (error) { setSaving(false); setMessage(error.message); return }
+    const { error: activationError } = await supabase.rpc('activate_invited_expert')
     setSaving(false)
-    if (error) { setMessage(error.message); return }
-    setMessage('Password set. Your administrator will approve access shortly.')
+    if (activationError) { setMessage('Password was set, but Workspace access could not be enabled. Please contact an administrator.'); return }
+    setMessage('Password set. Workspace access is now enabled.')
     setTimeout(() => router.replace('/login'), 1800)
   }
 

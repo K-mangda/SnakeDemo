@@ -71,11 +71,19 @@ export async function POST(request: Request) {
     }
   }
   if (linkError || !linkData.properties?.action_link) return Response.json({ detail: linkError?.message ?? 'Could not create an invitation link.' }, { status: 400 })
+  if (linkData.user?.id && typeof body.expertId !== 'string') {
+    const { error: profileError } = await access.admin
+      .from('profiles')
+      .update({ full_name: fullName, specialty })
+      .eq('id', linkData.user.id)
+      .eq('role', 'expert')
+    if (profileError) return Response.json({ detail: 'The invitation was created, but the expert profile could not be saved.' }, { status: 500 })
+  }
 
   try {
     await sendInvitationEmail({
       to: email, subject: 'Invitation to NSTRU Vision expert workspace',
-      html: `<main style="font-family:Arial,sans-serif;max-width:560px;margin:0 auto;padding:32px;color:#e4e4e7;background:#09090b"><p style="margin:0 0 28px;font-weight:700;font-size:20px">NSTRU<span style="color:#a1a1aa;font-weight:400">Vision</span></p><h1 style="margin:0 0 14px;font-size:26px">Expert workspace invitation</h1><p style="color:#a1a1aa;line-height:1.6">Hello ${escapeHtml(fullName)},</p><p style="color:#d4d4d8;line-height:1.6">You have been invited to help verify snake classifications for the NSTRU Vision research system.</p><p style="margin:28px 0"><a href="${linkData.properties.action_link}" style="display:inline-block;padding:13px 20px;background:#059669;color:#fff;text-decoration:none;border-radius:8px;font-weight:600">Set your password</a></p><p style="color:#a1a1aa;line-height:1.6;font-size:13px">After setting your password, an administrator must approve your account before Workspace access is enabled.</p></main>`,
+      html: `<main style="font-family:Arial,sans-serif;max-width:560px;margin:0 auto;padding:32px;color:#e4e4e7;background:#09090b"><p style="margin:0 0 28px;font-weight:700;font-size:20px">NSTRU<span style="color:#a1a1aa;font-weight:400">Vision</span></p><h1 style="margin:0 0 14px;font-size:26px">Expert workspace invitation</h1><p style="color:#a1a1aa;line-height:1.6">Hello ${escapeHtml(fullName)},</p><p style="color:#d4d4d8;line-height:1.6">You have been invited to help verify snake classifications for the NSTRU Vision research system.</p><p style="margin:28px 0"><a href="${linkData.properties.action_link}" style="display:inline-block;padding:13px 20px;background:#059669;color:#fff;text-decoration:none;border-radius:8px;font-weight:600">Set your password</a></p><p style="color:#a1a1aa;line-height:1.6;font-size:13px">After setting your password, Workspace access will be enabled automatically.</p></main>`,
     })
   } catch (error) {
     return Response.json({ detail: error instanceof Error ? error.message : 'Gmail could not send the invitation email.' }, { status: 400 })
