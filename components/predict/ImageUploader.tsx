@@ -32,11 +32,12 @@ export default function ImageUploader({
         `}
       >
         {previewUrl ? (
-          <>
+          <div className="absolute inset-2 flex items-center justify-center">
+            <div className="relative max-w-full max-h-full">
             <img 
               src={previewUrl} 
               alt="Preview" 
-              className={`absolute inset-0 w-full h-full object-contain p-2 transition-all duration-700 ${loading ? 'opacity-40 scale-[0.98]' : 'opacity-100 scale-100'}`} 
+              className={`block max-w-full max-h-full object-contain transition-all duration-700 ${loading ? 'opacity-40 scale-[0.98]' : 'opacity-100 scale-100'}`} 
             />
             
             {loading && (
@@ -49,17 +50,14 @@ export default function ImageUploader({
             )}
 
             {!loading && detections.map((detection, index) => (
-              <div key={`${detection.scientific}-${index}`} className="absolute inset-2 pointer-events-none animate-fade-up">
-                <div className="relative w-full h-full flex items-center justify-center">
-                  <div className="absolute border-2 border-emerald-500 bg-emerald-500/20 shadow-[0_0_15px_rgba(16,185,129,0.3)]" style={{ left: `${detection.bbox.x}%`, top: `${detection.bbox.y}%`, width: `${detection.bbox.width}%`, height: `${detection.bbox.height}%` }}>
-                     <div className="absolute -top-7 left-[-2px] bg-emerald-500 text-zinc-950 text-xs font-bold px-2 py-1 rounded-t-md">
-                       {detection.scientific} {(detection.confidence * 100).toFixed(1)}%
-                     </div>
-                  </div>
+              <div key={`${detection.scientific}-${index}`} className="absolute pointer-events-none animate-fade-up border-2 border-emerald-500 bg-emerald-500/20 shadow-[0_0_15px_rgba(16,185,129,0.3)]" style={{ left: `${detection.bbox.x}%`, top: `${detection.bbox.y}%`, width: `${detection.bbox.width}%`, height: `${detection.bbox.height}%` }}>
+                <div className="absolute -top-7 left-[-2px] whitespace-nowrap bg-emerald-500 text-zinc-950 text-xs font-bold px-2 py-1 rounded-t-md">
+                  {detection.scientific} {(detection.confidence * 100).toFixed(1)}%
                 </div>
               </div>
             ))}
-          </>
+            </div>
+          </div>
         ) : (
           <div className="flex flex-col items-center gap-4 text-zinc-500 text-center transition-transform duration-300 group-hover:-translate-y-2">
             <div className="relative flex items-center justify-center animate-float-small">
