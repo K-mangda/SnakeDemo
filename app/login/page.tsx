@@ -97,12 +97,12 @@ export default function LoginPage() {
   return (
     <AuthShell label="" title="" description="">
       {resetOpen ? <>
-        <button type="button" onClick={() => setResetOpen(false)} className="mb-6 text-xs font-medium text-zinc-500 transition hover:text-zinc-200">← Back to sign in</button>
-        <div className="mb-6"><h1 className="text-xl font-semibold tracking-tight text-zinc-100">Reset your password</h1><p className="mt-2 text-sm leading-6 text-zinc-500">Enter your account email and we&apos;ll send a secure reset link through Gmail.</p></div>
+        <div className="mb-7 text-center"><h1 className="text-xl font-semibold tracking-tight text-zinc-100">Reset your password</h1><p className="mt-2 text-sm text-zinc-500">We&apos;ll email you a secure password-reset link.</p></div>
         <form onSubmit={requestPasswordReset} className="space-y-5">
           <div><label className="mb-2 block text-xs font-medium text-zinc-400">Email</label><input type="email" required autoFocus autoComplete="email" value={resetEmail} onChange={event => setResetEmail(event.target.value)} placeholder="name@example.com" className="w-full rounded-xl border border-white/[0.09] bg-white/[0.04] px-4 py-3 text-sm text-zinc-100 outline-none transition placeholder:text-zinc-600 focus:border-emerald-400/70 focus:bg-emerald-400/[0.04]" /></div>
           <Button className="w-full !rounded-xl !py-3.5" size="lg" disabled={resetSending}>{resetSending ? 'Sending link…' : 'Send reset link'}</Button>
         </form>
+        <div className="mt-4 text-center"><button type="button" onClick={() => setResetOpen(false)} className="text-xs font-medium text-zinc-500 transition hover:text-zinc-200">← Back to sign in</button></div>
       </> : <>
         <form onSubmit={handleLogin} className="space-y-5">
           <div>
@@ -126,6 +126,7 @@ export default function LoginPage() {
                 autoComplete="current-password"
                 value={password}
                 onChange={e => setPassword(e.target.value)}
+                placeholder="Enter your password"
                 className="w-full rounded-xl border border-white/[0.09] bg-white/[0.04] px-4 py-3 pr-12 text-sm text-zinc-100 outline-none transition placeholder:text-zinc-600 focus:border-emerald-400/70 focus:bg-emerald-400/[0.04]"
               />
               <button type="button" onClick={() => setShowPassword(!showPassword)} aria-label={showPassword ? 'Hide password' : 'Show password'} className="absolute inset-y-0 right-0 grid w-12 place-items-center text-zinc-500 transition hover:text-zinc-300">{showPassword ? <EyeOff size={17} /> : <Eye size={17} />}</button>

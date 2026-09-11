@@ -54,9 +54,9 @@ export default function Navbar() {
       scrolled ? 'bg-zinc-950/80 backdrop-blur-md border-zinc-800/80 py-3' : 'bg-transparent border-transparent py-5'
     )}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 flex items-center justify-between">
-        <Link href="/" className="flex items-center gap-2">
+        <Link href="/" className="flex items-center gap-2 text-emerald-400 transition hover:text-emerald-300">
           <Hexagon className="text-emerald-500 fill-emerald-500/20" size={24} />
-          <span className="font-bold tracking-tight text-zinc-100">NSTRU<span className="text-zinc-500 font-normal">Vision</span></span>
+          <span className="font-bold tracking-tight">NSTRU<span className="text-zinc-500 font-normal">Vision</span></span>
         </Link>
 
         <div className="hidden md:flex items-center gap-8">
