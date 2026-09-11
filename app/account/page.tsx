@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { KeyRound, ShieldCheck } from 'lucide-react'
+import { Eye, EyeOff, KeyRound, ShieldCheck } from 'lucide-react'
 import Button from '@/components/ui/Button'
 import { useToast } from '@/components/ui/Toast'
 import { supabase } from '@/lib/supabase/client'
@@ -13,6 +13,8 @@ export default function AccountPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
+  const [showConfirmation, setShowConfirmation] = useState(false)
   const [saving, setSaving] = useState(false)
 
   useEffect(() => {
@@ -46,8 +48,8 @@ export default function AccountPage() {
     <section className="mt-7 rounded-2xl border border-white/[0.09] bg-zinc-900/35 p-5 sm:p-6">
       <div className="flex items-start gap-3"><div className="rounded-xl bg-emerald-500/10 p-2.5 text-emerald-400"><KeyRound size={19} /></div><div><h2 className="font-medium text-zinc-100">Change password</h2><p className="mt-1 text-sm text-zinc-500">Signed in as {email || 'your account'}</p></div></div>
       <form onSubmit={changePassword} className="mt-6 space-y-4">
-        <label className="block text-xs font-medium text-zinc-400">New password<input type="password" required autoComplete="new-password" value={password} onChange={event => setPassword(event.target.value)} className="mt-2 w-full rounded-xl border border-white/[0.09] bg-zinc-950/70 px-4 py-3 text-sm text-zinc-100 outline-none transition focus:border-emerald-400/70" /></label>
-        <label className="block text-xs font-medium text-zinc-400">Confirm new password<input type="password" required autoComplete="new-password" value={confirmPassword} onChange={event => setConfirmPassword(event.target.value)} className="mt-2 w-full rounded-xl border border-white/[0.09] bg-zinc-950/70 px-4 py-3 text-sm text-zinc-100 outline-none transition focus:border-emerald-400/70" /></label>
+        <label className="block text-xs font-medium text-zinc-400">New password<div className="relative mt-2"><input type={showPassword ? 'text' : 'password'} required autoComplete="new-password" value={password} onChange={event => setPassword(event.target.value)} className="w-full rounded-xl border border-white/[0.09] bg-zinc-950/70 px-4 py-3 pr-12 text-sm text-zinc-100 outline-none transition focus:border-emerald-400/70" /><button type="button" onClick={() => setShowPassword(!showPassword)} aria-label={showPassword ? 'Hide password' : 'Show password'} className="absolute inset-y-0 right-0 grid w-12 place-items-center text-zinc-500 transition hover:text-zinc-300">{showPassword ? <EyeOff size={17} /> : <Eye size={17} />}</button></div></label>
+        <label className="block text-xs font-medium text-zinc-400">Confirm new password<div className="relative mt-2"><input type={showConfirmation ? 'text' : 'password'} required autoComplete="new-password" value={confirmPassword} onChange={event => setConfirmPassword(event.target.value)} className="w-full rounded-xl border border-white/[0.09] bg-zinc-950/70 px-4 py-3 pr-12 text-sm text-zinc-100 outline-none transition focus:border-emerald-400/70" /><button type="button" onClick={() => setShowConfirmation(!showConfirmation)} aria-label={showConfirmation ? 'Hide password' : 'Show password'} className="absolute inset-y-0 right-0 grid w-12 place-items-center text-zinc-500 transition hover:text-zinc-300">{showConfirmation ? <EyeOff size={17} /> : <Eye size={17} />}</button></div></label>
         <p className="text-xs text-zinc-500">Use at least 8 characters.</p>
         <Button disabled={saving} className="w-full sm:w-auto">{saving ? 'Updating…' : 'Update password'}</Button>
       </form>

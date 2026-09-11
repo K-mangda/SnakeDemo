@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { ArrowRight, ShieldCheck, UserPlus } from 'lucide-react'
+import { ArrowRight, Eye, EyeOff, ShieldCheck, UserPlus } from 'lucide-react'
 import Button from '@/components/ui/Button'
 import { supabase } from '@/lib/supabase/client'
 import AuthShell from '@/components/auth/AuthShell'
@@ -10,6 +10,7 @@ import AuthShell from '@/components/auth/AuthShell'
 export default function SetupPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
   const [fullName, setFullName] = useState('')
   const [message, setMessage] = useState('')
   const [loading, setLoading] = useState(false)
@@ -79,7 +80,7 @@ export default function SetupPage() {
           </div>
           <div>
             <label className="mb-2 block text-xs font-medium text-zinc-400">Password</label>
-            <input required minLength={12} type="password" autoComplete="new-password" placeholder="12+ characters" value={password} onChange={(event) => setPassword(event.target.value)} className="w-full rounded-xl border border-white/[0.09] bg-white/[0.04] px-4 py-3 text-sm text-zinc-100 outline-none transition placeholder:text-zinc-600 focus:border-emerald-400/70 focus:bg-emerald-400/[0.04]" />
+            <div className="relative"><input required minLength={12} type={showPassword ? 'text' : 'password'} autoComplete="new-password" placeholder="12+ characters" value={password} onChange={(event) => setPassword(event.target.value)} className="w-full rounded-xl border border-white/[0.09] bg-white/[0.04] px-4 py-3 pr-12 text-sm text-zinc-100 outline-none transition placeholder:text-zinc-600 focus:border-emerald-400/70 focus:bg-emerald-400/[0.04]" /><button type="button" onClick={() => setShowPassword(!showPassword)} aria-label={showPassword ? 'Hide password' : 'Show password'} className="absolute inset-y-0 right-0 grid w-12 place-items-center text-zinc-500 transition hover:text-zinc-300">{showPassword ? <EyeOff size={17} /> : <Eye size={17} />}</button></div>
             {errors.password && <p className="mt-1 text-xs text-red-400">{errors.password}</p>}
           </div>
           <Button className="w-full !rounded-xl !py-3.5" size="lg" disabled={loading}>{loading ? 'Creating account...' : <><UserPlus size={17} /> Create administrator account</>}</Button>

@@ -3,7 +3,7 @@ import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import Button from '@/components/ui/Button'
-import { Lock, LogIn } from 'lucide-react'
+import { Eye, EyeOff, Lock, LogIn } from 'lucide-react'
 import { useToast } from '@/components/ui/Toast'
 import { supabase } from '@/lib/supabase/client'
 import AuthShell from '@/components/auth/AuthShell'
@@ -19,6 +19,7 @@ export default function LoginPage() {
   const [resetOpen, setResetOpen] = useState(false)
   const [resetEmail, setResetEmail] = useState('')
   const [resetSending, setResetSending] = useState(false)
+  const [showPassword, setShowPassword] = useState(false)
 
   useEffect(() => {
     async function checkInitialAdmin() {
@@ -95,6 +96,14 @@ export default function LoginPage() {
 
   return (
     <AuthShell label="" title="" description="">
+      {resetOpen ? <>
+        <button type="button" onClick={() => setResetOpen(false)} className="mb-6 text-xs font-medium text-zinc-500 transition hover:text-zinc-200">← Back to sign in</button>
+        <div className="mb-6"><h1 className="text-xl font-semibold tracking-tight text-zinc-100">Reset your password</h1><p className="mt-2 text-sm leading-6 text-zinc-500">Enter your account email and we&apos;ll send a secure reset link through Gmail.</p></div>
+        <form onSubmit={requestPasswordReset} className="space-y-5">
+          <div><label className="mb-2 block text-xs font-medium text-zinc-400">Email</label><input type="email" required autoFocus autoComplete="email" value={resetEmail} onChange={event => setResetEmail(event.target.value)} placeholder="name@example.com" className="w-full rounded-xl border border-white/[0.09] bg-white/[0.04] px-4 py-3 text-sm text-zinc-100 outline-none transition placeholder:text-zinc-600 focus:border-emerald-400/70 focus:bg-emerald-400/[0.04]" /></div>
+          <Button className="w-full !rounded-xl !py-3.5" size="lg" disabled={resetSending}>{resetSending ? 'Sending link…' : 'Send reset link'}</Button>
+        </form>
+      </> : <>
         <form onSubmit={handleLogin} className="space-y-5">
           <div>
             <label className="mb-2 block text-xs font-medium text-zinc-400">Email</label>
@@ -110,14 +119,17 @@ export default function LoginPage() {
           </div>
           <div>
             <label className="mb-2 block text-xs font-medium text-zinc-400">Password</label>
-            <input 
-              type="password" 
-              required
-              autoComplete="current-password"
-              value={password}
-              onChange={e => setPassword(e.target.value)}
-              className="w-full rounded-xl border border-white/[0.09] bg-white/[0.04] px-4 py-3 text-sm text-zinc-100 outline-none transition placeholder:text-zinc-600 focus:border-emerald-400/70 focus:bg-emerald-400/[0.04]"
-            />
+            <div className="relative">
+              <input 
+                type={showPassword ? 'text' : 'password'} 
+                required
+                autoComplete="current-password"
+                value={password}
+                onChange={e => setPassword(e.target.value)}
+                className="w-full rounded-xl border border-white/[0.09] bg-white/[0.04] px-4 py-3 pr-12 text-sm text-zinc-100 outline-none transition placeholder:text-zinc-600 focus:border-emerald-400/70 focus:bg-emerald-400/[0.04]"
+              />
+              <button type="button" onClick={() => setShowPassword(!showPassword)} aria-label={showPassword ? 'Hide password' : 'Show password'} className="absolute inset-y-0 right-0 grid w-12 place-items-center text-zinc-500 transition hover:text-zinc-300">{showPassword ? <EyeOff size={17} /> : <Eye size={17} />}</button>
+            </div>
           </div>
           <Button className="w-full !rounded-xl !py-3.5" size="lg" disabled={loading}>
             {loading ? 'Checking access...' : <>Sign in <LogIn size={17} /></>}
@@ -125,16 +137,11 @@ export default function LoginPage() {
         </form>
 
         <div className="mt-4 text-right">
-          <button type="button" onClick={() => setResetOpen(!resetOpen)} className="text-xs font-medium text-emerald-400 transition hover:text-emerald-300">
+          <button type="button" onClick={() => setResetOpen(true)} className="text-xs font-medium text-emerald-400 transition hover:text-emerald-300">
             Forgot password?
           </button>
         </div>
-        {resetOpen && <form onSubmit={requestPasswordReset} className="mt-4 rounded-xl border border-white/[0.08] bg-white/[0.025] p-4">
-          <p className="text-sm font-medium text-zinc-200">Reset your password</p>
-          <p className="mt-1 text-xs leading-5 text-zinc-500">Enter your account email. We&apos;ll send a secure reset link through Gmail.</p>
-          <input type="email" required autoComplete="email" value={resetEmail} onChange={event => setResetEmail(event.target.value)} placeholder="name@example.com" className="mt-3 w-full rounded-lg border border-white/[0.09] bg-zinc-950 px-3 py-2.5 text-sm text-zinc-100 outline-none transition placeholder:text-zinc-600 focus:border-emerald-400/70" />
-          <div className="mt-3 flex justify-end gap-2"><Button type="button" variant="ghost" size="sm" onClick={() => setResetOpen(false)}>Cancel</Button><Button size="sm" disabled={resetSending}>{resetSending ? 'Sending…' : 'Send reset link'}</Button></div>
-        </form>}
+      </>}
 
         <div className="mt-7 flex items-center gap-3 border-t border-white/[0.07] pt-5 text-xs text-zinc-500">
           <Lock size={13} className="shrink-0 text-emerald-400" />
