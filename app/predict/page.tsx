@@ -43,7 +43,8 @@ export default function PredictPage() {
       setDetections(payload.detections)
       setResult({ detection: payload.top_detection, reference })
       setLoading(false)
-      showToast(payload.recorded ? 'Subject analysis complete. Saved for expert review.' : 'Subject analysis complete. Match found.')
+      const requiresReview = payload.top_detection.confidence < 0.5
+      showToast(requiresReview ? 'Low-confidence detection saved for expert review.' : payload.recorded ? 'Subject analysis complete. Saved for expert review.' : 'Subject analysis complete. Match found.')
     } catch (error) {
       setLoading(false)
       showToast(error instanceof Error ? error.message : 'AI analysis could not be completed.', 'error')

@@ -52,7 +52,7 @@ export default function ImageUploader({
             {!loading && detections.map((detection, index) => (
               <div key={`${detection.scientific}-${index}`} className="absolute pointer-events-none animate-fade-up border-2 border-emerald-500 bg-emerald-500/20 shadow-[0_0_15px_rgba(16,185,129,0.3)]" style={{ left: `${detection.bbox.x}%`, top: `${detection.bbox.y}%`, width: `${detection.bbox.width}%`, height: `${detection.bbox.height}%` }}>
                 <div className="absolute -top-7 left-[-2px] whitespace-nowrap bg-emerald-500 text-zinc-950 text-xs font-bold px-2 py-1 rounded-t-md">
-                  {detection.scientific} {(detection.confidence * 100).toFixed(1)}%
+                  {detection.confidence < 0.5 ? 'Possible match: ' : ''}{detection.scientific} {(detection.confidence * 100).toFixed(1)}%
                 </div>
               </div>
             ))}
