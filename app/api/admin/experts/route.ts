@@ -1,6 +1,10 @@
 import { createClient } from '@supabase/supabase-js'
 import { getSupabaseAdmin } from '@/lib/supabase/admin'
 
+function escapeHtml(value: string) {
+  return value.replace(/[&<>'"]/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[char] ?? char))
+}
+
 async function requireAdmin(request: Request) {
   const token = request.headers.get('authorization')?.replace(/^Bearer\s+/i, '')
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL
@@ -37,8 +41,28 @@ export async function POST(request: Request) {
   const email = typeof body.email === 'string' ? body.email.trim().toLowerCase() : ''
   const specialty = typeof body.specialty === 'string' ? body.specialty.trim() : ''
   if (!fullName || !email || !email.includes('@')) return Response.json({ detail: 'Name and a valid email are required.' }, { status: 400 })
-  const { error } = await access.admin.auth.admin.inviteUserByEmail(email, { data: { full_name: fullName, specialty } })
-  if (error) return Response.json({ detail: error.message }, { status: 400 })
+  const resendKey = process.env.RESEND_API_KEY
+  if (!resendKey) return Response.json({ detail: 'Email service is not configured.' }, { status: 500 })
+
+  const inviteUrl = new URL('/login', request.url).toString()
+  const { data: linkData, error: linkError } = await access.admin.auth.admin.generateLink({
+    type: 'invite', email, options: { redirectTo: inviteUrl, data: { full_name: fullName, specialty } },
+  })
+  if (linkError || !linkData.properties?.action_link) return Response.json({ detail: linkError?.message ?? 'Could not create an invitation link.' }, { status: 400 })
+
+  const from = process.env.RESEND_FROM_EMAIL ?? 'NSTRU Vision <onboarding@resend.dev>'
+  const emailResponse = await fetch('https://api.resend.com/emails', {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${resendKey}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      from, to: [email], subject: 'Invitation to NSTRU Vision expert workspace',
+      html: `<main style="font-family:Arial,sans-serif;max-width:560px;margin:auto;color:#18181b"><h1>NSTRU Vision</h1><p>Hello ${escapeHtml(fullName)},</p><p>You have been invited to the expert verification workspace.</p><p><a href="${linkData.properties.action_link}" style="display:inline-block;padding:12px 18px;background:#059669;color:white;text-decoration:none;border-radius:8px">Set your password</a></p><p>After setting your password, your account must be approved by an administrator before you can access the workspace.</p></main>`,
+    }),
+  })
+  if (!emailResponse.ok) {
+    const details = await emailResponse.json().catch(() => null)
+    return Response.json({ detail: details?.message ?? 'Resend could not send the invitation email.' }, { status: 400 })
+  }
   return Response.json({ ok: true })
 }
 
