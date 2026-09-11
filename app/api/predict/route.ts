@@ -32,6 +32,7 @@ async function savePrediction(image: File, payload: { top_detection: { scientifi
     storage_path: storagePath,
     original_filename: safeFilename(image.name),
     predicted_species_id: speciesId,
+    predicted_scientific: payload.top_detection?.scientific ?? null,
     confidence: payload.top_detection?.confidence ?? null,
     predicted_bbox: payload.top_detection?.bbox ?? null,
     status: payload.top_detection ? 'pending' : 'unclear',

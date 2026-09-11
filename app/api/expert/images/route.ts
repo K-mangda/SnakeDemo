@@ -7,6 +7,7 @@ type StoredImage = {
   original_filename: string
   status: 'pending' | 'verified' | 'unclear' | 'waiting_for_new_class'
   confidence: number | null
+  predicted_scientific: string | null
   predicted_bbox: { x: number; y: number; width: number; height: number } | null
   created_at: string
   predicted_species: { scientific_name: string; name_th: string | null }[] | null
@@ -37,7 +38,7 @@ export async function GET(request: Request) {
 
   const { data, error } = await admin
     .from('snake_images')
-    .select('id, storage_path, original_filename, status, confidence, predicted_bbox, created_at, predicted_species:snake_species!snake_images_predicted_species_id_fkey(scientific_name, name_th)')
+    .select('id, storage_path, original_filename, status, confidence, predicted_scientific, predicted_bbox, created_at, predicted_species:snake_species!snake_images_predicted_species_id_fkey(scientific_name, name_th)')
     .order('created_at', { ascending: false })
     .limit(100)
 
@@ -63,7 +64,7 @@ export async function GET(request: Request) {
       createdAt: image.created_at,
       prediction: image.predicted_species?.[0]
         ? { scientific: image.predicted_species[0].scientific_name, nameTh: image.predicted_species[0].name_th }
-        : { scientific: 'Reference pending', nameTh: null },
+        : { scientific: image.predicted_scientific ?? 'Reference pending', nameTh: null },
     }
   }))
 
