@@ -29,7 +29,7 @@ export async function GET(request: Request) {
   const { data: profiles, error: profileError } = await authClient.rpc('current_profile')
   const profile = profiles?.[0]
 
-  if (profileError || !profile || profile.status !== 'active' || !['admin', 'expert'].includes(profile.role)) {
+  if (profileError || !profile || profile.status !== 'active' || profile.role !== 'expert') {
     return Response.json({ detail: 'You do not have access to this workspace.' }, { status: 403 })
   }
 

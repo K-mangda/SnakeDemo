@@ -44,7 +44,7 @@ export default function Navbar() {
   const links = [
     { href: '/predict', label: 'Analysis' },
     { href: '/export', label: 'Export' },
-    ...(role ? [{ href: '/expert', label: 'Workspace' }] : []),
+    ...(role === 'expert' ? [{ href: '/expert', label: 'Workspace' }] : []),
     ...(role === 'admin' ? [{ href: '/admin', label: 'System' }] : []),
   ]
 
