@@ -267,6 +267,45 @@ set
   reference_note = 'TH-BIF/ONEP accepts Lycodon davisonii and records the Thai common names used here.'
 where scientific_name = 'Lycodon davisonii';
 
+-- Keep the two UI-facing safety fields short and consistent.  The detailed
+-- clinical wording and every source URL remain in symptoms, first_aid,
+-- medical_source and reference_note above.  These are display categories,
+-- not a substitute for medical triage.
+with display_categories (scientific_name, venom_type, danger_level) as (
+  values
+    ('Ahaetulla nasuta', 'พิษอ่อน', 'ต่ำ'),
+    ('Ahaetulla prasina', 'พิษอ่อน', 'ต่ำ'),
+    ('Boiga cyanea', 'พิษอ่อน', 'ต่ำ'),
+    ('Boiga melanota', 'พิษอ่อน', 'ต่ำ'),
+    ('Boiga multomaculata', 'พิษอ่อน', 'ต่ำ'),
+    ('Boiga siamensis', 'พิษอ่อน', 'ต่ำ'),
+    ('Bungarus fasciatus', 'พิษต่อระบบประสาท', 'สูง'),
+    ('Bungarus wanghaotingi', 'พิษต่อระบบประสาท', 'สูง'),
+    ('Calliophis maculiceps maculiceps', 'พิษต่อระบบประสาท', 'สูง'),
+    ('Coelognathus radiatus', 'ไม่ใช่งูพิษทางการแพทย์', 'ต่ำ'),
+    ('Cylindrophis jodiae', 'ไม่ใช่งูพิษทางการแพทย์', 'ต่ำ'),
+    ('Daboia siamensis', 'พิษต่อระบบเลือด', 'สูง'),
+    ('Dendrelaphis pictus', 'ไม่ใช่งูพิษทางการแพทย์', 'ต่ำ'),
+    ('Enhydris enhydris', 'พิษอ่อน', 'ต่ำ'),
+    ('Enhydris plumbea', 'พิษอ่อน', 'ต่ำ'),
+    ('Homalopsis buccata', 'พิษอ่อน', 'ต่ำ'),
+    ('Lycodon davisonii', 'ไม่ใช่งูพิษทางการแพทย์', 'ต่ำ'),
+    ('Lycodon laoensis', 'ไม่ใช่งูพิษทางการแพทย์', 'ต่ำ'),
+    ('Malayopython reticulatus', 'ไม่มีพิษ', 'ปานกลาง'),
+    ('Naja kaouthia', 'พิษต่อระบบประสาท', 'สูง'),
+    ('Oligodon taeniatus', 'ไม่ใช่งูพิษทางการแพทย์', 'ต่ำ'),
+    ('Psammodynastes pulverulentus', 'พิษอ่อน', 'ต่ำ'),
+    ('Ptyas mucosa', 'ไม่ใช่งูพิษทางการแพทย์', 'ต่ำ'),
+    ('Trimeresurus albolabris', 'พิษต่อระบบเลือด', 'สูง'),
+    ('Trimeresurus macrops', 'พิษต่อระบบเลือด', 'สูง')
+)
+update public.snake_species as species
+set
+  venom_type = category.venom_type,
+  danger_level = category.danger_level
+from display_categories as category
+where species.scientific_name = category.scientific_name;
+
 -- Audit: must return 25 records and 0 rows with a null/empty safety field.
 select scientific_name, name_th, name_en, family, venom_type, danger_level, medical_source
 from public.snake_species
