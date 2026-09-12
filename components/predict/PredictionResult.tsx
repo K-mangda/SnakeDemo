@@ -40,7 +40,7 @@ export default function PredictionResult({ result, noDetection = false, noDetect
         <span className={`text-xs font-mono ${requiresReview ? 'text-amber-400' : 'text-emerald-500'}`}>CONFIDENCE: {(result.detection.confidence * 100).toFixed(1)}%</span>
       </div>
 
-      <div className="mb-8 flex items-start gap-3">
+      <div className="mb-6 flex items-start gap-3">
         <div className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-emerald-500/25 bg-emerald-500/10 text-emerald-400">
           <ScanLine size={20} />
         </div>
@@ -58,17 +58,25 @@ export default function PredictionResult({ result, noDetection = false, noDetect
           : 'ผลลัพธ์นี้เป็นการคัดกรองด้วย AI ไม่ใช่คำวินิจฉัยทางการแพทย์'}
       </div>
 
-      <div className="space-y-4 flex-1">
+      <div className="flex-1">
         {requiresReview ? <p className="rounded-lg border border-zinc-800 bg-zinc-900/30 p-3 text-sm text-zinc-400">The detected region is retained for expert review. No species-specific reference is shown for low-confidence results.</p> : result.reference ? <>
-          <div className="flex justify-between items-center py-3 border-b border-zinc-800/50"><span className="text-sm text-zinc-500">Taxonomic reference</span><span className="text-sm text-zinc-300 text-right max-w-[200px] truncate" title={result.reference.accepted_scientific_name ?? result.reference.scientific_name}>{result.reference.accepted_scientific_name ?? result.reference.scientific_name}</span></div>
-          {result.reference.family && <div className="flex justify-between items-center py-3 border-b border-zinc-800/50"><span className="text-sm text-zinc-500">Family</span><span className="text-sm text-zinc-300">{result.reference.family}</span></div>}
-          {(result.reference.venom_type || result.reference.danger_level) && <div className="grid grid-cols-2 gap-3 border-b border-zinc-800/50 py-4">
+          {(result.reference.venom_type || result.reference.danger_level) && <div className="grid grid-cols-2 gap-3 py-1">
             {result.reference.venom_type && <div><p className="mb-2 text-[11px] uppercase tracking-[0.14em] text-zinc-500">Venom type</p><Badge variant="info" className="text-xs">{result.reference.venom_type}</Badge></div>}
             {result.reference.danger_level && <div><p className="mb-2 text-[11px] uppercase tracking-[0.14em] text-zinc-500">Danger level</p><Badge variant={dangerVariant} className="text-xs">{result.reference.danger_level}</Badge></div>}
           </div>}
-          {result.reference.danger_level === 'อันตรายสูง' && <p className="rounded-lg border border-red-500/30 bg-red-500/10 p-3 text-sm leading-5 text-red-100">หากถูกกัด ให้ไปห้องฉุกเฉินทันที และอย่าพยายามจับงู</p>}
-          {sourceLabel && <div className="flex justify-between items-center py-3"><span className="text-sm text-zinc-500">Reference source</span><span className="max-w-[200px] truncate text-right text-sm text-emerald-300" title={result.reference.medical_source ?? undefined}>{sourceLabel}</span></div>}
-          {taxonomySourceUrl && <a href={taxonomySourceUrl} target="_blank" rel="noreferrer" className="inline-flex w-fit items-center gap-1.5 text-sm text-emerald-400 transition-colors hover:text-emerald-300"><ExternalLink size={14} />View taxonomy source</a>}
+          {result.reference.danger_level === 'อันตรายสูง' && <p className="mt-5 rounded-lg border border-red-500/30 bg-red-500/10 p-3 text-sm leading-5 text-red-100">หากถูกกัด ให้ไปห้องฉุกเฉินทันที และอย่าพยายามจับงู</p>}
+          <details className="group mt-5 overflow-hidden rounded-lg border border-zinc-800 bg-zinc-900/20">
+            <summary className="flex cursor-pointer list-none items-center justify-between px-3 py-3 text-sm text-zinc-400 transition-colors hover:text-zinc-200 [&::-webkit-details-marker]:hidden">
+              Details &amp; reference
+              <span className="text-xs text-zinc-600 transition-transform group-open:rotate-180">⌄</span>
+            </summary>
+            <div className="border-t border-zinc-800 px-3 pb-2">
+              <div className="flex items-center justify-between gap-3 border-b border-zinc-800/60 py-3"><span className="text-sm text-zinc-500">Taxonomic reference</span><span className="max-w-[200px] truncate text-right text-sm text-zinc-300" title={result.reference.accepted_scientific_name ?? result.reference.scientific_name}>{result.reference.accepted_scientific_name ?? result.reference.scientific_name}</span></div>
+              {result.reference.family && <div className="flex items-center justify-between gap-3 border-b border-zinc-800/60 py-3"><span className="text-sm text-zinc-500">Family</span><span className="text-sm text-zinc-300">{result.reference.family}</span></div>}
+              {sourceLabel && <div className="flex items-center justify-between gap-3 py-3"><span className="text-sm text-zinc-500">Reference source</span><span className="max-w-[200px] truncate text-right text-sm text-emerald-300" title={result.reference.medical_source ?? undefined}>{sourceLabel}</span></div>}
+              {taxonomySourceUrl && <a href={taxonomySourceUrl} target="_blank" rel="noreferrer" className="mb-2 inline-flex w-fit items-center gap-1.5 text-sm text-emerald-400 transition-colors hover:text-emerald-300"><ExternalLink size={14} />View taxonomy source</a>}
+            </div>
+          </details>
         </> : <p className="rounded-lg border border-amber-500/30 bg-amber-500/5 p-3 text-sm text-amber-200">พบชนิดจากโมเดลแล้ว แต่ยังไม่มีข้อมูลคำเตือนที่ผ่านการอ้างอิงในระบบ โปรดหลีกเลี่ยงการสัมผัสและติดต่อหน่วยแพทย์หากถูกกัด</p>}
       </div>
     </div>
