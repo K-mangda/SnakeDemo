@@ -17,7 +17,7 @@ async function findReference(scientificName: string): Promise<SpeciesReference |
   const admin = getSupabaseAdmin()
   const { data, error } = await admin
     .from('snake_species')
-    .select('scientific_name, accepted_scientific_name, name_th, name_en, family, venom_type, danger_level, medical_source, reference_note')
+    .select('scientific_name, accepted_scientific_name, name_th, name_en, family, venom_type, danger_level, taxonomy_source, medical_source, reference_note')
     .eq('scientific_name', scientificName)
     .maybeSingle()
 
@@ -38,6 +38,7 @@ async function findReference(scientificName: string): Promise<SpeciesReference |
     accepted_scientific_name: legacyReference.scientific_name,
     venom_type: null,
     danger_level: null,
+    taxonomy_source: null,
     medical_source: null,
     reference_note: null,
   }

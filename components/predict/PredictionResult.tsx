@@ -1,6 +1,6 @@
 import { PredictionView } from '@/lib/prediction'
 import Badge from '@/components/ui/Badge'
-import { ScanLine, SearchX } from 'lucide-react'
+import { ExternalLink, ScanLine, SearchX } from 'lucide-react'
 
 interface PredictionResultProps {
   result: PredictionView | null;
@@ -29,6 +29,9 @@ export default function PredictionResult({ result, noDetection = false, noDetect
       : result.reference?.medical_source?.includes('Peer-reviewed') || result.reference?.medical_source?.includes('Ramathibodi')
         ? 'Peer-reviewed source'
         : result.reference?.medical_source
+  const taxonomySourceUrl = result.reference?.taxonomy_source?.startsWith('https://')
+    ? result.reference.taxonomy_source
+    : null
 
   return (
     <div className="flex-1 border border-zinc-800 rounded-xl bg-zinc-900/40 p-6 flex flex-col">
@@ -65,6 +68,7 @@ export default function PredictionResult({ result, noDetection = false, noDetect
           </div>}
           {result.reference.danger_level === 'อันตรายสูง' && <p className="rounded-lg border border-red-500/30 bg-red-500/10 p-3 text-sm leading-5 text-red-100">หากถูกกัด ให้ไปห้องฉุกเฉินทันที และอย่าพยายามจับงู</p>}
           {sourceLabel && <div className="flex justify-between items-center py-3"><span className="text-sm text-zinc-500">Reference source</span><span className="max-w-[200px] truncate text-right text-sm text-emerald-300" title={result.reference.medical_source ?? undefined}>{sourceLabel}</span></div>}
+          {taxonomySourceUrl && <a href={taxonomySourceUrl} target="_blank" rel="noreferrer" className="inline-flex w-fit items-center gap-1.5 text-sm text-emerald-400 transition-colors hover:text-emerald-300"><ExternalLink size={14} />View taxonomy source</a>}
         </> : <p className="rounded-lg border border-amber-500/30 bg-amber-500/5 p-3 text-sm text-amber-200">พบชนิดจากโมเดลแล้ว แต่ยังไม่มีข้อมูลคำเตือนที่ผ่านการอ้างอิงในระบบ โปรดหลีกเลี่ยงการสัมผัสและติดต่อหน่วยแพทย์หากถูกกัด</p>}
       </div>
     </div>

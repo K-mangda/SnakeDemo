@@ -13,6 +13,7 @@ export interface SpeciesReference {
   family: string | null
   venom_type: string | null
   danger_level: string | null
+  taxonomy_source: string | null
   medical_source: string | null
   reference_note: string | null
 }
