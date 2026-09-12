@@ -107,6 +107,6 @@ export async function POST(request: Request) {
       return Response.json({ ...payload, reference, recorded: false })
     }
   } catch {
-    return Response.json({ detail: 'AI inference service is offline. Start the local model service and try again.' }, { status: 503 })
+    return Response.json({ detail: 'AI service is starting. Please try again in about a minute.' }, { status: 503 })
   }
 }

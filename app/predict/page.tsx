@@ -59,7 +59,15 @@ export default function PredictPage() {
       showToast(requiresReview ? 'Low-confidence detection saved for expert review.' : payload.recorded ? 'Subject analysis complete. Saved for expert review.' : 'Subject analysis complete. Match found.')
     } catch (error) {
       setLoading(false)
-      showToast(error instanceof Error ? error.message : 'AI analysis could not be completed.', 'error')
+      // Render's free service can take a short time to wake after inactivity.
+      // Keep a network-level failure understandable rather than exposing the
+      // browser's technical "Failed to fetch" message.
+      const message = error instanceof TypeError && error.message === 'Failed to fetch'
+        ? 'AI service is starting. Please try again in about a minute.'
+        : error instanceof Error
+          ? error.message
+          : 'AI analysis could not be completed.'
+      showToast(message, 'error')
     }
   }
 
