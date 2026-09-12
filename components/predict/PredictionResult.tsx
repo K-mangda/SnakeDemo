@@ -37,7 +37,7 @@ export default function PredictionResult({ result, noDetection = false, noDetect
           <p className="text-[11px] text-zinc-500 uppercase tracking-[0.18em] mb-1">{requiresReview ? 'Possible match' : 'Detected species'}</p>
           <h2 className="text-2xl font-medium text-zinc-100 leading-tight">{result.reference?.name_en ?? result.detection.scientific}</h2>
           <p className="text-sm text-zinc-400 mt-1 italic">{result.reference?.accepted_scientific_name ?? result.detection.scientific}</p>
-          {result.reference && <p className="text-zinc-500 text-sm mt-1">{result.reference.name_th}</p>}
+          {result.reference && <p className="mt-1 text-sm text-zinc-500">ชื่อไทย: {result.reference.name_th ?? 'รอผู้เชี่ยวชาญยืนยัน'}</p>}
         </div>
       </div>
 
