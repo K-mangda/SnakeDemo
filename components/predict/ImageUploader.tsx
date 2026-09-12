@@ -1,4 +1,4 @@
-import { UploadCloud } from 'lucide-react'
+import { Database, UploadCloud } from 'lucide-react'
 import { Detection } from '@/lib/prediction'
 
 interface ImageUploaderProps {
@@ -27,12 +27,13 @@ export default function ImageUploader({
       />
       <div 
         onClick={() => fileInputRef.current?.click()}
-        className={`flex-1 border border-dashed rounded-xl transition-all duration-300 cursor-pointer flex flex-col items-center justify-center p-4 min-h-[400px] overflow-hidden relative group
+        className={`flex-1 border border-dashed rounded-xl transition-all duration-300 cursor-pointer flex flex-col min-h-[400px] overflow-hidden relative group
           ${previewUrl ? 'border-zinc-700 bg-zinc-900/50' : 'border-zinc-800 bg-zinc-900/30 hover:bg-zinc-900/60 hover:border-emerald-500/50'}
         `}
       >
-        {previewUrl ? (
-          <div className="absolute inset-2 flex items-center justify-center">
+        <div className="relative flex flex-1 items-center justify-center p-4 overflow-hidden">
+          {previewUrl ? (
+            <div className="absolute inset-2 flex items-center justify-center">
             <div className="relative max-w-full max-h-full">
             <img 
               src={previewUrl} 
@@ -58,8 +59,8 @@ export default function ImageUploader({
             ))}
             </div>
           </div>
-        ) : (
-          <div className="flex flex-col items-center gap-4 text-zinc-500 text-center transition-transform duration-300 group-hover:-translate-y-2">
+          ) : (
+            <div className="flex flex-col items-center gap-4 text-zinc-500 text-center transition-transform duration-300 group-hover:-translate-y-2">
             <div className="relative flex items-center justify-center animate-float-small">
               {/* Idle Pulse Ring */}
               <div className="absolute inset-0 rounded-full bg-zinc-700/40 animate-ping-slow group-hover:opacity-0 transition-opacity duration-300"></div>
@@ -73,8 +74,13 @@ export default function ImageUploader({
               <p className="text-sm font-medium text-zinc-300 mb-1 transition-colors duration-300 group-hover:text-emerald-300">Click to browse files</p>
               <p className="text-xs transition-colors duration-300 group-hover:text-zinc-400">JPEG, PNG up to 10MB</p>
             </div>
-          </div>
-        )}
+            </div>
+          )}
+        </div>
+        <p className="flex shrink-0 items-center gap-2 border-t border-zinc-800/70 px-4 py-3 text-[11px] leading-4 text-zinc-500">
+          <Database size={13} className="shrink-0 text-emerald-400" />
+          Images with an AI detection may be saved for expert review and model improvement.
+        </p>
       </div>
     </>
   )

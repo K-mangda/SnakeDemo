@@ -1,6 +1,6 @@
 'use client'
 import { useState, useRef } from 'react'
-import { Database, Loader2, Image as ImageIcon } from 'lucide-react'
+import { Loader2, Image as ImageIcon } from 'lucide-react'
 import { Detection, InferenceResponse, PredictionView } from '@/lib/prediction'
 import Button from '@/components/ui/Button'
 import { useToast } from '@/components/ui/Toast'
@@ -89,8 +89,6 @@ export default function PredictPage() {
               fileInputRef={fileInputRef}
               handleFileChange={handleFileChange}
             />
-
-            <p className="flex items-center gap-2 px-1 text-[11px] leading-4 text-zinc-500"><Database size={13} className="shrink-0 text-emerald-400" />Images with an AI detection may be saved for expert review and model improvement.</p>
 
             {previewUrl && (
               <Button onClick={result || noDetectionSaved ? () => fileInputRef.current?.click() : noDetection ? () => handlePredict(true) : () => handlePredict()} disabled={loading} className="w-full flex justify-center items-center gap-2 py-3">
