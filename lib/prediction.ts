@@ -11,6 +11,8 @@ export interface SpeciesReference {
   name_th: string | null
   name_en: string | null
   family: string | null
+  venom_type: string | null
+  danger_level: string | null
   medical_source: string | null
   reference_note: string | null
 }
