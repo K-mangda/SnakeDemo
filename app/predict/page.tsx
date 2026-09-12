@@ -81,7 +81,7 @@ export default function PredictPage() {
 
         <div className="grid md:grid-cols-2 gap-8">
           {/* Upload Area */}
-          <div className="flex flex-col gap-4">
+          <div className="flex h-full flex-col gap-4">
             <ImageUploader 
               previewUrl={previewUrl}
               loading={loading}

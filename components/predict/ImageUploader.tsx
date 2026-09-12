@@ -27,7 +27,7 @@ export default function ImageUploader({
       />
       <div 
         onClick={() => fileInputRef.current?.click()}
-        className={`border border-dashed rounded-xl transition-all duration-300 cursor-pointer flex flex-col items-center justify-center p-4 min-h-[400px] overflow-hidden relative group
+        className={`flex-1 border border-dashed rounded-xl transition-all duration-300 cursor-pointer flex flex-col items-center justify-center p-4 min-h-[400px] overflow-hidden relative group
           ${previewUrl ? 'border-zinc-700 bg-zinc-900/50' : 'border-zinc-800 bg-zinc-900/30 hover:bg-zinc-900/60 hover:border-emerald-500/50'}
         `}
       >
