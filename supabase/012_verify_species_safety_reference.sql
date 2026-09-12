@@ -257,6 +257,16 @@ set
 from verified_reference as reference
 where species.scientific_name = reference.scientific_name;
 
+-- A later TH-BIF record resolves the Thai name for this exact model label.
+-- Keep the model's Latin label unchanged; only correct the displayed name.
+update public.snake_species
+set
+  name_th = 'งูปล้องฉนวนตับจาก, งูปล้องฉนวนอินเดีย',
+  name_en = 'Blanford''s Bridal Snake',
+  taxonomy_source = 'https://thbif.onep.go.th/taxons/detail/24407',
+  reference_note = 'TH-BIF/ONEP accepts Lycodon davisonii and records the Thai common names used here.'
+where scientific_name = 'Lycodon davisonii';
+
 -- Audit: must return 25 records and 0 rows with a null/empty safety field.
 select scientific_name, name_th, name_en, family, venom_type, danger_level, medical_source
 from public.snake_species
