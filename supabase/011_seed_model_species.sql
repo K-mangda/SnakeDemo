@@ -281,13 +281,23 @@ set
   venom_type = case
     when s.scientific_name in ('Naja kaouthia', 'Bungarus fasciatus', 'Daboia siamensis', 'Trimeresurus albolabris')
       then s.venom_type
+    when s.scientific_name = 'Trimeresurus macrops'
+      then 'พิษต่อระบบเลือด'
     when s.scientific_name in ('Ahaetulla prasina', 'Homalopsis buccata')
+      then 'พิษอ่อน'
+    when s.scientific_name = 'Boiga melanota'
       then 'พิษอ่อน'
     else 'ไม่มีการระบุประเภทพิษเฉพาะชนิดในแหล่งอ้างอิงที่ใช้'
   end,
   danger_level = case
     when s.scientific_name in ('Naja kaouthia', 'Bungarus fasciatus', 'Daboia siamensis', 'Trimeresurus albolabris')
       then 'ความเสี่ยงสูง — มีเซรุ่มเฉพาะในประเทศไทย'
+    when s.scientific_name = 'Trimeresurus macrops'
+      then 'ความเสี่ยงสูง — มีรายงานการถูกกัดในไทยและผลต่อระบบเลือด'
+    when s.scientific_name = 'Calliophis maculiceps maculiceps'
+      then 'ต้องระวัง — เป็นงูพิษและมีรายงานผู้ถูกกัดในไทย'
+    when s.scientific_name = 'Boiga melanota'
+      then 'ควรระวัง — พิษอ่อน อาจปวดบวมตาม TH-BIF/ONEP'
     when s.scientific_name in ('Ahaetulla prasina', 'Homalopsis buccata')
       then 'ความเสี่ยงต่ำต่อคน — พิษอ่อนตาม TH-BIF/ONEP'
     else 'ต้องระวัง — หลีกเลี่ยงการสัมผัสและรอผู้เชี่ยวชาญยืนยัน'
@@ -295,6 +305,12 @@ set
   symptoms = case
     when s.scientific_name in ('Naja kaouthia', 'Bungarus fasciatus', 'Daboia siamensis', 'Trimeresurus albolabris')
       then jsonb_build_array('Species-specific clinical assessment must be performed by qualified medical personnel.')
+    when s.scientific_name = 'Trimeresurus macrops'
+      then jsonb_build_array('Reported Thai bites include local painful swelling; assessment for blood-clotting abnormalities is required.')
+    when s.scientific_name = 'Calliophis maculiceps maculiceps'
+      then jsonb_build_array('A Thai clinical cohort reported predominantly mild and local manifestations; medical observation remains necessary after any bite.')
+    when s.scientific_name = 'Boiga melanota'
+      then jsonb_build_array('TH-BIF/ONEP notes that bites may cause pain and swelling.')
     when s.scientific_name in ('Ahaetulla prasina', 'Homalopsis buccata')
       then jsonb_build_array('TH-BIF/ONEP describes mild venom with effects primarily on prey; seek medical assessment after any bite.')
     else jsonb_build_array('Seek medical assessment after any bite; no species-specific symptom list is presented without a cited clinical source.')
@@ -307,6 +323,12 @@ set
   medical_source = case
     when s.scientific_name in ('Naja kaouthia', 'Bungarus fasciatus', 'Daboia siamensis', 'Trimeresurus albolabris')
       then s.medical_source
+    when s.scientific_name = 'Trimeresurus macrops'
+      then 'Peer-reviewed Thai clinical studies of Trimeresurus macrops bites'
+    when s.scientific_name = 'Calliophis maculiceps maculiceps'
+      then 'Ramathibodi Poison Center retrospective cohort, Thailand'
+    when s.scientific_name = 'Boiga melanota'
+      then 'TH-BIF / ONEP species record'
     when s.scientific_name in ('Ahaetulla prasina', 'Homalopsis buccata')
       then 'TH-BIF / ONEP species record'
     else 'WHO SEARO general snakebite first-aid guidance; species-specific antivenom is outside the research scope'
