@@ -20,7 +20,7 @@ create table public.snake_species (
   name_en text,
   family text,
   venom_type text,
-  danger_level integer check (danger_level between 0 and 5),
+  danger_level text,
   description text,
   symptoms jsonb not null default '[]'::jsonb,
   first_aid jsonb not null default '[]'::jsonb,

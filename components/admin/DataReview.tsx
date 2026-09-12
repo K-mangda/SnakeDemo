@@ -18,7 +18,7 @@ export default function DataReview() {
   const [anomalyInputValue, setAnomalyInputValue] = useState('')
   const [anomalyForm, setAnomalyForm] = useState({ 
     scientificName: '', nameEn: '', nameTh: '', venomType: 'Non-venomous',
-    family: '', dangerLevel: 1, dangerLabel: 'ไม่อันตราย', habitat: '', distribution: '',
+    family: '', dangerStatus: 'ต้องระวัง — รอผู้เชี่ยวชาญยืนยัน', habitat: '', distribution: '',
     description: '', symptoms: '', firstAid: '', antivenom: '', tags: ''
   })
   const [isAutoFilling, setIsAutoFilling] = useState(false)
@@ -95,8 +95,7 @@ export default function DataReview() {
                         nameEn: prev.nameEn || 'Generated English Name',
                         nameTh: prev.nameTh || 'งูสายพันธุ์ใหม่ (AI Generated)',
                         family: 'Viperidae',
-                        dangerLevel: 4,
-                        dangerLabel: 'อันตรายมาก',
+                        dangerStatus: 'ต้องระวัง — รอผู้เชี่ยวชาญยืนยัน',
                         venomType: 'hemotoxic',
                         habitat: 'ป่าดิบชื้น, พื้นที่เกษตรกรรม',
                         distribution: 'ภาคใต้, ภาคตะวันตก',
@@ -160,11 +159,12 @@ export default function DataReview() {
                       </select>
                     </div>
                     <div>
-                      <label className="block text-[10px] text-zinc-500 uppercase tracking-wider mb-1">Danger Level (1-5)</label>
-                      <div className="flex gap-2">
-                        <input type="number" min="1" max="5" value={anomalyForm.dangerLevel} onChange={e => setAnomalyForm({...anomalyForm, dangerLevel: parseInt(e.target.value) || 1})} className="w-16 bg-zinc-900 border border-zinc-800 text-zinc-100 px-3 py-2 rounded-lg outline-none focus:border-red-500/50 text-sm" />
-                        <input placeholder="Label e.g. อันตรายมาก" value={anomalyForm.dangerLabel} onChange={e => setAnomalyForm({...anomalyForm, dangerLabel: e.target.value})} className="flex-1 bg-zinc-900 border border-zinc-800 text-zinc-100 px-3 py-2 rounded-lg outline-none focus:border-red-500/50 text-sm" />
-                      </div>
+                      <label className="block text-[10px] text-zinc-500 uppercase tracking-wider mb-1">Human Safety Status</label>
+                      <select value={anomalyForm.dangerStatus} onChange={e => setAnomalyForm({...anomalyForm, dangerStatus: e.target.value})} className="w-full bg-zinc-900 border border-zinc-800 text-zinc-100 px-3 py-2 rounded-lg outline-none focus:border-red-500/50 text-sm">
+                        <option value="ต้องระวัง — รอผู้เชี่ยวชาญยืนยัน">ต้องระวัง — รอผู้เชี่ยวชาญยืนยัน</option>
+                        <option value="ความเสี่ยงต่ำต่อคน — มีแหล่งอ้างอิงรองรับ">ความเสี่ยงต่ำต่อคน — มีแหล่งอ้างอิงรองรับ</option>
+                        <option value="ความเสี่ยงสูง — มีแหล่งอ้างอิงทางการแพทย์">ความเสี่ยงสูง — มีแหล่งอ้างอิงทางการแพทย์</option>
+                      </select>
                     </div>
                   </div>
                   <div>
@@ -310,7 +310,7 @@ export default function DataReview() {
                 // Reset form
                 setAnomalyForm({ 
                   scientificName: '', nameEn: '', nameTh: '', venomType: 'Non-venomous',
-                  family: '', dangerLevel: 1, dangerLabel: 'ไม่อันตราย', habitat: '', distribution: '',
+                  family: '', dangerStatus: 'ต้องระวัง — รอผู้เชี่ยวชาญยืนยัน', habitat: '', distribution: '',
                   description: '', symptoms: '', firstAid: '', antivenom: '', tags: ''
                 })
                 setAnomalyInputValue('')
@@ -363,7 +363,7 @@ export default function DataReview() {
             setAnomalyAction({ type: 'create', id, specimenName })
             setAnomalyForm({ 
               scientificName: '', nameEn: '', nameTh: '', venomType: 'Non-venomous',
-              family: '', dangerLevel: 1, dangerLabel: 'ไม่อันตราย', habitat: '', distribution: '',
+              family: '', dangerStatus: 'ต้องระวัง — รอผู้เชี่ยวชาญยืนยัน', habitat: '', distribution: '',
               description: '', symptoms: '', firstAid: '', antivenom: '', tags: ''
             })
           }}
