@@ -1,6 +1,5 @@
 import { PredictionView } from '@/lib/prediction'
 import Badge from '@/components/ui/Badge'
-import { getDangerColor } from '@/lib/utils'
 import { ScanLine, SearchX } from 'lucide-react'
 
 interface PredictionResultProps {
@@ -37,7 +36,7 @@ export default function PredictionResult({ result, noDetection = false, noDetect
         <div>
           <p className="text-[11px] text-zinc-500 uppercase tracking-[0.18em] mb-1">{requiresReview ? 'Possible match' : 'Detected species'}</p>
           <h2 className="text-2xl font-medium text-zinc-100 leading-tight">{result.reference?.name_en ?? result.detection.scientific}</h2>
-          <p className="text-sm text-zinc-400 mt-1 italic">{result.detection.scientific}</p>
+          <p className="text-sm text-zinc-400 mt-1 italic">{result.reference?.accepted_scientific_name ?? result.detection.scientific}</p>
           {result.reference && <p className="text-zinc-500 text-sm mt-1">{result.reference.name_th}</p>}
         </div>
       </div>
@@ -50,9 +49,10 @@ export default function PredictionResult({ result, noDetection = false, noDetect
 
       <div className="space-y-4 flex-1">
         {requiresReview ? <p className="rounded-lg border border-zinc-800 bg-zinc-900/30 p-3 text-sm text-zinc-400">The detected region is retained for expert review. No species-specific reference is shown for low-confidence results.</p> : result.reference ? <>
-          <div className="flex justify-between items-center py-3 border-b border-zinc-800/50"><span className="text-sm text-zinc-500">Toxicity Profile</span><span className={`text-sm font-medium ${getDangerColor(result.reference.danger_level)}`}>{result.reference.danger_label}</span></div>
-          <div className="flex justify-between items-center py-3 border-b border-zinc-800/50"><span className="text-sm text-zinc-500">Venom Type</span><span className="text-sm text-zinc-300 capitalize">{result.reference.venom_type}</span></div>
-          <div className="flex justify-between items-center py-3 border-b border-zinc-800/50"><span className="text-sm text-zinc-500">Antivenom Protocol</span><span className="text-sm text-zinc-300 text-right max-w-[200px] truncate" title={result.reference.antivenom}>{result.reference.antivenom}</span></div>
+          <div className="flex justify-between items-center py-3 border-b border-zinc-800/50"><span className="text-sm text-zinc-500">Taxonomic reference</span><span className="text-sm text-zinc-300 text-right max-w-[200px] truncate" title={result.reference.accepted_scientific_name ?? result.reference.scientific_name}>{result.reference.accepted_scientific_name ?? result.reference.scientific_name}</span></div>
+          {result.reference.family && <div className="flex justify-between items-center py-3 border-b border-zinc-800/50"><span className="text-sm text-zinc-500">Family</span><span className="text-sm text-zinc-300">{result.reference.family}</span></div>}
+          {result.reference.medical_source && <div className="flex justify-between items-center py-3 border-b border-zinc-800/50"><span className="text-sm text-zinc-500">Medical reference</span><span className="text-sm text-emerald-300">QSMI</span></div>}
+          {result.reference.reference_note && <p className="rounded-lg border border-zinc-800 bg-zinc-900/30 p-3 text-xs leading-5 text-zinc-400">{result.reference.reference_note}</p>}
         </> : <p className="rounded-lg border border-amber-500/30 bg-amber-500/5 p-3 text-sm text-amber-200">พบชนิดจากโมเดลแล้ว แต่ยังไม่มีข้อมูลคำเตือนที่ผ่านการอ้างอิงในระบบ โปรดหลีกเลี่ยงการสัมผัสและติดต่อหน่วยแพทย์หากถูกกัด</p>}
       </div>
     </div>

@@ -1,8 +1,6 @@
 'use client'
 import { useState, useRef } from 'react'
 import { Database, Loader2, Image as ImageIcon } from 'lucide-react'
-import { SNAKE_DATA } from '@/lib/data'
-import { Snake } from '@/lib/types'
 import { Detection, InferenceResponse, PredictionView } from '@/lib/prediction'
 import Button from '@/components/ui/Button'
 import { useToast } from '@/components/ui/Toast'
@@ -54,9 +52,8 @@ export default function PredictPage() {
         showToast(payload.recorded ? 'No-detection image saved for expert review.' : 'No snake detected. The image was not saved.')
         return
       }
-      const reference = SNAKE_DATA.find((snake) => snake.scientific === payload.top_detection?.scientific)
       setDetections(payload.detections)
-      setResult({ detection: payload.top_detection, reference })
+      setResult({ detection: payload.top_detection, reference: payload.reference })
       setLoading(false)
       const requiresReview = payload.top_detection.confidence < 0.5
       showToast(requiresReview ? 'Low-confidence detection saved for expert review.' : payload.recorded ? 'Subject analysis complete. Saved for expert review.' : 'Subject analysis complete. Match found.')
