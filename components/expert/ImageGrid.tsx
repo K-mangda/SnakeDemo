@@ -30,7 +30,7 @@ export default function ImageGrid({ filtered, currentFilter }: ImageGridProps) {
         const isPending = img.status !== 'verified'
         const needsCurrentReview = isPending && !img.review.hasReviewed
         const statusForViewer = isPending ? 'pending' : 'verified'
-        const statusLabel = isPending ? (img.review.hasReviewed ? 'Review submitted' : 'Pending') : undefined
+        const statusLabel = isPending ? 'Review needed' : undefined
         return (
           <div
             key={`${currentFilter}-${img.id}`}
