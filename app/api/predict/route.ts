@@ -61,7 +61,9 @@ async function savePrediction(image: File, payload: { top_detection: { scientifi
     predicted_scientific: payload.top_detection?.scientific ?? null,
     confidence: payload.top_detection?.confidence ?? null,
     predicted_bbox: payload.top_detection?.bbox ?? null,
-    status: payload.top_detection ? 'pending' : 'unclear',
+    // A missing AI result still needs an Expert review; it is not an
+    // unresolved Expert consensus yet.
+    status: 'pending',
   })
   if (insertError) {
     await admin.storage.from('prediction-images').remove([storagePath])
