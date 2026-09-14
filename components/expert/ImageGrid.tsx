@@ -1,7 +1,8 @@
 import Button from '@/components/ui/Button'
 import StatusBadge from '@/components/expert/StatusBadge'
 import { FilterStatus } from '@/components/expert/ExpertTabs'
-import { formatScanLabel } from '@/lib/scan-label'
+import { CalendarDays } from 'lucide-react'
+import { formatScanDate, formatScanLabel } from '@/lib/scan-label'
 
 interface ImageItem {
   id: string;
@@ -33,8 +34,9 @@ export default function ImageGrid({ filtered, currentFilter }: ImageGridProps) {
           >
             {/* Top row */}
             <div className="flex justify-between items-start mb-4 gap-2">
-              <span className="font-mono text-xs text-zinc-500 truncate" title={`Original file: ${img.originalFilename}`}>
-                {formatScanLabel(img.createdAt)}
+              <span className="inline-flex min-w-0 items-center gap-1.5 text-[11px] text-zinc-500" title={`Original file: ${img.originalFilename} · ${formatScanLabel(img.createdAt)}`}>
+                <CalendarDays size={12} className="shrink-0" />
+                {formatScanDate(img.createdAt)}
               </span>
               <div className="shrink-0"><StatusBadge status={img.status} /></div>
             </div>
@@ -52,7 +54,7 @@ export default function ImageGrid({ filtered, currentFilter }: ImageGridProps) {
 
             {/* Prediction info */}
             <div className="mb-4">
-              <p className="text-xs text-zinc-500 mb-0.5">AI Prediction ({((img.confidence ?? 0) * 100).toFixed(1)}%)</p>
+              <p className="text-xs text-zinc-500 mb-0.5">AI prediction · {((img.confidence ?? 0) * 100).toFixed(1)}%</p>
               <p className="text-sm font-medium text-zinc-300 italic">{img.prediction.scientific}</p>
             </div>
 

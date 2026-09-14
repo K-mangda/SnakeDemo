@@ -4,3 +4,14 @@ export function formatScanLabel(createdAt: string) {
   }).format(new Date(createdAt))
   return `Scan · ${formatted}`
 }
+
+export function formatScanDate(createdAt: string) {
+  const parts = new Intl.DateTimeFormat('en-US', {
+    day: '2-digit',
+    month: 'short',
+  }).formatToParts(new Date(createdAt))
+  const day = parts.find((part) => part.type === 'day')?.value
+  const month = parts.find((part) => part.type === 'month')?.value
+
+  return `${day} ${month}`
+}
