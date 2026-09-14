@@ -31,11 +31,11 @@ export default function PredictionResult({ result, noDetection = false, noDetect
   const taxonomySourceUrl = result.reference?.taxonomy_source?.startsWith('https://')
     ? result.reference.taxonomy_source
     : null
-  const riskTone = result.reference?.danger_level === 'อันตรายสูง'
-    ? 'border-red-500/30 bg-red-500/10 text-red-200'
+  const riskAccent = result.reference?.danger_level === 'อันตรายสูง'
+    ? 'text-red-300'
     : result.reference?.danger_level === 'อันตรายน้อย'
-      ? 'border-emerald-500/25 bg-emerald-500/10 text-emerald-200'
-      : 'border-amber-500/30 bg-amber-500/10 text-amber-200'
+      ? 'text-emerald-300'
+      : 'text-amber-300'
 
   return (
     <div className="flex-1 border border-zinc-800 rounded-xl bg-zinc-900/40 p-6 flex flex-col">
@@ -64,12 +64,12 @@ export default function PredictionResult({ result, noDetection = false, noDetect
 
       <div className="flex-1">
         {requiresReview ? <p className="rounded-lg border border-zinc-800 bg-zinc-900/30 p-3 text-sm text-zinc-400">The detected region is retained for expert review. No species-specific reference is shown for low-confidence results.</p> : result.reference ? <>
-          {(result.reference.venom_type || result.reference.danger_level) && <div className="grid grid-cols-2 gap-3 py-1">
-            {result.reference.venom_type && <div className="flex min-w-0 items-center gap-3 rounded-lg border border-cyan-500/25 bg-cyan-500/10 p-3"><div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-cyan-500/10 text-cyan-300"><Droplets size={16} /></div><div className="min-w-0"><p className="text-[10px] uppercase tracking-[0.14em] text-zinc-500">Venom</p><p className="mt-0.5 truncate text-sm font-medium text-cyan-100">{result.reference.venom_type}</p></div></div>}
-            {result.reference.danger_level && <div className={`flex min-w-0 items-center gap-3 rounded-lg border p-3 ${riskTone}`}><div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-current/10"><ShieldCheck size={16} /></div><div className="min-w-0"><p className="text-[10px] uppercase tracking-[0.14em] text-zinc-400">Risk level</p><p className="mt-0.5 truncate text-sm font-medium">{result.reference.danger_level}</p></div></div>}
+          {(result.reference.venom_type || result.reference.danger_level) && <div className="grid grid-cols-2 overflow-hidden rounded-lg border border-zinc-800 bg-zinc-900/30 py-1">
+            {result.reference.venom_type && <div className="flex min-w-0 items-center gap-3 border-r border-zinc-800 px-3 py-2"><Droplets size={16} className="shrink-0 text-cyan-400" /><div className="min-w-0"><p className="text-[10px] uppercase tracking-[0.14em] text-zinc-500">Venom type</p><p className="mt-0.5 truncate text-sm font-medium text-zinc-200">{result.reference.venom_type}</p></div></div>}
+            {result.reference.danger_level && <div className="flex min-w-0 items-center gap-3 px-3 py-2"><ShieldCheck size={16} className={`shrink-0 ${riskAccent}`} /><div className="min-w-0"><p className="text-[10px] uppercase tracking-[0.14em] text-zinc-500">Danger level</p><p className={`mt-0.5 truncate text-sm font-medium ${riskAccent}`}>{result.reference.danger_level}</p></div></div>}
           </div>}
           {result.reference.danger_level === 'อันตรายสูง' && <p className="mt-5 rounded-lg border border-red-500/30 bg-red-500/10 p-3 text-sm leading-5 text-red-100">หากถูกกัด ให้ไปห้องฉุกเฉินทันที และอย่าพยายามจับงู</p>}
-          <details className="group mt-5 overflow-hidden rounded-lg border border-zinc-800 bg-zinc-900/20">
+          <details open className="group mt-5 overflow-hidden rounded-lg border border-zinc-800 bg-zinc-900/20">
             <summary className="flex cursor-pointer list-none items-center justify-between px-3 py-3 text-sm text-zinc-400 transition-colors hover:text-zinc-200 [&::-webkit-details-marker]:hidden">
               Details &amp; reference
               <span className="text-xs text-zinc-600 transition-transform group-open:rotate-180">⌄</span>
