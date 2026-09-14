@@ -12,6 +12,7 @@ interface ImageItem {
   bbox: { x: number, y: number, width: number, height: number } | null;
   confidence: number | null;
   createdAt: string;
+  review: { count: number; required: number; hasReviewed: boolean };
   prediction: { scientific: string, nameTh: string | null };
 }
 
@@ -26,7 +27,9 @@ export default function ImageGrid({ filtered, currentFilter }: ImageGridProps) {
   return (
     <div className="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
       {filtered.map((img) => {
-        const isPending = img.status === 'pending'
+        const needsCurrentReview = (img.status === 'pending' || img.status === 'unclear') && !img.review.hasReviewed
+        const statusForViewer = needsCurrentReview ? 'pending' : img.status
+        const statusLabel = needsCurrentReview ? 'Review needed' : img.status === 'pending' ? 'Submitted' : img.status === 'unclear' ? 'No consensus' : undefined
         return (
           <div
             key={`${currentFilter}-${img.id}`}
@@ -38,7 +41,7 @@ export default function ImageGrid({ filtered, currentFilter }: ImageGridProps) {
                 <CalendarDays size={12} className="shrink-0" />
                 {formatScanDate(img.createdAt)}
               </span>
-              <div className="shrink-0"><StatusBadge status={img.status} /></div>
+              <div className="shrink-0"><StatusBadge status={statusForViewer} label={statusLabel} /></div>
             </div>
 
             {/* Image */}
@@ -56,15 +59,16 @@ export default function ImageGrid({ filtered, currentFilter }: ImageGridProps) {
             <div className="mb-4">
               <p className="text-xs text-zinc-500 mb-0.5">AI prediction · {((img.confidence ?? 0) * 100).toFixed(1)}%</p>
               <p className="text-sm font-medium text-zinc-300 italic">{img.prediction.scientific}</p>
+              <p className="mt-1 text-[11px] text-zinc-500">{img.review.hasReviewed ? `Your review submitted · ${img.review.count} expert review${img.review.count === 1 ? '' : 's'}` : img.status === 'verified' ? `Verified from ${img.review.count} expert review${img.review.count === 1 ? '' : 's'}` : 'Your review is needed'}</p>
             </div>
 
             {/* ── Single CTA ── */}
             <Button
               href={`/expert/annotate/${img.id}`}
-              variant={isPending ? 'primary' : 'secondary'}
+              variant={needsCurrentReview ? 'primary' : 'secondary'}
               className="mt-auto w-full justify-center"
             >
-              {isPending ? 'Verify Classification' : 'View Details'}
+              {needsCurrentReview ? 'Verify Classification' : img.review.hasReviewed ? 'Update my review' : 'View Details'}
             </Button>
           </div>
         )

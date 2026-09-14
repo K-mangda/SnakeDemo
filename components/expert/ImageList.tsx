@@ -11,6 +11,7 @@ interface ImageItem {
   bbox: { x: number, y: number, width: number, height: number } | null;
   confidence: number | null;
   createdAt: string;
+  review: { count: number; required: number; hasReviewed: boolean };
   prediction: { scientific: string, nameTh: string | null };
 }
 
@@ -39,7 +40,9 @@ export default function ImageList({ filtered, currentFilter }: ImageListProps) {
       </div>
 
       {filtered.map((img) => {
-        const isPending = img.status === 'pending'
+        const needsCurrentReview = (img.status === 'pending' || img.status === 'unclear') && !img.review.hasReviewed
+        const statusForViewer = needsCurrentReview ? 'pending' : img.status
+        const statusLabel = needsCurrentReview ? 'Review needed' : img.status === 'pending' ? 'Submitted' : img.status === 'unclear' ? 'No consensus' : undefined
         const conf = (img.confidence ?? 0) * 100
 
         return (
@@ -67,6 +70,9 @@ export default function ImageList({ filtered, currentFilter }: ImageListProps) {
               <p className="text-xs text-zinc-500 truncate">
                 {img.prediction.nameTh ?? 'No mapped reference'} &middot; {formatScanLabel(img.createdAt)}
               </p>
+              <p className="mt-1 text-[11px] text-zinc-600">
+                {img.review.hasReviewed ? `Your review submitted · ${img.review.count} expert review${img.review.count === 1 ? '' : 's'}` : img.status === 'verified' ? `Verified from ${img.review.count} expert review${img.review.count === 1 ? '' : 's'}` : 'Your review is needed'}
+              </p>
             </div>
 
             {/* Confidence — text only, color-coded */}
@@ -77,11 +83,11 @@ export default function ImageList({ filtered, currentFilter }: ImageListProps) {
             </div>
 
             {/* Status */}
-            <div className="hidden md:flex justify-center"><StatusBadge status={img.status} /></div>
+            <div className="hidden md:flex justify-center"><StatusBadge status={statusForViewer} label={statusLabel} /></div>
 
             {/* Actions */}
             <div className="flex w-full">
-              {isPending ? (
+              {needsCurrentReview ? (
                 <Link
                   href={`/expert/annotate/${img.id}`}
                   className="w-full text-center text-xs px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white transition-colors whitespace-nowrap"
@@ -94,7 +100,7 @@ export default function ImageList({ filtered, currentFilter }: ImageListProps) {
                   className="w-full text-center text-xs px-3 py-1.5 rounded-lg bg-zinc-800 border border-zinc-700
                              text-zinc-300 hover:text-zinc-100 hover:border-zinc-600 transition-colors whitespace-nowrap"
                 >
-                  View Details
+                  {img.review.hasReviewed ? 'Update my review' : 'View Details'}
                 </Link>
               )}
             </div>

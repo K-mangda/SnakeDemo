@@ -13,6 +13,11 @@ type StoredImage = {
   predicted_species: { scientific_name: string; name_th: string | null }[] | null
 }
 
+type ReviewRow = {
+  image_id: string
+  expert_id: string
+}
+
 export async function GET(request: Request) {
   const token = request.headers.get('authorization')?.replace(/^Bearer\s+/i, '')
   if (!token) return Response.json({ detail: 'Sign in is required.' }, { status: 401 })
@@ -47,7 +52,24 @@ export async function GET(request: Request) {
     return Response.json({ detail: 'Could not load saved scans.' }, { status: 500 })
   }
 
-  const images = await Promise.all((data as StoredImage[]).map(async (image) => {
+  const storedImages = data as StoredImage[]
+  const imageIds = storedImages.map((image) => image.id)
+  const [{ count: activeExpertCount }, { data: reviewRows }] = await Promise.all([
+    admin.from('profiles').select('id', { count: 'exact', head: true }).eq('role', 'expert').eq('status', 'active'),
+    imageIds.length > 0
+      ? admin.from('verification_history').select('image_id, expert_id').in('image_id', imageIds)
+      : Promise.resolve({ data: [] as ReviewRow[] }),
+  ])
+
+  const reviewsByImage = new Map<string, Set<string>>()
+  for (const review of (reviewRows ?? []) as ReviewRow[]) {
+    const reviewers = reviewsByImage.get(review.image_id) ?? new Set<string>()
+    reviewers.add(review.expert_id)
+    reviewsByImage.set(review.image_id, reviewers)
+  }
+  const requiredReviews = Math.floor((activeExpertCount ?? 0) / 2) + 1
+
+  const images = await Promise.all(storedImages.map(async (image) => {
     const { data: signed, error: signedError } = await admin.storage
       .from('prediction-images')
       .createSignedUrl(image.storage_path, 60 * 15)
@@ -62,6 +84,11 @@ export async function GET(request: Request) {
       confidence: image.confidence,
       bbox: image.predicted_bbox,
       createdAt: image.created_at,
+      review: {
+        count: reviewsByImage.get(image.id)?.size ?? 0,
+        required: requiredReviews,
+        hasReviewed: reviewsByImage.get(image.id)?.has(authData.user.id) ?? false,
+      },
       prediction: image.predicted_species?.[0]
         ? { scientific: image.predicted_species[0].scientific_name, nameTh: image.predicted_species[0].name_th }
         : { scientific: image.predicted_scientific ?? 'Reference pending', nameTh: null },

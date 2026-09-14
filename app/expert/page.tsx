@@ -17,6 +17,7 @@ type WorkspaceImage = {
   confidence: number | null
   bbox: { x: number; y: number; width: number; height: number } | null
   createdAt: string
+  review: { count: number; required: number; hasReviewed: boolean }
   prediction: { scientific: string; nameTh: string | null }
 }
 
@@ -54,7 +55,7 @@ export default function ExpertPage() {
     verified:              images.filter(i => i.status === 'verified').length,
     unclear:               images.filter(i => i.status === 'unclear').length,
     waiting_for_new_class: images.filter(i => i.status === 'waiting_for_new_class').length,
-    my_queue:              images.filter(i => i.status === 'pending').length,
+    my_queue:              images.filter(i => (i.status === 'pending' || i.status === 'unclear') && !i.review.hasReviewed).length,
   }), [images])
 
   // Filter + Sort
@@ -62,7 +63,7 @@ export default function ExpertPage() {
     let list = [...images]
 
     if (currentFilter === 'my_queue') {
-      list = list.filter(i => i.status === 'pending')
+      list = list.filter(i => (i.status === 'pending' || i.status === 'unclear') && !i.review.hasReviewed)
     } else if (currentFilter !== 'all') {
       list = list.filter(i => i.status === currentFilter)
     }
@@ -93,7 +94,7 @@ export default function ExpertPage() {
           <div className="mb-6 flex items-center gap-2 text-zinc-500 text-xs">
             <User size={13} className="shrink-0" />
             <span>
-              <span className="text-zinc-300">{counts.my_queue}</span> saved scans awaiting review
+              <span className="text-zinc-300">{counts.my_queue}</span> images need your review
             </span>
           </div>
         )}
