@@ -1,5 +1,6 @@
--- Run once in Supabase SQL Editor after 005_restrict_workspace_to_experts.sql.
--- An expert may submit one verification per image and update only their own result.
+-- Run once in Supabase SQL Editor after 013.
+-- An Expert choosing "Unclear" is one review with no species selected; it
+-- must not immediately override the consensus status for the entire image.
 
 create or replace function public.submit_expert_verification(
   p_image_id uuid,
@@ -24,12 +25,11 @@ begin
       bbox = excluded.bbox,
       created_at = now();
 
-  -- "Unclear" is an individual Expert vote. The verification trigger decides
-  -- the image status after all current votes are counted. A new class is a
-  -- deliberate escalation, so it remains an explicit image-level status.
+  -- The trigger installed by 013 now recalculates the majority result.
+  -- Only an explicit request for a new class escalates the image directly.
   if p_status = 'waiting_for_new_class' then
     update public.snake_images
-    set status = p_status,
+    set status = 'waiting_for_new_class',
         final_species_id = null,
         final_bbox = p_bbox,
         updated_at = now()
