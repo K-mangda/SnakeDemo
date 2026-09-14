@@ -13,7 +13,7 @@ type WorkspaceImage = {
   id: string
   originalFilename: string
   imageUrl: string | null
-  status: 'pending' | 'verified' | 'unclear' | 'waiting_for_new_class'
+  status: 'pending' | 'verified' | 'unclear' | 'no_detection' | 'waiting_for_new_class'
   confidence: number | null
   bbox: { x: number; y: number; width: number; height: number } | null
   createdAt: string
@@ -54,8 +54,9 @@ export default function ExpertPage() {
     pending:               images.filter(i => i.status === 'pending').length,
     verified:              images.filter(i => i.status === 'verified').length,
     unclear:               images.filter(i => i.status === 'unclear').length,
+    no_detection:          images.filter(i => i.status === 'no_detection').length,
     waiting_for_new_class: images.filter(i => i.status === 'waiting_for_new_class').length,
-    my_queue:              images.filter(i => (i.status === 'pending' || i.status === 'unclear') && !i.review.hasReviewed).length,
+    my_queue:              images.filter(i => (i.status === 'pending' || i.status === 'unclear' || i.status === 'no_detection') && !i.review.hasReviewed).length,
   }), [images])
 
   // Filter + Sort
@@ -63,7 +64,7 @@ export default function ExpertPage() {
     let list = [...images]
 
     if (currentFilter === 'my_queue') {
-      list = list.filter(i => (i.status === 'pending' || i.status === 'unclear') && !i.review.hasReviewed)
+      list = list.filter(i => (i.status === 'pending' || i.status === 'unclear' || i.status === 'no_detection') && !i.review.hasReviewed)
     } else if (currentFilter !== 'all') {
       list = list.filter(i => i.status === currentFilter)
     }
@@ -98,6 +99,10 @@ export default function ExpertPage() {
             </span>
           </div>
         )}
+
+        <p className="mb-6 max-w-3xl text-xs leading-5 text-zinc-500">
+          Reviews are independent. When more than one Expert reviews an image, the system uses the majority vote and combines matching bounding boxes automatically.
+        </p>
 
         {/* ── Empty state ───────────────────────────────────────── */}
         {loading && <p className="py-20 text-center text-sm text-zinc-500">Loading saved scans…</p>}

@@ -5,7 +5,7 @@ type StoredImage = {
   id: string
   storage_path: string
   original_filename: string
-  status: 'pending' | 'verified' | 'unclear' | 'waiting_for_new_class'
+  status: 'pending' | 'verified' | 'unclear' | 'no_detection' | 'waiting_for_new_class'
   confidence: number | null
   predicted_scientific: string | null
   predicted_bbox: { x: number; y: number; width: number; height: number } | null

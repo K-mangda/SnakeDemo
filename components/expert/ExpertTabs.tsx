@@ -1,6 +1,6 @@
 import { User, ArrowUpDown, LayoutGrid, List } from 'lucide-react'
 
-export type FilterStatus = 'all' | 'pending' | 'verified' | 'unclear' | 'waiting_for_new_class' | 'my_queue'
+export type FilterStatus = 'all' | 'pending' | 'verified' | 'unclear' | 'no_detection' | 'waiting_for_new_class' | 'my_queue'
 export type ViewMode = 'grid' | 'list'
 export type SortMode = 'date' | 'confidence_asc' | 'confidence_desc'
 
@@ -9,7 +9,8 @@ export const TAB_CONFIG: { key: FilterStatus; label: string; underline: string; 
   { key: 'all',                   label: 'All',                 underline: 'bg-zinc-300' },
   { key: 'pending',               label: 'Pending',             underline: 'bg-amber-500' },
   { key: 'verified',              label: 'Verified',            underline: 'bg-emerald-500' },
-  { key: 'unclear',               label: 'Unclear',             underline: 'bg-red-500' },
+  { key: 'unclear',               label: 'No Consensus',        underline: 'bg-red-500' },
+  { key: 'no_detection',          label: 'No AI Detection',     underline: 'bg-zinc-500' },
   { key: 'waiting_for_new_class', label: 'Waiting for New Class', underline: 'bg-blue-500' },
 ]
 

@@ -27,9 +27,9 @@ export default function ImageGrid({ filtered, currentFilter }: ImageGridProps) {
   return (
     <div className="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
       {filtered.map((img) => {
-        const needsCurrentReview = (img.status === 'pending' || img.status === 'unclear') && !img.review.hasReviewed
-        const statusForViewer = needsCurrentReview ? 'pending' : img.status
-        const statusLabel = needsCurrentReview ? 'Review needed' : img.status === 'pending' ? 'Submitted' : img.status === 'unclear' ? 'No consensus' : undefined
+        const needsCurrentReview = (img.status === 'pending' || img.status === 'unclear' || img.status === 'no_detection') && !img.review.hasReviewed
+        const statusForViewer = needsCurrentReview && img.status !== 'no_detection' ? 'pending' : img.status
+        const statusLabel = img.status === 'no_detection' ? 'No AI detection' : needsCurrentReview ? 'Review needed' : img.status === 'pending' ? 'Submitted' : img.status === 'unclear' ? 'No consensus' : undefined
         return (
           <div
             key={`${currentFilter}-${img.id}`}
