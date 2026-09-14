@@ -13,7 +13,7 @@ type WorkspaceImage = {
   id: string
   originalFilename: string
   imageUrl: string | null
-  status: 'pending' | 'verified' | 'unclear' | 'no_detection' | 'waiting_for_new_class'
+  status: 'pending' | 'verified' | 'unclear' | 'waiting_for_new_class'
   confidence: number | null
   bbox: { x: number; y: number; width: number; height: number } | null
   createdAt: string
@@ -122,9 +122,9 @@ export default function ExpertPage() {
     all:                   images.length,
     pending:               images.filter(i => i.status === 'pending').length,
     verified:              images.filter(i => i.status === 'verified').length,
-    unclear:               images.filter(i => i.status === 'unclear' || i.status === 'no_detection').length,
+    unclear:               images.filter(i => i.status === 'unclear').length,
     waiting_for_new_class: images.filter(i => i.status === 'waiting_for_new_class').length,
-    my_queue:              images.filter(i => (i.status === 'pending' || i.status === 'unclear' || i.status === 'no_detection') && !i.review.hasReviewed).length,
+    my_queue:              images.filter(i => (i.status === 'pending' || i.status === 'unclear') && !i.review.hasReviewed).length,
   }), [images])
 
   // Filter + Sort
@@ -132,11 +132,11 @@ export default function ExpertPage() {
     let list = [...images]
 
     if (currentFilter === 'my_queue') {
-      list = list.filter(i => (i.status === 'pending' || i.status === 'unclear' || i.status === 'no_detection') && !i.review.hasReviewed)
+      list = list.filter(i => (i.status === 'pending' || i.status === 'unclear') && !i.review.hasReviewed)
     } else if (currentFilter === 'pending') {
       list = list.filter(i => i.status === 'pending')
     } else if (currentFilter === 'unclear') {
-      list = list.filter(i => i.status === 'unclear' || i.status === 'no_detection')
+      list = list.filter(i => i.status === 'unclear')
     } else if (currentFilter !== 'all') {
       list = list.filter(i => i.status === currentFilter)
     }

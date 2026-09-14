@@ -40,8 +40,8 @@ export default function ImageList({ filtered, currentFilter }: ImageListProps) {
       </div>
 
       {filtered.map((img) => {
-        const needsCurrentReview = (img.status === 'pending' || img.status === 'unclear' || img.status === 'no_detection') && !img.review.hasReviewed
-        const statusForViewer = img.status === 'no_detection' ? 'unclear' : img.status
+        const needsCurrentReview = (img.status === 'pending' || img.status === 'unclear') && !img.review.hasReviewed
+        const statusForViewer = img.status
         const statusLabel = undefined
         const conf = (img.confidence ?? 0) * 100
 
