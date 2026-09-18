@@ -17,6 +17,8 @@ interface ExpertTabsProps {
   currentFilter: FilterStatus;
   setCurrentFilter: (f: FilterStatus) => void;
   counts: Record<FilterStatus, number>;
+  pageSize: number;
+  setPageSize: (size: number) => void;
   sortMode: SortMode;
   setSortMode: (s: SortMode) => void;
   viewMode: ViewMode;
@@ -27,6 +29,8 @@ export default function ExpertTabs({
   currentFilter,
   setCurrentFilter,
   counts,
+  pageSize,
+  setPageSize,
   sortMode,
   setSortMode,
   viewMode,
@@ -59,6 +63,7 @@ export default function ExpertTabs({
 
       {/* Right-side controls */}
       <div className="flex items-center gap-2 pb-4 shrink-0">
+        <label className="flex items-center gap-1.5 text-xs text-zinc-500">Show<select value={pageSize} onChange={event => setPageSize(Number(event.target.value))} title="Tasks per page" className="rounded-lg border border-zinc-800 bg-zinc-900 px-2 py-1.5 text-xs text-zinc-300 outline-none focus:border-zinc-600"><option value={20}>20</option><option value={50}>50</option><option value={100}>100</option><option value={200}>200</option></select></label>
         {/* Sort dropdown */}
         <div className="relative flex items-center">
           <ArrowUpDown size={13} className="absolute left-2.5 text-zinc-500 pointer-events-none" />

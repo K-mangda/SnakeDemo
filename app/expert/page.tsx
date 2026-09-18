@@ -1,7 +1,7 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
-import { User } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { ChevronLeft, ChevronRight, User } from 'lucide-react'
 import { supabase } from '@/lib/supabase/client'
 
 import ExpertHeader from '@/components/expert/ExpertHeader'
@@ -21,57 +21,15 @@ type WorkspaceImage = {
   prediction: { scientific: string; nameTh: string | null }
 }
 
-type WorkspaceCache = {
-  userId: string
-  images: WorkspaceImage[]
-  fetchedAt: number
-}
-
-// Keep the last queue in memory while people move between pages. Signed image
-// URLs expire, so browser storage contains card metadata only, never image URLs.
-let workspaceCache: WorkspaceCache | null = null
-const IMAGE_URL_CACHE_MS = 10 * 60 * 1000
-
-function cacheKey(userId: string) {
-  return `nstru-expert-workspace:${userId}`
-}
-
-function readWorkspaceCache(userId: string): WorkspaceImage[] | null {
-  if (workspaceCache?.userId === userId) {
-    if (Date.now() - workspaceCache.fetchedAt < IMAGE_URL_CACHE_MS) return workspaceCache.images
-    return withoutImageUrls(workspaceCache.images)
-  }
-
-  try {
-    const saved = window.sessionStorage.getItem(cacheKey(userId))
-    if (!saved) return null
-
-    const parsed = JSON.parse(saved) as { images?: unknown }
-    return Array.isArray(parsed.images) ? withoutImageUrls(parsed.images as WorkspaceImage[]) : null
-  } catch {
-    return null
-  }
-}
-
-function withoutImageUrls(images: WorkspaceImage[]) {
-  return images.map((image) => ({ ...image, imageUrl: null }))
-}
-
-function saveWorkspaceCache(userId: string, nextImages: WorkspaceImage[]) {
-  workspaceCache = { userId, images: nextImages, fetchedAt: Date.now() }
-
-  try {
-    window.sessionStorage.setItem(cacheKey(userId), JSON.stringify({ images: withoutImageUrls(nextImages) }))
-  } catch {
-    // The workspace still works when browser storage is unavailable.
-  }
-}
-
 export default function ExpertPage() {
   const [currentFilter, setCurrentFilter] = useState<FilterStatus>('my_queue')
   const [viewMode, setViewMode]           = useState<ViewMode>('grid')
   const [sortMode, setSortMode]           = useState<SortMode>('confidence_asc')
   const [images, setImages] = useState<WorkspaceImage[]>([])
+  const [counts, setCounts] = useState<Record<FilterStatus, number>>({ all: 0, pending: 0, verified: 0, unclear: 0, waiting_for_new_class: 0, my_queue: 0 })
+  const [pageSize, setPageSize] = useState(20)
+  const [page, setPage] = useState(0)
+  const [total, setTotal] = useState(0)
   const [loading, setLoading] = useState(true)
   const [loadError, setLoadError] = useState<string | null>(null)
 
@@ -85,35 +43,31 @@ export default function ExpertPage() {
         return
       }
 
-      // Show the last known queue immediately, then refresh only this data in
-      // the background. Navigation therefore does not blank the whole page.
-      const cachedImages = readWorkspaceCache(session.user.id)
-      if (cachedImages) {
-        setImages(cachedImages)
-        setLoading(false)
-      }
-
       try {
-        const response = await fetch('/api/expert/images', {
+        const params = new URLSearchParams({
+          filter: currentFilter,
+          page: String(page),
+          page_size: String(pageSize),
+          sort: sortMode,
+        })
+        const response = await fetch(`/api/expert/images?${params}`, {
           headers: { Authorization: `Bearer ${session.access_token}` },
         })
         const payload = await response.json()
         if (cancelled) return
 
         if (!response.ok) {
-          // Keep a visible cached queue usable if a background refresh fails.
-          if (!cachedImages) setLoadError(payload.detail ?? 'Could not load saved scans.')
+          setLoadError(payload.detail ?? 'Could not load saved scans.')
           return
         }
 
         const nextImages = payload.images as WorkspaceImage[]
         setImages(nextImages)
-        saveWorkspaceCache(session.user.id, nextImages)
+        setCounts(payload.counts as Record<FilterStatus, number>)
+        setTotal(payload.total as number)
         setLoadError(null)
       } catch {
-        if (!cancelled && !cachedImages) {
-          setLoadError('Could not load saved scans. Please try again.')
-        }
+        if (!cancelled) setLoadError('Could not load saved scans. Please try again.')
       } finally {
         if (!cancelled) setLoading(false)
       }
@@ -124,37 +78,11 @@ export default function ExpertPage() {
     return () => {
       cancelled = true
     }
-  }, [])
+  }, [currentFilter, page, pageSize, sortMode])
 
-  // Count per filter
-  const counts: Record<FilterStatus, number> = useMemo(() => ({
-    all:                   images.length,
-    pending:               images.filter(i => i.status === 'pending').length,
-    verified:              images.filter(i => i.status === 'verified').length,
-    unclear:               images.filter(i => i.status === 'unclear').length,
-    waiting_for_new_class: images.filter(i => i.status === 'waiting_for_new_class').length,
-    my_queue:              images.filter(i => (i.status === 'pending' || i.status === 'unclear') && !i.review.hasReviewed).length,
-  }), [images])
-
-  // Filter + Sort
-  const filtered = useMemo(() => {
-    let list = [...images]
-
-    if (currentFilter === 'my_queue') {
-      list = list.filter(i => (i.status === 'pending' || i.status === 'unclear') && !i.review.hasReviewed)
-    } else if (currentFilter === 'pending') {
-      list = list.filter(i => i.status === 'pending')
-    } else if (currentFilter === 'unclear') {
-      list = list.filter(i => i.status === 'unclear')
-    } else if (currentFilter !== 'all') {
-      list = list.filter(i => i.status === currentFilter)
-    }
-
-    if (sortMode === 'confidence_asc')  list.sort((a, b) => (a.confidence ?? 0) - (b.confidence ?? 0))
-    if (sortMode === 'confidence_desc') list.sort((a, b) => (b.confidence ?? 0) - (a.confidence ?? 0))
-
-    return list
-  }, [images, currentFilter, sortMode])
+  const pageCount = Math.max(1, Math.ceil(total / pageSize))
+  const visibleStart = total === 0 ? 0 : page * pageSize + 1
+  const visibleEnd = Math.min(total, (page + 1) * pageSize)
 
   return (
     <main className="min-h-screen pt-24 sm:pt-28 px-4 sm:px-6 pb-20">
@@ -163,8 +91,10 @@ export default function ExpertPage() {
 
         <ExpertTabs 
           currentFilter={currentFilter}
-          setCurrentFilter={setCurrentFilter}
+          setCurrentFilter={(filter) => { setCurrentFilter(filter); setPage(0) }}
           counts={counts}
+          pageSize={pageSize}
+          setPageSize={(size) => { setPageSize(size); setPage(0) }}
           sortMode={sortMode}
           setSortMode={setSortMode}
           viewMode={viewMode}
@@ -190,14 +120,25 @@ export default function ExpertPage() {
 
         {loadError && <p className="py-20 text-center text-sm text-red-400">{loadError}</p>}
 
-        {!loading && !loadError && filtered.length === 0 && (
+        {!loading && !loadError && images.length === 0 && (
           <div className="py-20 text-center border border-zinc-800 border-dashed rounded-xl bg-zinc-900/10">
             <p className="text-zinc-500">No images found for this filter.</p>
           </div>
         )}
 
-        {!loading && !loadError && viewMode === 'grid' && <ImageGrid filtered={filtered} currentFilter={currentFilter} />}
-        {!loading && !loadError && viewMode === 'list' && <ImageList filtered={filtered} currentFilter={currentFilter} />}
+        {!loading && !loadError && viewMode === 'grid' && <ImageGrid filtered={images} currentFilter={currentFilter} />}
+        {!loading && !loadError && viewMode === 'list' && <ImageList filtered={images} currentFilter={currentFilter} />}
+
+        {!loading && !loadError && total > 0 && <div className="mt-8 flex flex-col-reverse gap-4 border-t border-zinc-800 pt-5 sm:flex-row sm:items-center sm:justify-between">
+          <p className="text-xs text-zinc-500">Showing <span className="text-zinc-300">{visibleStart}–{visibleEnd}</span> of <span className="text-zinc-300">{total}</span> tasks</p>
+          <div className="flex items-center justify-end gap-3">
+            <div className="flex items-center rounded-lg border border-zinc-800 bg-zinc-900">
+              <button type="button" aria-label="Previous page" disabled={page === 0} onClick={() => setPage((current) => current - 1)} className="p-1.5 text-zinc-400 transition hover:text-zinc-100 disabled:cursor-not-allowed disabled:opacity-30"><ChevronLeft size={16} /></button>
+              <span className="border-x border-zinc-800 px-3 py-1.5 text-xs text-zinc-400">{page + 1} / {pageCount}</span>
+              <button type="button" aria-label="Next page" disabled={page + 1 >= pageCount} onClick={() => setPage((current) => current + 1)} className="p-1.5 text-zinc-400 transition hover:text-zinc-100 disabled:cursor-not-allowed disabled:opacity-30"><ChevronRight size={16} /></button>
+            </div>
+          </div>
+        </div>}
       </div>
     </main>
   )
