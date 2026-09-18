@@ -65,12 +65,13 @@ export default function ExpertTabs({
           <select
             value={sortMode}
             onChange={e => setSortMode(e.target.value as SortMode)}
+            title="Sort review tasks"
             className="pl-7 pr-3 py-1.5 text-xs bg-zinc-900 border border-zinc-800 text-zinc-300
                        rounded-lg focus:outline-none focus:border-zinc-600 cursor-pointer appearance-none"
           >
-            <option value="date">Date added</option>
-            <option value="confidence_asc">Confidence: Low → High</option>
-            <option value="confidence_desc">Confidence: High → Low</option>
+            <option value="confidence_asc">Low first</option>
+            <option value="confidence_desc">High first</option>
+            <option value="date">Newest first</option>
           </select>
         </div>
 
