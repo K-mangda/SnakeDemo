@@ -55,6 +55,9 @@ export async function GET(request: Request, context: RouteContext<'/api/expert/i
 
   const stored = image as StoredImage
   const modelSpecies = stored.predicted_species?.[0] ?? null
+  // Do not show an old placeholder/stale box unless the model actually
+  // supplied both a label and a confidence value for this image.
+  const hasAiPrediction = stored.predicted_scientific !== null && stored.confidence !== null
   return Response.json({
     image: {
       id: stored.id,
@@ -63,7 +66,7 @@ export async function GET(request: Request, context: RouteContext<'/api/expert/i
       imageUrl: signed.signedUrl,
       status: stored.status,
       confidence: stored.confidence,
-      bbox: stored.predicted_bbox,
+      bbox: hasAiPrediction ? stored.predicted_bbox : null,
       prediction: modelSpecies
         ? { id: modelSpecies.id, scientific: modelSpecies.scientific_name, nameTh: modelSpecies.name_th, nameEn: modelSpecies.name_en }
         : { id: null, scientific: stored.predicted_scientific ?? 'Reference pending', nameTh: null, nameEn: null },

@@ -70,6 +70,9 @@ export async function GET(request: Request) {
   const requiredReviews = Math.floor((activeExpertCount ?? 0) / 2) + 1
 
   const images = await Promise.all(storedImages.map(async (image) => {
+    // A legacy/test record can carry a stale box even though the model did
+    // not produce a prediction. Never present that box as AI output.
+    const hasAiPrediction = image.predicted_scientific !== null && image.confidence !== null
     const { data: signed, error: signedError } = await admin.storage
       .from('prediction-images')
       .createSignedUrl(image.storage_path, 60 * 15)
@@ -82,7 +85,7 @@ export async function GET(request: Request) {
       imageUrl: signed?.signedUrl ?? null,
       status: image.status,
       confidence: image.confidence,
-      bbox: image.predicted_bbox,
+      bbox: hasAiPrediction ? image.predicted_bbox : null,
       createdAt: image.created_at,
       review: {
         count: reviewsByImage.get(image.id)?.size ?? 0,
