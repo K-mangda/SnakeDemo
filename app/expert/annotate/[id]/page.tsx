@@ -2,7 +2,7 @@
 
 import { use, useEffect, useRef, useState, type MouseEvent as ReactMouseEvent } from 'react'
 import { useRouter } from 'next/navigation'
-import { ArrowLeft, Check, ChevronDown, Crosshair, Eraser, Keyboard, Maximize2, MousePointer2, Plus, Search } from 'lucide-react'
+import { ArrowLeft, Check, ChevronDown, Crosshair, Eraser, Keyboard, MousePointer2, Plus, Search } from 'lucide-react'
 import Button from '@/components/ui/Button'
 import Badge from '@/components/ui/Badge'
 import { supabase } from '@/lib/supabase/client'
@@ -12,6 +12,7 @@ import { getPrefetchedReview, prefetchExpertReview } from '@/lib/expert-review-c
 
 type Box = { x: number; y: number; width: number; height: number }
 type Decision = 'pending' | 'unclear' | 'waiting_for_new_class'
+type DragMode = 'move' | 'n' | 'ne' | 'e' | 'se' | 's' | 'sw' | 'w' | 'nw'
 type Species = { id: number; scientific_name: string; name_th: string | null; name_en: string | null }
 type Scan = {
   id: string
@@ -44,7 +45,7 @@ export default function AnnotatePage({ params }: { params: Promise<{ id: string 
   const [search, setSearch] = useState('')
   const [placingBox, setPlacingBox] = useState(false)
   const [drawStart, setDrawStart] = useState<{ x: number; y: number } | null>(null)
-  const [dragMode, setDragMode] = useState<'move' | 'resize' | null>(null)
+  const [dragMode, setDragMode] = useState<DragMode | null>(null)
   const [startPoint, setStartPoint] = useState({ x: 0, y: 0 })
   const [startBox, setStartBox] = useState<Box | null>(null)
   const imageRef = useRef<HTMLDivElement>(null)
@@ -114,7 +115,7 @@ export default function AnnotatePage({ params }: { params: Promise<{ id: string 
     setBbox({ x: start.x, y: start.y, width: 0, height: 0 })
   }
 
-  function beginBoxAction(event: ReactMouseEvent, mode: 'move' | 'resize') {
+  function beginBoxAction(event: ReactMouseEvent, mode: DragMode) {
     if (!bbox) return
     event.preventDefault()
     event.stopPropagation()
@@ -149,11 +150,30 @@ export default function AnnotatePage({ params }: { params: Promise<{ id: string 
         y: clamp(startBox.y + dy, 0, 100 - startBox.height),
       })
     } else {
-      setBbox({
-        ...startBox,
-        width: clamp(startBox.width + dx, 8, 100 - startBox.x),
-        height: clamp(startBox.height + dy, 8, 100 - startBox.y),
-      })
+      const minSize = 5
+      const right = startBox.x + startBox.width
+      const bottom = startBox.y + startBox.height
+      let nextX = startBox.x
+      let nextY = startBox.y
+      let nextWidth = startBox.width
+      let nextHeight = startBox.height
+
+      if (dragMode.includes('w')) {
+        nextX = clamp(startBox.x + dx, 0, right - minSize)
+        nextWidth = right - nextX
+      }
+      if (dragMode.includes('e')) {
+        nextWidth = clamp(startBox.width + dx, minSize, 100 - startBox.x)
+      }
+      if (dragMode.includes('n')) {
+        nextY = clamp(startBox.y + dy, 0, bottom - minSize)
+        nextHeight = bottom - nextY
+      }
+      if (dragMode.includes('s')) {
+        nextHeight = clamp(startBox.height + dy, minSize, 100 - startBox.y)
+      }
+
+      setBbox({ x: nextX, y: nextY, width: nextWidth, height: nextHeight })
     }
   }
 
@@ -245,10 +265,10 @@ export default function AnnotatePage({ params }: { params: Promise<{ id: string 
               <div ref={imageRef} className={`relative inline-block max-h-[600px] max-w-full select-none ${placingBox ? 'cursor-crosshair' : ''}`} onMouseDown={beginDrawingBox} onMouseMove={updateBox} onMouseUp={endBoxAction} onMouseLeave={endBoxAction}>
                 <img src={scan.imageUrl} alt="Saved subject for Expert review" draggable={false} className="block max-h-[600px] max-w-full rounded-lg object-contain" />
                 {!bbox && <div className="pointer-events-none absolute inset-0 grid place-items-center"><span className="rounded-lg border border-zinc-700 bg-zinc-950/90 px-3 py-2 text-xs text-zinc-400">{placingBox ? 'Drag over the snake to draw a box' : 'No AI box · click Add box to create one'}</span></div>}
-                {bbox && <div className="absolute cursor-move border-2 border-emerald-400 bg-emerald-500/10 shadow-[0_0_18px_rgba(16,185,129,0.22)]" style={{ left: `${bbox.x}%`, top: `${bbox.y}%`, width: `${bbox.width}%`, height: `${bbox.height}%` }} onMouseDown={(event) => beginBoxAction(event, 'move')}><span className="absolute -top-7 left-0 rounded bg-emerald-500 px-2 py-1 text-[10px] font-medium text-zinc-950">Review box</span><button type="button" aria-label="Resize review box" className="absolute -bottom-2 -right-2 grid h-5 w-5 cursor-nwse-resize place-items-center rounded-sm border border-emerald-200 bg-emerald-500 text-zinc-950 shadow" onMouseDown={(event) => beginBoxAction(event, 'resize')}><Maximize2 size={11} /></button></div>}
+                {bbox && <div className="absolute cursor-move border-2 border-emerald-400 bg-emerald-500/10 shadow-[0_0_18px_rgba(16,185,129,0.22)]" style={{ left: `${bbox.x}%`, top: `${bbox.y}%`, width: `${bbox.width}%`, height: `${bbox.height}%` }} onMouseDown={(event) => beginBoxAction(event, 'move')}><span className="absolute -top-7 left-0 rounded bg-emerald-500 px-2 py-1 text-[10px] font-medium text-zinc-950">Review box</span><ResizeHandles onStart={beginBoxAction} /></div>}
               </div>
             </div>
-            <div className="flex flex-wrap items-center justify-between gap-2 border-t border-zinc-800 px-5 py-3 text-xs text-zinc-500"><span>{bbox ? 'Drag inside the box to move it. Drag the lower-right handle to resize it.' : placingBox ? 'Click and drag over the snake to draw a review box.' : 'No box was detected by AI. Add one only if you identify a snake.'}</span><span className="inline-flex items-center gap-1.5 text-zinc-600"><Keyboard size={12} /> B: draw · Del: clear · Esc: cancel</span></div>
+            <div className="flex flex-wrap items-center justify-between gap-2 border-t border-zinc-800 px-5 py-3 text-xs text-zinc-500"><span>{bbox ? 'Drag inside the box to move it. Drag any edge or corner to resize it.' : placingBox ? 'Click and drag over the snake to draw a review box.' : 'No box was detected by AI. Add one only if you identify a snake.'}</span><span className="inline-flex items-center gap-1.5 text-zinc-600"><Keyboard size={12} /> B: draw · Del: clear · Esc: cancel</span></div>
           </section>
 
           <aside className="space-y-5">
@@ -265,6 +285,21 @@ export default function AnnotatePage({ params }: { params: Promise<{ id: string 
       </div>
     </main>
   )
+}
+
+function ResizeHandles({ onStart }: { onStart: (event: ReactMouseEvent, mode: DragMode) => void }) {
+  const handles: Array<{ mode: Exclude<DragMode, 'move'>; className: string; label: string }> = [
+    { mode: 'nw', className: '-left-2 -top-2 cursor-nwse-resize', label: 'Resize from top left' },
+    { mode: 'n', className: 'left-1/2 -top-1.5 h-3 w-10 -translate-x-1/2 cursor-ns-resize', label: 'Resize from top' },
+    { mode: 'ne', className: '-right-2 -top-2 cursor-nesw-resize', label: 'Resize from top right' },
+    { mode: 'e', className: '-right-1.5 top-1/2 h-10 w-3 -translate-y-1/2 cursor-ew-resize', label: 'Resize from right' },
+    { mode: 'se', className: '-bottom-2 -right-2 cursor-nwse-resize', label: 'Resize from bottom right' },
+    { mode: 's', className: '-bottom-1.5 left-1/2 h-3 w-10 -translate-x-1/2 cursor-ns-resize', label: 'Resize from bottom' },
+    { mode: 'sw', className: '-bottom-2 -left-2 cursor-nesw-resize', label: 'Resize from bottom left' },
+    { mode: 'w', className: '-left-1.5 top-1/2 h-10 w-3 -translate-y-1/2 cursor-ew-resize', label: 'Resize from left' },
+  ]
+
+  return <>{handles.map((handle) => <button key={handle.mode} type="button" aria-label={handle.label} className={`absolute z-10 h-4 w-4 rounded-sm border border-emerald-100 bg-emerald-500 shadow ${handle.className}`} onMouseDown={(event) => onStart(event, handle.mode)} />)}</>
 }
 
 function DecisionOption({ active, onClick, title, detail, tone = 'emerald' }: { active: boolean; onClick: () => void; title: string; detail: string; tone?: 'emerald' | 'amber' | 'blue' }) {
