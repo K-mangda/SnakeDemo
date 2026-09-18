@@ -24,35 +24,44 @@ type WorkspaceImage = {
 type WorkspaceCache = {
   userId: string
   images: WorkspaceImage[]
+  fetchedAt: number
 }
 
-// Keep the last queue in memory while people move between pages. The same
-// snapshot is also kept for the current browser tab, never as image files.
+// Keep the last queue in memory while people move between pages. Signed image
+// URLs expire, so browser storage contains card metadata only, never image URLs.
 let workspaceCache: WorkspaceCache | null = null
+const IMAGE_URL_CACHE_MS = 10 * 60 * 1000
 
 function cacheKey(userId: string) {
   return `nstru-expert-workspace:${userId}`
 }
 
 function readWorkspaceCache(userId: string): WorkspaceImage[] | null {
-  if (workspaceCache?.userId === userId) return workspaceCache.images
+  if (workspaceCache?.userId === userId) {
+    if (Date.now() - workspaceCache.fetchedAt < IMAGE_URL_CACHE_MS) return workspaceCache.images
+    return withoutImageUrls(workspaceCache.images)
+  }
 
   try {
     const saved = window.sessionStorage.getItem(cacheKey(userId))
     if (!saved) return null
 
     const parsed = JSON.parse(saved) as { images?: unknown }
-    return Array.isArray(parsed.images) ? parsed.images as WorkspaceImage[] : null
+    return Array.isArray(parsed.images) ? withoutImageUrls(parsed.images as WorkspaceImage[]) : null
   } catch {
     return null
   }
 }
 
+function withoutImageUrls(images: WorkspaceImage[]) {
+  return images.map((image) => ({ ...image, imageUrl: null }))
+}
+
 function saveWorkspaceCache(userId: string, nextImages: WorkspaceImage[]) {
-  workspaceCache = { userId, images: nextImages }
+  workspaceCache = { userId, images: nextImages, fetchedAt: Date.now() }
 
   try {
-    window.sessionStorage.setItem(cacheKey(userId), JSON.stringify({ images: nextImages }))
+    window.sessionStorage.setItem(cacheKey(userId), JSON.stringify({ images: withoutImageUrls(nextImages) }))
   } catch {
     // The workspace still works when browser storage is unavailable.
   }
