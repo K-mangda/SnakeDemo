@@ -41,6 +41,7 @@ export default function AnnotatePage({ params }: { params: Promise<{ id: string 
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [search, setSearch] = useState('')
+  const [placingBox, setPlacingBox] = useState(false)
   const [dragMode, setDragMode] = useState<'move' | 'resize' | null>(null)
   const [startPoint, setStartPoint] = useState({ x: 0, y: 0 })
   const [startBox, setStartBox] = useState<Box | null>(null)
@@ -74,12 +75,17 @@ export default function AnnotatePage({ params }: { params: Promise<{ id: string 
     load()
   }, [id])
 
-  function createBox(event?: ReactMouseEvent) {
-    if (bbox || !imageRef.current) return
+  function beginPlacingBox() {
+    if (!bbox) setPlacingBox(true)
+  }
+
+  function placeBox(event: ReactMouseEvent) {
+    if (bbox || !placingBox || !imageRef.current) return
     const rect = imageRef.current.getBoundingClientRect()
-    const clickX = event ? ((event.clientX - rect.left) / rect.width) * 100 : 50
-    const clickY = event ? ((event.clientY - rect.top) / rect.height) * 100 : 50
+    const clickX = ((event.clientX - rect.left) / rect.width) * 100
+    const clickY = ((event.clientY - rect.top) / rect.height) * 100
     setBbox({ x: clamp(clickX - 15, 0, 70), y: clamp(clickY - 15, 0, 70), width: 30, height: 30 })
+    setPlacingBox(false)
   }
 
   function beginBoxAction(event: ReactMouseEvent, mode: 'move' | 'resize') {
@@ -161,15 +167,15 @@ export default function AnnotatePage({ params }: { params: Promise<{ id: string 
 
         <div className="grid gap-7 lg:grid-cols-[minmax(0,1.45fr)_minmax(340px,0.8fr)]">
           <section className="overflow-hidden rounded-2xl border border-zinc-800 bg-zinc-900/20">
-            <div className="flex items-center justify-between border-b border-zinc-800 px-5 py-4"><span className="flex items-center gap-2 text-sm font-medium text-zinc-200"><Crosshair size={16} className="text-emerald-400" /> Subject boundary</span>{!bbox && <Button size="sm" variant="outline" onClick={() => createBox()}><Plus size={14} /> Add box</Button>}</div>
+            <div className="flex items-center justify-between border-b border-zinc-800 px-5 py-4"><span className="flex items-center gap-2 text-sm font-medium text-zinc-200"><Crosshair size={16} className="text-emerald-400" /> Subject boundary</span>{!bbox && <Button size="sm" variant={placingBox ? 'primary' : 'outline'} onClick={beginPlacingBox}>{placingBox ? 'Click image to place' : <><Plus size={14} /> Add box</>}</Button>}</div>
             <div className="flex min-h-[420px] items-center justify-center bg-zinc-950 p-4 sm:p-6">
-              <div ref={imageRef} className={`relative inline-block max-h-[600px] max-w-full select-none ${bbox ? '' : 'cursor-crosshair'}`} onClick={(event) => createBox(event)} onMouseMove={updateBox} onMouseUp={() => setDragMode(null)} onMouseLeave={() => setDragMode(null)}>
-                <img src={scan.imageUrl} alt="Saved subject for Expert review" className="block max-h-[600px] max-w-full rounded-lg object-contain" />
-                {!bbox && <div className="pointer-events-none absolute inset-0 grid place-items-center"><span className="rounded-lg border border-zinc-700 bg-zinc-950/90 px-3 py-2 text-xs text-zinc-400">No AI box · click image or Add box</span></div>}
+              <div ref={imageRef} className={`relative inline-block max-h-[600px] max-w-full select-none ${placingBox ? 'cursor-crosshair' : ''}`} onClick={placeBox} onMouseMove={updateBox} onMouseUp={() => setDragMode(null)} onMouseLeave={() => setDragMode(null)}>
+                <img src={scan.imageUrl} alt="Saved subject for Expert review" draggable={false} className="block max-h-[600px] max-w-full rounded-lg object-contain" />
+                {!bbox && <div className="pointer-events-none absolute inset-0 grid place-items-center"><span className="rounded-lg border border-zinc-700 bg-zinc-950/90 px-3 py-2 text-xs text-zinc-400">{placingBox ? 'Click the image where the snake is' : 'No AI box · click Add box to create one'}</span></div>}
                 {bbox && <div className="absolute cursor-move border-2 border-emerald-400 bg-emerald-500/10 shadow-[0_0_18px_rgba(16,185,129,0.22)]" style={{ left: `${bbox.x}%`, top: `${bbox.y}%`, width: `${bbox.width}%`, height: `${bbox.height}%` }} onMouseDown={(event) => beginBoxAction(event, 'move')}><span className="absolute -top-7 left-0 rounded bg-emerald-500 px-2 py-1 text-[10px] font-medium text-zinc-950">Review box</span><button type="button" aria-label="Resize review box" className="absolute -bottom-2 -right-2 grid h-5 w-5 cursor-nwse-resize place-items-center rounded-sm border border-emerald-200 bg-emerald-500 text-zinc-950 shadow" onMouseDown={(event) => beginBoxAction(event, 'resize')}><Maximize2 size={11} /></button></div>}
               </div>
             </div>
-            <div className="border-t border-zinc-800 px-5 py-3 text-xs text-zinc-500">{bbox ? 'Drag inside the box to move it. Drag the lower-right handle to resize it.' : 'No box was detected by AI. Add one only if you identify a snake.'}</div>
+            <div className="border-t border-zinc-800 px-5 py-3 text-xs text-zinc-500">{bbox ? 'Drag inside the box to move it. Drag the lower-right handle to resize it.' : placingBox ? 'Click the image once to place a review box.' : 'No box was detected by AI. Add one only if you identify a snake.'}</div>
           </section>
 
           <aside className="space-y-5">
