@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { MOCK_STATS, SNAKE_DATA } from '@/lib/data'
 import Button from '@/components/ui/Button'
+import SelectMenu from '@/components/ui/SelectMenu'
 import { useToast } from '@/components/ui/Toast'
 import { Filter, AlertTriangle, ShieldCheck, Trash2, Search, RefreshCw, Plus, Edit, ChevronDown, Info, Activity, Map } from 'lucide-react'
 import UnclearImagesModal from '@/components/admin/modals/UnclearImagesModal'
@@ -150,21 +151,11 @@ export default function DataReview() {
                   <div className="grid grid-cols-2 gap-3">
                     <div>
                       <label className="block text-[10px] text-zinc-500 uppercase tracking-wider mb-1">Venom Type</label>
-                      <select value={anomalyForm.venomType} onChange={e => setAnomalyForm({...anomalyForm, venomType: e.target.value})} className="w-full bg-zinc-900 border border-zinc-800 text-zinc-100 px-3 py-2 rounded-lg outline-none focus:border-red-500/50 text-sm">
-                        <option value="Non-venomous">Non-venomous (ไม่มีพิษ)</option>
-                        <option value="neurotoxic">Neurotoxic (พิษต่อประสาท)</option>
-                        <option value="hemotoxic">Hemotoxic (พิษต่อเลือด)</option>
-                        <option value="cytotoxic">Cytotoxic (พิษทำลายเซลล์)</option>
-                        <option value="Unknown">Unknown (ยังไม่ทราบ)</option>
-                      </select>
+                      <SelectMenu value={anomalyForm.venomType} onChange={value => setAnomalyForm({...anomalyForm, venomType: value})} ariaLabel="Venom type" className="w-full" buttonClassName="w-full justify-between !px-3 !py-2 !text-sm hover:!border-red-500/50" menuClassName="left-0 right-auto w-full" options={[{ value: 'Non-venomous', label: 'Non-venomous (ไม่มีพิษ)' }, { value: 'neurotoxic', label: 'Neurotoxic (พิษต่อประสาท)' }, { value: 'hemotoxic', label: 'Hemotoxic (พิษต่อเลือด)' }, { value: 'cytotoxic', label: 'Cytotoxic (พิษทำลายเซลล์)' }, { value: 'Unknown', label: 'Unknown (ยังไม่ทราบ)' }]} />
                     </div>
                     <div>
                       <label className="block text-[10px] text-zinc-500 uppercase tracking-wider mb-1">Human Safety Status</label>
-                      <select value={anomalyForm.dangerStatus} onChange={e => setAnomalyForm({...anomalyForm, dangerStatus: e.target.value})} className="w-full bg-zinc-900 border border-zinc-800 text-zinc-100 px-3 py-2 rounded-lg outline-none focus:border-red-500/50 text-sm">
-                        <option value="ต้องระวัง — รอผู้เชี่ยวชาญยืนยัน">ต้องระวัง — รอผู้เชี่ยวชาญยืนยัน</option>
-                        <option value="ความเสี่ยงต่ำต่อคน — มีแหล่งอ้างอิงรองรับ">ความเสี่ยงต่ำต่อคน — มีแหล่งอ้างอิงรองรับ</option>
-                        <option value="ความเสี่ยงสูง — มีแหล่งอ้างอิงทางการแพทย์">ความเสี่ยงสูง — มีแหล่งอ้างอิงทางการแพทย์</option>
-                      </select>
+                      <SelectMenu value={anomalyForm.dangerStatus} onChange={value => setAnomalyForm({...anomalyForm, dangerStatus: value})} ariaLabel="Human safety status" className="w-full" buttonClassName="w-full justify-between !px-3 !py-2 !text-sm hover:!border-red-500/50" menuClassName="left-0 right-auto w-full" options={[{ value: 'ต้องระวัง — รอผู้เชี่ยวชาญยืนยัน', label: 'ต้องระวัง — รอผู้เชี่ยวชาญยืนยัน' }, { value: 'ความเสี่ยงต่ำต่อคน — มีแหล่งอ้างอิงรองรับ', label: 'ความเสี่ยงต่ำต่อคน — มีแหล่งอ้างอิงรองรับ' }, { value: 'ความเสี่ยงสูง — มีแหล่งอ้างอิงทางการแพทย์', label: 'ความเสี่ยงสูง — มีแหล่งอ้างอิงทางการแพทย์' }]} />
                     </div>
                   </div>
                   <div>

@@ -4,6 +4,7 @@ import React, { useState, useRef, useEffect } from 'react'
 import { X, Check, Save, AlertTriangle, MousePointer2 } from 'lucide-react'
 import Button from '@/components/ui/Button'
 import Badge from '@/components/ui/Badge'
+import SelectMenu from '@/components/ui/SelectMenu'
 
 interface BBox {
   x: number
@@ -185,15 +186,7 @@ export default function ImageAnnotationModal({
             {/* Expert Input */}
             <div>
               <div className="text-xs text-white/50 font-medium mb-2 uppercase tracking-wider">ยืนยันสายพันธุ์ (Expert Edit)</div>
-              <select 
-                value={selectedClass}
-                onChange={(e) => setSelectedClass(e.target.value)}
-                className="w-full bg-[#0A1224] border border-white/10 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-emerald-500 appearance-none transition-colors"
-              >
-                {snakeClasses.map(cls => (
-                  <option key={cls} value={cls}>{cls}</option>
-                ))}
-              </select>
+              <SelectMenu value={selectedClass} onChange={setSelectedClass} ariaLabel="Confirm species" className="w-full" buttonClassName="w-full justify-between !bg-[#0A1224] !border-white/10 !px-4 !py-3 !text-sm hover:!border-emerald-500" menuClassName="left-0 right-auto w-full" options={snakeClasses.map((snakeClass) => ({ value: snakeClass, label: snakeClass }))} />
               
               {selectedClass !== initialClass && (
                 <div className="mt-3 flex items-start gap-2 text-amber-400 text-xs p-2 bg-amber-400/10 rounded-lg">

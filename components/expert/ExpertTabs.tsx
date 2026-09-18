@@ -1,4 +1,5 @@
 import { User, ArrowUpDown, LayoutGrid, List } from 'lucide-react'
+import SelectMenu from '@/components/ui/SelectMenu'
 
 export type FilterStatus = 'all' | 'pending' | 'verified' | 'unclear' | 'waiting_for_new_class' | 'my_queue'
 export type ViewMode = 'grid' | 'list'
@@ -63,22 +64,9 @@ export default function ExpertTabs({
 
       {/* Right-side controls */}
       <div className="flex items-center gap-2 pb-4 shrink-0">
-        <label className="flex items-center gap-1.5 text-xs text-zinc-500">Show<select value={pageSize} onChange={event => setPageSize(Number(event.target.value))} title="Tasks per page" className="rounded-lg border border-zinc-800 bg-zinc-900 px-2 py-1.5 text-xs text-zinc-300 outline-none focus:border-zinc-600"><option value={20}>20</option><option value={50}>50</option><option value={100}>100</option><option value={200}>200</option></select></label>
+        <span className="text-xs text-zinc-500">Show</span><SelectMenu value={pageSize} onChange={(value) => setPageSize(Number(value))} ariaLabel="Tasks per page" options={[20, 50, 100, 200].map((size) => ({ value: size, label: String(size) }))} />
         {/* Sort dropdown */}
-        <div className="relative flex items-center">
-          <ArrowUpDown size={13} className="absolute left-2.5 text-zinc-500 pointer-events-none" />
-          <select
-            value={sortMode}
-            onChange={e => setSortMode(e.target.value as SortMode)}
-            title="Sort review tasks"
-            className="pl-7 pr-3 py-1.5 text-xs bg-zinc-900 border border-zinc-800 text-zinc-300
-                       rounded-lg focus:outline-none focus:border-zinc-600 cursor-pointer appearance-none"
-          >
-            <option value="confidence_asc">Low first</option>
-            <option value="confidence_desc">High first</option>
-            <option value="date">Newest first</option>
-          </select>
-        </div>
+        <SelectMenu value={sortMode} onChange={(value) => setSortMode(value as SortMode)} ariaLabel="Sort review tasks" leading={<ArrowUpDown size={13} className="text-zinc-500" />} options={[{ value: 'confidence_asc', label: 'Low first' }, { value: 'confidence_desc', label: 'High first' }, { value: 'date', label: 'Newest first' }]} />
 
         {/* View toggle */}
         <div className="flex items-center bg-zinc-900 border border-zinc-800 rounded-lg overflow-hidden">
