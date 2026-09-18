@@ -1,8 +1,12 @@
+'use client'
+
 import Button from '@/components/ui/Button'
 import StatusBadge from '@/components/expert/StatusBadge'
 import { FilterStatus } from '@/components/expert/ExpertTabs'
 import { CalendarDays } from 'lucide-react'
 import { formatScanDate, formatScanLabel } from '@/lib/scan-label'
+import { supabase } from '@/lib/supabase/client'
+import { prefetchExpertReview } from '@/lib/expert-review-cache'
 
 interface ImageItem {
   id: string;
@@ -24,6 +28,11 @@ interface ImageGridProps {
 export default function ImageGrid({ filtered, currentFilter }: ImageGridProps) {
   if (filtered.length === 0) return null;
 
+  async function warmReview(imageId: string) {
+    const { data: { session } } = await supabase.auth.getSession()
+    if (session) void prefetchExpertReview(imageId, session.access_token)
+  }
+
   return (
     <div className="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
       {filtered.map((img) => {
@@ -34,6 +43,8 @@ export default function ImageGrid({ filtered, currentFilter }: ImageGridProps) {
           <div
             key={`${currentFilter}-${img.id}`}
             className="h-full border border-zinc-800 rounded-xl bg-zinc-900/20 p-5 flex flex-col hover:border-zinc-700 transition-colors"
+            onMouseEnter={() => void warmReview(img.id)}
+            onFocusCapture={() => void warmReview(img.id)}
           >
             {/* Top row */}
             <div className="flex justify-between items-start mb-4 gap-2">

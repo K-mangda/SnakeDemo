@@ -8,6 +8,7 @@ import Badge from '@/components/ui/Badge'
 import { supabase } from '@/lib/supabase/client'
 import { useToast } from '@/components/ui/Toast'
 import { formatScanLabel } from '@/lib/scan-label'
+import { getPrefetchedReview, prefetchExpertReview } from '@/lib/expert-review-cache'
 
 type Box = { x: number; y: number; width: number; height: number }
 type Decision = 'pending' | 'unclear' | 'waiting_for_new_class'
@@ -51,27 +52,37 @@ export default function AnnotatePage({ params }: { params: Promise<{ id: string 
   useEffect(() => {
     async function load() {
       const { data: { session } } = await supabase.auth.getSession()
-      if (!session) return
-
-      const response = await fetch(`/api/expert/images/${id}`, {
-        headers: { Authorization: `Bearer ${session.access_token}` },
-      })
-      const payload = await response.json()
-      if (!response.ok) {
-        setError(payload.detail ?? 'Could not load saved scan.')
+      if (!session) {
+        setError('Your session has expired. Please sign in again.')
         setLoading(false)
         return
       }
 
-      const item = payload.image as Scan
-      setScan(item)
-      setSpecies(payload.species)
-      setBbox(item.existingVerification ? item.existingVerification.bbox : item.bbox)
-      setSelectedSpeciesId(item.existingVerification?.voted_species_id ?? item.prediction.id)
-      if (item.existingVerification?.voted_species_id === null && item.existingVerification) {
-        setDecision(item.status === 'waiting_for_new_class' ? 'waiting_for_new_class' : 'unclear')
+      const applyPayload = (payload: { image: Scan; species: Species[] }) => {
+        const item = payload.image
+        setScan(item)
+        setSpecies(payload.species)
+        setBbox(item.existingVerification ? item.existingVerification.bbox : item.bbox)
+        setSelectedSpeciesId(item.existingVerification?.voted_species_id ?? item.prediction.id)
+        if (item.existingVerification?.voted_species_id === null && item.existingVerification) {
+          setDecision(item.status === 'waiting_for_new_class' ? 'waiting_for_new_class' : 'unclear')
+        }
+        setLoading(false)
       }
-      setLoading(false)
+
+      const prefetched = getPrefetchedReview(id) as { image: Scan; species: Species[] } | null
+      if (prefetched) {
+        applyPayload(prefetched)
+        return
+      }
+
+      const payload = await prefetchExpertReview(id, session.access_token) as { image: Scan; species: Species[] } | null
+      if (!payload) {
+        setError('Could not load saved scan.')
+        setLoading(false)
+        return
+      }
+      applyPayload(payload)
     }
     load()
   }, [id])

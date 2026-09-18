@@ -1,7 +1,11 @@
+'use client'
+
 import Link from 'next/link'
 import StatusBadge from '@/components/expert/StatusBadge'
 import { FilterStatus } from '@/components/expert/ExpertTabs'
 import { formatScanLabel } from '@/lib/scan-label'
+import { supabase } from '@/lib/supabase/client'
+import { prefetchExpertReview } from '@/lib/expert-review-cache'
 
 interface ImageItem {
   id: string;
@@ -22,6 +26,11 @@ interface ImageListProps {
 
 export default function ImageList({ filtered, currentFilter }: ImageListProps) {
   if (filtered.length === 0) return null;
+
+  async function warmReview(imageId: string) {
+    const { data: { session } } = await supabase.auth.getSession()
+    if (session) void prefetchExpertReview(imageId, session.access_token)
+  }
 
   // Confidence color text (only for list view label — no bar per design)
   const confTextColor = (c: number) =>
@@ -91,6 +100,8 @@ export default function ImageList({ filtered, currentFilter }: ImageListProps) {
                 <Link
                   href={`/expert/annotate/${img.id}`}
                   className="w-full text-center text-xs px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white transition-colors whitespace-nowrap"
+                  onMouseEnter={() => void warmReview(img.id)}
+                  onFocus={() => void warmReview(img.id)}
                 >
                   Verify Classification
                 </Link>
@@ -99,6 +110,8 @@ export default function ImageList({ filtered, currentFilter }: ImageListProps) {
                   href={`/expert/annotate/${img.id}`}
                   className="w-full text-center text-xs px-3 py-1.5 rounded-lg bg-zinc-800 border border-zinc-700
                              text-zinc-300 hover:text-zinc-100 hover:border-zinc-600 transition-colors whitespace-nowrap"
+                  onMouseEnter={() => void warmReview(img.id)}
+                  onFocus={() => void warmReview(img.id)}
                 >
                   {img.review.hasReviewed ? 'Update my review' : 'View Details'}
                 </Link>
