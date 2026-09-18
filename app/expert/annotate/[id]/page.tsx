@@ -2,7 +2,7 @@
 
 import { use, useEffect, useRef, useState, type MouseEvent as ReactMouseEvent } from 'react'
 import { useRouter } from 'next/navigation'
-import { ArrowLeft, Check, ChevronDown, Crosshair, Maximize2, Plus, Search } from 'lucide-react'
+import { ArrowLeft, Check, ChevronDown, Crosshair, Eraser, Keyboard, Maximize2, MousePointer2, Plus, Search } from 'lucide-react'
 import Button from '@/components/ui/Button'
 import Badge from '@/components/ui/Badge'
 import { supabase } from '@/lib/supabase/client'
@@ -80,6 +80,18 @@ export default function AnnotatePage({ params }: { params: Promise<{ id: string 
     if (!bbox) setPlacingBox(true)
   }
 
+  function clearBox() {
+    setBbox(null)
+    setPlacingBox(false)
+    setDrawStart(null)
+    setDragMode(null)
+  }
+
+  function redrawBox() {
+    clearBox()
+    setPlacingBox(true)
+  }
+
   function beginDrawingBox(event: ReactMouseEvent) {
     if (bbox || !placingBox || !imageRef.current) return
     event.preventDefault()
@@ -146,6 +158,28 @@ export default function AnnotatePage({ params }: { params: Promise<{ id: string 
     setDragMode(null)
   }
 
+  useEffect(() => {
+    function handleKeyDown(event: KeyboardEvent) {
+      const target = event.target as HTMLElement
+      if (target instanceof HTMLInputElement || target instanceof HTMLSelectElement || target instanceof HTMLTextAreaElement) return
+
+      if (event.key.toLowerCase() === 'b' && !bbox) {
+        setPlacingBox(true)
+      }
+      if (event.key === 'Escape') {
+        setPlacingBox(false)
+        setDrawStart(null)
+        if (bbox && bbox.width < 3 && bbox.height < 3) setBbox(null)
+      }
+      if ((event.key === 'Delete' || event.key === 'Backspace') && bbox) {
+        event.preventDefault()
+        clearBox()
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [bbox])
+
   async function submit() {
     if (decision === 'pending' && !selectedSpeciesId) {
       showToast('Choose the species you believe is in this image.', 'error')
@@ -195,7 +229,7 @@ export default function AnnotatePage({ params }: { params: Promise<{ id: string 
 
         <div className="grid gap-7 lg:grid-cols-[minmax(0,1.45fr)_minmax(340px,0.8fr)]">
           <section className="overflow-hidden rounded-2xl border border-zinc-800 bg-zinc-900/20">
-            <div className="flex items-center justify-between border-b border-zinc-800 px-5 py-4"><span className="flex items-center gap-2 text-sm font-medium text-zinc-200"><Crosshair size={16} className="text-emerald-400" /> Subject boundary</span>{!bbox && <Button size="sm" variant={placingBox ? 'primary' : 'outline'} onClick={beginPlacingBox}>{placingBox ? 'Drag on image to draw' : <><Plus size={14} /> Add box</>}</Button>}</div>
+            <div className="flex items-center justify-between gap-3 border-b border-zinc-800 px-5 py-4"><span className="flex items-center gap-2 text-sm font-medium text-zinc-200"><Crosshair size={16} className="text-emerald-400" /> Subject boundary</span><div className="flex items-center gap-2">{bbox ? <><Button size="sm" variant="outline" onClick={redrawBox}><MousePointer2 size={14} /> Redraw</Button><Button size="sm" variant="ghost" onClick={clearBox} className="text-zinc-400"><Eraser size={14} /> Clear</Button></> : <Button size="sm" variant={placingBox ? 'primary' : 'outline'} onClick={beginPlacingBox}>{placingBox ? 'Drag on image to draw' : <><Plus size={14} /> Add box</>}</Button>}</div></div>
             <div className="flex min-h-[420px] items-center justify-center bg-zinc-950 p-4 sm:p-6">
               <div ref={imageRef} className={`relative inline-block max-h-[600px] max-w-full select-none ${placingBox ? 'cursor-crosshair' : ''}`} onMouseDown={beginDrawingBox} onMouseMove={updateBox} onMouseUp={endBoxAction} onMouseLeave={endBoxAction}>
                 <img src={scan.imageUrl} alt="Saved subject for Expert review" draggable={false} className="block max-h-[600px] max-w-full rounded-lg object-contain" />
@@ -203,7 +237,7 @@ export default function AnnotatePage({ params }: { params: Promise<{ id: string 
                 {bbox && <div className="absolute cursor-move border-2 border-emerald-400 bg-emerald-500/10 shadow-[0_0_18px_rgba(16,185,129,0.22)]" style={{ left: `${bbox.x}%`, top: `${bbox.y}%`, width: `${bbox.width}%`, height: `${bbox.height}%` }} onMouseDown={(event) => beginBoxAction(event, 'move')}><span className="absolute -top-7 left-0 rounded bg-emerald-500 px-2 py-1 text-[10px] font-medium text-zinc-950">Review box</span><button type="button" aria-label="Resize review box" className="absolute -bottom-2 -right-2 grid h-5 w-5 cursor-nwse-resize place-items-center rounded-sm border border-emerald-200 bg-emerald-500 text-zinc-950 shadow" onMouseDown={(event) => beginBoxAction(event, 'resize')}><Maximize2 size={11} /></button></div>}
               </div>
             </div>
-            <div className="border-t border-zinc-800 px-5 py-3 text-xs text-zinc-500">{bbox ? 'Drag inside the box to move it. Drag the lower-right handle to resize it.' : placingBox ? 'Click and drag over the snake to draw a review box.' : 'No box was detected by AI. Add one only if you identify a snake.'}</div>
+            <div className="flex flex-wrap items-center justify-between gap-2 border-t border-zinc-800 px-5 py-3 text-xs text-zinc-500"><span>{bbox ? 'Drag inside the box to move it. Drag the lower-right handle to resize it.' : placingBox ? 'Click and drag over the snake to draw a review box.' : 'No box was detected by AI. Add one only if you identify a snake.'}</span><span className="inline-flex items-center gap-1.5 text-zinc-600"><Keyboard size={12} /> B: draw · Del: clear · Esc: cancel</span></div>
           </section>
 
           <aside className="space-y-5">
