@@ -47,7 +47,7 @@ create table public.verification_history (
   image_id uuid not null references public.snake_images(id) on delete cascade,
   expert_id uuid not null references public.profiles(id) on delete cascade,
   voted_species_id bigint references public.snake_species(id) on delete set null,
-  bbox jsonb not null,
+  bbox jsonb,
   created_at timestamptz not null default now(),
   unique (image_id, expert_id)
 );
