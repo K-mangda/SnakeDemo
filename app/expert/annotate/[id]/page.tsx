@@ -2,7 +2,7 @@
 
 import { use, useEffect, useRef, useState, type MouseEvent as ReactMouseEvent } from 'react'
 import { useRouter } from 'next/navigation'
-import { ArrowLeft, Check, Crosshair, Eraser, Keyboard, MousePointer2, Plus, Search } from 'lucide-react'
+import { ArrowLeft, Check, Crosshair, Eraser, MousePointer2, Plus, Search } from 'lucide-react'
 import Button from '@/components/ui/Button'
 import Badge from '@/components/ui/Badge'
 import { supabase } from '@/lib/supabase/client'
@@ -274,7 +274,7 @@ export default function AnnotatePage({ params }: { params: Promise<{ id: string 
                 {bbox && <div className="absolute cursor-move border-2 border-emerald-400 bg-emerald-500/10 shadow-[0_0_18px_rgba(16,185,129,0.22)]" style={{ left: `${bbox.x}%`, top: `${bbox.y}%`, width: `${bbox.width}%`, height: `${bbox.height}%` }} onMouseDown={(event) => beginBoxAction(event, 'move')}><span className="absolute -top-7 left-0 max-w-[220px] truncate rounded bg-emerald-500 px-2 py-1 text-[10px] font-medium text-zinc-950">{boxLabel}</span><ResizeHandles onStart={beginBoxAction} /></div>}
               </div>
             </div>
-            <div className="flex flex-wrap items-center justify-between gap-2 border-t border-zinc-800 px-5 py-3 text-xs text-zinc-500"><span>{bbox ? 'Drag inside the box to move it. Drag any edge or corner to resize it.' : placingBox ? 'Click and drag over the snake to draw a review box.' : 'No box was detected by AI. Add one only if you identify a snake.'}</span><span className="inline-flex items-center gap-1.5 text-zinc-600"><Keyboard size={12} /> B: draw · Del: clear · Esc: cancel</span></div>
+            <div className="border-t border-zinc-800 px-5 py-3 text-xs text-zinc-500">{bbox ? 'Drag inside the box to move it. Drag any edge or corner to resize it.' : placingBox ? 'Click and drag over the snake to draw a review box.' : 'No box was detected by AI. Add one only if you identify a snake.'}</div>
           </section>
 
           <aside className="space-y-5">
