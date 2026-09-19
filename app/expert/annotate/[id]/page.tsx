@@ -69,26 +69,34 @@ export default function AnnotatePage({ params }: { params: Promise<{ id: string 
         return
       }
 
-      const cachedQueue = getPendingQueue()
-      if (cachedQueue.includes(id)) {
-        setQueueIds(cachedQueue)
-        const nextId = cachedQueue[cachedQueue.indexOf(id) + 1]
-        if (nextId) void prefetchExpertReview(nextId, session.access_token)
-      } else {
-        void fetch('/api/expert/images?filter=pending&page=0&page_size=200&sort=confidence_asc', {
-          headers: { Authorization: `Bearer ${session.access_token}` },
-          cache: 'no-store',
-        })
-          .then(async (response) => response.ok ? await response.json() as { images: { id: string }[] } : null)
-          .then((payload) => {
-            const ids = payload?.images.map((image) => image.id) ?? []
-            setPendingQueue(ids)
-            setQueueIds(ids)
-            const nextId = ids[ids.indexOf(id) + 1]
-            if (nextId) void prefetchExpertReview(nextId, session.access_token)
+      setQueueIds([])
+      void (async () => {
+        const loadQueue = async (filter: 'pending' | 'all') => {
+          const response = await fetch(`/api/expert/images?filter=${filter}&page=0&page_size=200&sort=confidence_asc`, {
+            headers: { Authorization: `Bearer ${session.access_token}` },
+            cache: 'no-store',
           })
-          .catch(() => setQueueIds([]))
-      }
+          if (!response.ok) return []
+          const payload = await response.json() as { images: { id: string }[] }
+          return payload.images.map((image) => image.id)
+        }
+
+        try {
+          let ids = getPendingQueue()
+          if (!ids.includes(id)) {
+            ids = await loadQueue('pending')
+            setPendingQueue(ids)
+          }
+          // A direct link, an audit, or an already-verified task is not in the
+          // Pending queue. Fall back to All so task navigation never disappears.
+          if (!ids.includes(id)) ids = await loadQueue('all')
+          setQueueIds(ids)
+          const nextId = ids[ids.indexOf(id) + 1]
+          if (nextId) void prefetchExpertReview(nextId, session.access_token)
+        } catch {
+          setQueueIds([])
+        }
+      })()
 
       const applyPayload = (payload: { image: Scan; species: Species[] }) => {
         const item = payload.image
@@ -234,6 +242,16 @@ export default function AnnotatePage({ params }: { params: Promise<{ id: string 
       const target = event.target as HTMLElement
       if (target instanceof HTMLInputElement || target instanceof HTMLSelectElement || target instanceof HTMLTextAreaElement) return
 
+      if (event.key === 'ArrowLeft' && previousQueueId) {
+        event.preventDefault()
+        goToQueueItem(previousQueueId)
+        return
+      }
+      if (event.key === 'ArrowRight' && nextQueueId) {
+        event.preventDefault()
+        goToQueueItem(nextQueueId)
+        return
+      }
       if (event.key.toLowerCase() === 'b' && !bbox) {
         setPlacingBox(true)
       }
@@ -249,7 +267,7 @@ export default function AnnotatePage({ params }: { params: Promise<{ id: string 
     }
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [bbox])
+  }, [bbox, nextQueueId, previousQueueId])
 
   async function submit() {
     if (decision === 'pending' && !selectedSpeciesId) {
@@ -311,7 +329,7 @@ export default function AnnotatePage({ params }: { params: Promise<{ id: string 
           <Button variant="ghost" size="sm" onClick={() => router.push('/expert')} className="-ml-2 mb-5 text-zinc-500"><ArrowLeft size={16} /> Back to Workspace</Button>
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div><p className="mb-2 text-xs uppercase tracking-[0.2em] text-emerald-400">Expert review</p><h1 className="text-2xl font-medium text-zinc-100">Review & correct classification</h1><p className="mt-2 text-sm text-zinc-500" title={`Original file: ${scan.originalFilename}`}>{formatScanLabel(scan.createdAt)}</p></div>
-            <div className="flex flex-wrap items-center justify-end gap-2"><Badge variant="muted" className="text-xs">Independent review</Badge>{queueIndex >= 0 && <div className="flex items-center rounded-lg border border-zinc-800 bg-zinc-900/50"><Button size="sm" variant="ghost" disabled={!previousQueueId} onClick={() => goToQueueItem(previousQueueId)} className="rounded-r-none px-2.5"><ChevronLeft size={15} /> Previous</Button><span className="border-x border-zinc-800 px-3 py-1.5 text-xs text-zinc-400">{queueIndex + 1} / {queueIds.length}</span><Button size="sm" variant="ghost" disabled={!nextQueueId} onClick={() => goToQueueItem(nextQueueId)} className="rounded-l-none px-2.5">Next <ChevronRight size={15} /></Button></div>}</div>
+            <div className="flex flex-wrap items-center justify-end gap-2"><Badge variant="muted" className="text-xs">Independent review</Badge>{queueIndex >= 0 && <div className="flex items-center rounded-lg border border-zinc-800 bg-zinc-900/50"><Button size="sm" variant="ghost" title="Previous task (Left arrow)" disabled={!previousQueueId} onClick={() => goToQueueItem(previousQueueId)} className="rounded-r-none px-2.5"><ChevronLeft size={15} /> Previous</Button><span className="border-x border-zinc-800 px-3 py-1.5 text-xs text-zinc-400">{queueIndex + 1} / {queueIds.length}</span><Button size="sm" variant="ghost" title="Next task (Right arrow)" disabled={!nextQueueId} onClick={() => goToQueueItem(nextQueueId)} className="rounded-l-none px-2.5">Next <ChevronRight size={15} /></Button></div>}</div>
           </div>
         </header>
 
