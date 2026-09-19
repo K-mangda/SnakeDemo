@@ -35,6 +35,9 @@ export default function ImageList({ filtered, currentFilter }: ImageListProps) {
   // Confidence color text (only for list view label — no bar per design)
   const confTextColor = (c: number) =>
     c >= 93 ? 'text-emerald-400' : c >= 88 ? 'text-amber-400' : 'text-red-400'
+  const displayedImages = currentFilter === 'all'
+    ? [...filtered.filter((image) => image.status !== 'verified'), ...filtered.filter((image) => image.status === 'verified')]
+    : filtered
 
   return (
     <div className="flex flex-col gap-1.5">
@@ -48,7 +51,7 @@ export default function ImageList({ filtered, currentFilter }: ImageListProps) {
         <div className="text-right">Actions</div>
       </div>
 
-      {filtered.map((img) => {
+      {displayedImages.map((img) => {
         const needsCurrentReview = (img.status === 'pending' || img.status === 'unclear') && !img.review.hasReviewed
         const canAudit = img.status === 'verified' && !img.review.hasReviewed
         const statusForViewer = img.status
