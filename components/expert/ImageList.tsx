@@ -59,12 +59,16 @@ export default function ImageList({ filtered, currentFilter }: ImageListProps) {
         const conf = (img.confidence ?? 0) * 100
 
         return (
-          <div
+          <Link
             key={`${currentFilter}-${img.id}`}
+            href={`/expert/annotate/${img.id}`}
+            aria-label={`Open ${img.prediction.scientific} for review`}
             className="grid grid-cols-[64px_1fr_auto] md:grid-cols-[64px_1fr_100px_120px_150px] gap-4
                        items-center px-4 py-3
                        border border-zinc-800/50 rounded-xl bg-zinc-900/10
-                       hover:bg-zinc-900/30 hover:border-zinc-700/70 transition-all"
+                       hover:bg-emerald-500/[0.035] hover:border-emerald-500/60 transition-all cursor-pointer focus:outline-none focus-visible:border-emerald-400 focus-visible:ring-2 focus-visible:ring-emerald-500/30"
+            onMouseEnter={() => void warmReview(img.id)}
+            onFocus={() => void warmReview(img.id)}
           >
             {/* Thumbnail */}
             <div className="w-16 h-11 bg-zinc-900 rounded-lg overflow-hidden relative shrink-0">
@@ -100,28 +104,11 @@ export default function ImageList({ filtered, currentFilter }: ImageListProps) {
 
             {/* Actions */}
             <div className="flex w-full">
-              {needsCurrentReview ? (
-                <Link
-                  href={`/expert/annotate/${img.id}`}
-                  className="w-full text-center text-xs px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white transition-colors whitespace-nowrap"
-                  onMouseEnter={() => void warmReview(img.id)}
-                  onFocus={() => void warmReview(img.id)}
-                >
-                  Verify Classification
-                </Link>
-              ) : (
-                <Link
-                  href={`/expert/annotate/${img.id}`}
-                  className="w-full text-center text-xs px-3 py-1.5 rounded-lg bg-zinc-800 border border-zinc-700
-                             text-zinc-300 hover:text-zinc-100 hover:border-zinc-600 transition-colors whitespace-nowrap"
-                  onMouseEnter={() => void warmReview(img.id)}
-                  onFocus={() => void warmReview(img.id)}
-                >
-                  {canAudit ? 'Review again' : img.review.hasReviewed ? 'Update my review' : 'View Details'}
-                </Link>
-              )}
+              <span className={`w-full text-center text-xs px-3 py-1.5 rounded-lg whitespace-nowrap transition-colors ${needsCurrentReview ? 'bg-emerald-600 text-white' : 'bg-zinc-800 border border-zinc-700 text-zinc-300'}`}>
+                {needsCurrentReview ? 'Verify Classification' : canAudit ? 'Review again' : img.review.hasReviewed ? 'Update my review' : 'View Details'}
+              </span>
             </div>
-          </div>
+          </Link>
         )
       })}
     </div>
