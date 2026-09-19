@@ -97,7 +97,13 @@ export default function ExpertPage() {
 
         <ExpertTabs 
           currentFilter={currentFilter}
-          setCurrentFilter={(filter) => { setCurrentFilter(filter); setPage(0) }}
+          setCurrentFilter={(filter) => {
+            setImages([])
+            setLoadError(null)
+            setLoading(true)
+            setCurrentFilter(filter)
+            setPage(0)
+          }}
           counts={counts}
           pageSize={pageSize}
           setPageSize={(size) => { setPageSize(size); setPage(0) }}
