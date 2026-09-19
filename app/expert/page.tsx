@@ -54,11 +54,13 @@ export default function ExpertPage() {
   const [total, setTotal] = useState(0)
   const [loading, setLoading] = useState(true)
   const [loadError, setLoadError] = useState<string | null>(null)
+  const [refreshKey, setRefreshKey] = useState<string | null>(null)
 
   useEffect(() => {
     let cancelled = false
     const cacheKey = workspacePageKey(currentFilter, page, pageSize, sortMode)
     const cached = getCachedWorkspacePage<WorkspacePayload>(cacheKey)
+    const shouldRefresh = refreshKey === cacheKey
 
     if (cached) {
       setImages(cached.images)
@@ -73,7 +75,7 @@ export default function ExpertPage() {
     }
 
     async function loadImages() {
-      if (cached) return
+      if (cached && !shouldRefresh) return
       const { data: { session } } = await supabase.auth.getSession()
       if (!session || cancelled) {
         if (!cancelled) setLoading(false)
@@ -103,9 +105,13 @@ export default function ExpertPage() {
           }
         }
       } catch (error) {
-        if (!cancelled) setLoadError(error instanceof Error ? error.message : 'Could not load saved scans. Please try again.')
+        // Keep cached cards visible if a background refresh has a transient error.
+        if (!cancelled && !cached) setLoadError(error instanceof Error ? error.message : 'Could not load saved scans. Please try again.')
       } finally {
-        if (!cancelled) setLoading(false)
+        if (!cancelled) {
+          setLoading(false)
+          if (shouldRefresh) setRefreshKey((current) => current === cacheKey ? null : current)
+        }
       }
     }
 
@@ -113,6 +119,24 @@ export default function ExpertPage() {
 
     return () => {
       cancelled = true
+    }
+  }, [currentFilter, page, pageSize, refreshKey, sortMode])
+
+  useEffect(() => {
+    const requestRefresh = () => {
+      if (document.visibilityState === 'visible') {
+        setRefreshKey(workspacePageKey(currentFilter, page, pageSize, sortMode))
+      }
+    }
+    const handleVisibilityChange = () => requestRefresh()
+    const interval = window.setInterval(requestRefresh, 30_000)
+
+    window.addEventListener('focus', requestRefresh)
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+    return () => {
+      window.clearInterval(interval)
+      window.removeEventListener('focus', requestRefresh)
+      document.removeEventListener('visibilitychange', handleVisibilityChange)
     }
   }, [currentFilter, page, pageSize, sortMode])
 
