@@ -36,6 +36,11 @@ export default function ExpertPage() {
   useEffect(() => {
     let cancelled = false
 
+    // Never leave cards from the previous tab on screen while this tab loads.
+    setLoading(true)
+    setImages([])
+    setLoadError(null)
+
     async function loadImages() {
       const { data: { session } } = await supabase.auth.getSession()
       if (!session || cancelled) {
@@ -52,6 +57,7 @@ export default function ExpertPage() {
         })
         const response = await fetch(`/api/expert/images?${params}`, {
           headers: { Authorization: `Bearer ${session.access_token}` },
+          cache: 'no-store',
         })
         const payload = await response.json()
         if (cancelled) return
