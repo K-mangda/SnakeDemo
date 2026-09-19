@@ -16,7 +16,7 @@ interface ImageItem {
   bbox: { x: number, y: number, width: number, height: number } | null;
   confidence: number | null;
   createdAt: string;
-  review: { count: number; required: number; hasReviewed: boolean };
+  review: { count: number; hasReviewed: boolean };
   prediction: { scientific: string, nameTh: string | null };
 }
 
@@ -37,6 +37,7 @@ export default function ImageGrid({ filtered, currentFilter }: ImageGridProps) {
     <div className="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
       {filtered.map((img) => {
         const needsCurrentReview = (img.status === 'pending' || img.status === 'unclear') && !img.review.hasReviewed
+        const canAudit = img.status === 'verified' && !img.review.hasReviewed
         const statusForViewer = img.status
         const statusLabel = undefined
         return (
@@ -70,7 +71,7 @@ export default function ImageGrid({ filtered, currentFilter }: ImageGridProps) {
             <div className="mb-4">
               <p className="text-xs text-zinc-500 mb-0.5">AI prediction · {((img.confidence ?? 0) * 100).toFixed(1)}%</p>
               <p className="text-sm font-medium text-zinc-300 italic">{img.prediction.scientific}</p>
-              <p className="mt-1 text-[11px] text-zinc-500">{img.review.hasReviewed ? `Your review submitted · ${img.review.count} expert review${img.review.count === 1 ? '' : 's'}` : img.status === 'verified' ? `Verified from ${img.review.count} expert review${img.review.count === 1 ? '' : 's'}` : 'Your review is needed'}</p>
+              <p className="mt-1 text-[11px] text-zinc-500">{img.review.hasReviewed ? `Your review saved · ${img.review.count} total review${img.review.count === 1 ? '' : 's'}` : canAudit ? `Verified · ${img.review.count} expert review${img.review.count === 1 ? '' : 's'}` : img.status === 'pending' && img.review.count > 1 ? 'Review conflict · another review is needed' : 'Your review is needed'}</p>
             </div>
 
             {/* ── Single CTA ── */}
@@ -79,7 +80,7 @@ export default function ImageGrid({ filtered, currentFilter }: ImageGridProps) {
               variant={needsCurrentReview ? 'primary' : 'secondary'}
               className="mt-auto w-full justify-center"
             >
-              {needsCurrentReview ? 'Verify Classification' : img.review.hasReviewed ? 'Update my review' : 'View Details'}
+              {needsCurrentReview ? 'Verify Classification' : canAudit ? 'Review again' : img.review.hasReviewed ? 'Update my review' : 'View Details'}
             </Button>
           </div>
         )

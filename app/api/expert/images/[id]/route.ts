@@ -13,6 +13,12 @@ type StoredImage = {
   predicted_species: { id: number; scientific_name: string; name_th: string | null; name_en: string | null }[] | null
 }
 
+type ReviewHistoryRow = {
+  expert_id: string
+  voted_species_id: number | null
+  created_at: string
+}
+
 async function requireExpert(token: string | undefined) {
   if (!token) return { error: 'Sign in is required.', status: 401 as const }
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL
@@ -48,10 +54,19 @@ export async function GET(request: Request, context: RouteContext<'/api/expert/i
   const { data: signed, error: signedError } = await admin.storage.from('prediction-images').createSignedUrl((image as StoredImage).storage_path, 60 * 15)
   if (signedError || !signed?.signedUrl) return Response.json({ detail: 'Saved scan image is unavailable.' }, { status: 500 })
 
-  const [{ data: species }, { data: existingVerification }] = await Promise.all([
+  const [{ data: species }, { data: existingVerification }, { data: reviewRows }] = await Promise.all([
     admin.from('snake_species').select('id, scientific_name, name_th, name_en').order('scientific_name'),
     admin.from('verification_history').select('voted_species_id, bbox').eq('image_id', id).eq('expert_id', access.userId).maybeSingle(),
+    admin.from('verification_history').select('expert_id, voted_species_id, created_at').eq('image_id', id).order('created_at'),
   ])
+
+  const history = (reviewRows ?? []) as ReviewHistoryRow[]
+  const reviewerIds = [...new Set(history.map((review) => review.expert_id))]
+  const { data: reviewerProfiles } = existingVerification && reviewerIds.length
+    ? await admin.from('profiles').select('id, full_name').in('id', reviewerIds)
+    : { data: [] as { id: string; full_name: string }[] }
+  const speciesById = new Map((species ?? []).map((item) => [item.id, item]))
+  const reviewerNameById = new Map((reviewerProfiles ?? []).map((profile) => [profile.id, profile.full_name]))
 
   const stored = image as StoredImage
   const modelSpecies = stored.predicted_species?.[0] ?? null
@@ -71,6 +86,13 @@ export async function GET(request: Request, context: RouteContext<'/api/expert/i
         ? { id: modelSpecies.id, scientific: modelSpecies.scientific_name, nameTh: modelSpecies.name_th, nameEn: modelSpecies.name_en }
         : { id: null, scientific: stored.predicted_scientific ?? 'Reference pending', nameTh: null, nameEn: null },
       existingVerification,
+      // Keep reviews independent: another Expert's decision is returned only
+      // after this viewer has submitted their own review.
+      reviewHistory: existingVerification ? history.map((review) => ({
+        reviewer: review.expert_id === access.userId ? 'You' : reviewerNameById.get(review.expert_id) || 'Expert reviewer',
+        species: review.voted_species_id === null ? null : speciesById.get(review.voted_species_id)?.scientific_name ?? 'Unknown species',
+        createdAt: review.created_at,
+      })) : [],
     },
     species: species ?? [],
   })

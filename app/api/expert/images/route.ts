@@ -86,12 +86,9 @@ export async function GET(request: Request) {
 
   const storedImages = data as StoredImage[]
   const imageIds = storedImages.map((image) => image.id)
-  const [{ count: activeExpertCount }, { data: reviewRows }] = await Promise.all([
-    admin.from('profiles').select('id', { count: 'exact', head: true }).eq('role', 'expert').eq('status', 'active'),
-    imageIds.length > 0
-      ? admin.from('verification_history').select('image_id, expert_id').in('image_id', imageIds)
-      : Promise.resolve({ data: [] as ReviewRow[] }),
-  ])
+  const { data: reviewRows } = imageIds.length > 0
+    ? await admin.from('verification_history').select('image_id, expert_id').in('image_id', imageIds)
+    : { data: [] as ReviewRow[] }
 
   const reviewsByImage = new Map<string, Set<string>>()
   for (const review of (reviewRows ?? []) as ReviewRow[]) {
@@ -99,8 +96,6 @@ export async function GET(request: Request) {
     reviewers.add(review.expert_id)
     reviewsByImage.set(review.image_id, reviewers)
   }
-  const requiredReviews = Math.floor((activeExpertCount ?? 0) / 2) + 1
-
   const images = await Promise.all(storedImages.map(async (image) => {
     // A legacy/test record can carry a stale box even though the model did
     // not produce a prediction. Never present that box as AI output.
@@ -121,7 +116,6 @@ export async function GET(request: Request) {
       createdAt: image.created_at,
       review: {
         count: reviewsByImage.get(image.id)?.size ?? 0,
-        required: requiredReviews,
         hasReviewed: reviewsByImage.get(image.id)?.has(authData.user.id) ?? false,
       },
       prediction: image.predicted_species?.[0]

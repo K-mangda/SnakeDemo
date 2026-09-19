@@ -17,7 +17,7 @@ type WorkspaceImage = {
   confidence: number | null
   bbox: { x: number; y: number; width: number; height: number } | null
   createdAt: string
-  review: { count: number; required: number; hasReviewed: boolean }
+  review: { count: number; hasReviewed: boolean }
   prediction: { scientific: string; nameTh: string | null }
 }
 
