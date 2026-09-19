@@ -285,7 +285,6 @@ export default function AnnotatePage({ params }: { params: Promise<{ id: string 
               <Button disabled={saving} onClick={submit} className="mt-5 w-full">{saving ? 'Saving review…' : 'Save my review'} <Check size={16} /></Button>
             </section>
 
-            {bbox && <section className="rounded-2xl border border-zinc-800 bg-zinc-900/10 p-5 text-xs text-zinc-500"><p className="mb-3 uppercase tracking-widest text-zinc-400">Review box</p><div className="grid grid-cols-2 gap-x-3 gap-y-2 font-mono"><span>X {bbox.x.toFixed(1)}%</span><span>Y {bbox.y.toFixed(1)}%</span><span>W {bbox.width.toFixed(1)}%</span><span>H {bbox.height.toFixed(1)}%</span></div></section>}
           </aside>
         </div>
       </div>
