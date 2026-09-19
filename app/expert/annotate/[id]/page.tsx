@@ -2,7 +2,7 @@
 
 import { use, useEffect, useRef, useState, type MouseEvent as ReactMouseEvent } from 'react'
 import { useRouter } from 'next/navigation'
-import { ArrowLeft, Check, Crosshair, Eraser, MousePointer2, Plus, Search } from 'lucide-react'
+import { ArrowLeft, Check, ChevronLeft, ChevronRight, Crosshair, Eraser, MousePointer2, Plus, Search } from 'lucide-react'
 import Button from '@/components/ui/Button'
 import Badge from '@/components/ui/Badge'
 import { supabase } from '@/lib/supabase/client'
@@ -10,6 +10,7 @@ import { useToast } from '@/components/ui/Toast'
 import { formatScanLabel } from '@/lib/scan-label'
 import { getPrefetchedReview, prefetchExpertReview } from '@/lib/expert-review-cache'
 import { clearWorkspaceCache } from '@/lib/expert-workspace-cache'
+import { getExpertQueue, setExpertQueue } from '@/lib/expert-queue-cache'
 
 type Box = { x: number; y: number; width: number; height: number }
 type Decision = 'pending' | 'unclear' | 'waiting_for_new_class'
@@ -52,15 +53,41 @@ export default function AnnotatePage({ params }: { params: Promise<{ id: string 
   const [dragMode, setDragMode] = useState<DragMode | null>(null)
   const [startPoint, setStartPoint] = useState({ x: 0, y: 0 })
   const [startBox, setStartBox] = useState<Box | null>(null)
+  const [queueIds, setQueueIds] = useState<string[]>([])
   const imageRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     async function load() {
+      setLoading(true)
+      setError(null)
+      setDecision('pending')
+      setSpeciesMenuOpen(false)
       const { data: { session } } = await supabase.auth.getSession()
       if (!session) {
         setError('Your session has expired. Please sign in again.')
         setLoading(false)
         return
+      }
+
+      const cachedQueue = getExpertQueue()
+      if (cachedQueue.includes(id)) {
+        setQueueIds(cachedQueue)
+        const nextId = cachedQueue[cachedQueue.indexOf(id) + 1]
+        if (nextId) void prefetchExpertReview(nextId, session.access_token)
+      } else {
+        void fetch('/api/expert/images?filter=my_queue&page=0&page_size=200&sort=confidence_asc', {
+          headers: { Authorization: `Bearer ${session.access_token}` },
+          cache: 'no-store',
+        })
+          .then(async (response) => response.ok ? await response.json() as { images: { id: string }[] } : null)
+          .then((payload) => {
+            const ids = payload?.images.map((image) => image.id) ?? []
+            setExpertQueue(ids)
+            setQueueIds(ids)
+            const nextId = ids[ids.indexOf(id) + 1]
+            if (nextId) void prefetchExpertReview(nextId, session.access_token)
+          })
+          .catch(() => setQueueIds([]))
       }
 
       const applyPayload = (payload: { image: Scan; species: Species[] }) => {
@@ -92,6 +119,14 @@ export default function AnnotatePage({ params }: { params: Promise<{ id: string 
     }
     load()
   }, [id])
+
+  const queueIndex = queueIds.indexOf(id)
+  const previousQueueId = queueIndex > 0 ? queueIds[queueIndex - 1] : null
+  const nextQueueId = queueIndex >= 0 && queueIndex + 1 < queueIds.length ? queueIds[queueIndex + 1] : null
+
+  function goToQueueItem(imageId: string | null) {
+    if (imageId) router.push(`/expert/annotate/${imageId}`)
+  }
 
   function beginPlacingBox() {
     if (!bbox) setPlacingBox(true)
@@ -242,7 +277,11 @@ export default function AnnotatePage({ params }: { params: Promise<{ id: string 
 
     showToast('Your review was saved.')
     clearWorkspaceCache()
-    router.push('/expert')
+    if (nextQueueId) {
+      router.push(`/expert/annotate/${nextQueueId}`)
+    } else {
+      router.push('/expert')
+    }
   }
 
   const matchingSpecies = species.filter((item) =>
@@ -263,7 +302,7 @@ export default function AnnotatePage({ params }: { params: Promise<{ id: string 
           <Button variant="ghost" size="sm" onClick={() => router.push('/expert')} className="-ml-2 mb-5 text-zinc-500"><ArrowLeft size={16} /> Back to Workspace</Button>
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div><p className="mb-2 text-xs uppercase tracking-[0.2em] text-emerald-400">Expert review</p><h1 className="text-2xl font-medium text-zinc-100">Review & correct classification</h1><p className="mt-2 text-sm text-zinc-500" title={`Original file: ${scan.originalFilename}`}>{formatScanLabel(scan.createdAt)}</p></div>
-            <Badge variant="muted" className="text-xs">Independent review</Badge>
+            <div className="flex flex-wrap items-center justify-end gap-2"><Badge variant="muted" className="text-xs">Independent review</Badge>{queueIndex >= 0 && <div className="flex items-center rounded-lg border border-zinc-800 bg-zinc-900/50"><Button size="sm" variant="ghost" disabled={!previousQueueId} onClick={() => goToQueueItem(previousQueueId)} className="rounded-r-none px-2.5"><ChevronLeft size={15} /> Previous</Button><span className="border-x border-zinc-800 px-3 py-1.5 text-xs text-zinc-400">{queueIndex + 1} / {queueIds.length}</span><Button size="sm" variant="ghost" disabled={!nextQueueId} onClick={() => goToQueueItem(nextQueueId)} className="rounded-l-none px-2.5">Next <ChevronRight size={15} /></Button></div>}</div>
           </div>
         </header>
 
