@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { ChevronLeft, ChevronRight, User } from 'lucide-react'
+import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { supabase } from '@/lib/supabase/client'
 import { cacheWorkspacePage, getCachedWorkspacePage } from '@/lib/expert-workspace-cache'
 
@@ -44,11 +44,11 @@ async function fetchWorkspacePage(accessToken: string, filter: FilterStatus, pag
 }
 
 export default function ExpertPage() {
-  const [currentFilter, setCurrentFilter] = useState<FilterStatus>('my_queue')
+  const [currentFilter, setCurrentFilter] = useState<FilterStatus>('pending')
   const [viewMode, setViewMode]           = useState<ViewMode>('grid')
   const [sortMode, setSortMode]           = useState<SortMode>('confidence_asc')
   const [images, setImages] = useState<WorkspaceImage[]>([])
-  const [counts, setCounts] = useState<Record<FilterStatus, number>>({ all: 0, pending: 0, verified: 0, unclear: 0, waiting_for_new_class: 0, my_queue: 0 })
+  const [counts, setCounts] = useState<Record<FilterStatus, number>>({ all: 0, pending: 0, verified: 0, unclear: 0, waiting_for_new_class: 0 })
   const [pageSize, setPageSize] = useState(20)
   const [page, setPage] = useState(0)
   const [total, setTotal] = useState(0)
@@ -163,16 +163,6 @@ export default function ExpertPage() {
           viewMode={viewMode}
           setViewMode={setViewMode}
         />
-
-        {/* ── My Queue hint banner ─────────────────────────────── */}
-        {currentFilter === 'my_queue' && (
-          <div className="mb-6 flex items-center gap-2 text-zinc-500 text-xs">
-            <User size={13} className="shrink-0" />
-            <span>
-              <span className="text-zinc-300">{counts.my_queue}</span> images need your review
-            </span>
-          </div>
-        )}
 
         <p className="mb-6 max-w-3xl text-xs leading-5 text-zinc-500">
           Reviews are independent. When more than one Expert reviews an image, the system uses the majority vote and combines matching bounding boxes automatically.

@@ -1,12 +1,11 @@
-import { User, ArrowUpDown, LayoutGrid, List } from 'lucide-react'
+import { ArrowUpDown, LayoutGrid, List } from 'lucide-react'
 import SelectMenu from '@/components/ui/SelectMenu'
 
-export type FilterStatus = 'all' | 'pending' | 'verified' | 'unclear' | 'waiting_for_new_class' | 'my_queue'
+export type FilterStatus = 'all' | 'pending' | 'verified' | 'unclear' | 'waiting_for_new_class'
 export type ViewMode = 'grid' | 'list'
 export type SortMode = 'date' | 'confidence_asc' | 'confidence_desc'
 
 export const TAB_CONFIG: { key: FilterStatus; label: string; underline: string; icon?: React.ReactNode }[] = [
-  { key: 'my_queue',              label: 'My Queue',            underline: 'bg-violet-500', icon: <User size={13} /> },
   { key: 'all',                   label: 'All',                 underline: 'bg-zinc-300' },
   { key: 'pending',               label: 'Pending',             underline: 'bg-amber-500' },
   { key: 'verified',              label: 'Verified',            underline: 'bg-emerald-500' },

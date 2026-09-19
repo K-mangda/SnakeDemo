@@ -44,32 +44,22 @@ export async function GET(request: Request) {
   const requestedSize = Number(requestUrl.searchParams.get('page_size'))
   const pageSize = [20, 50, 100, 200].includes(requestedSize) ? requestedSize : 20
   const page = Math.max(0, Number(requestUrl.searchParams.get('page')) || 0)
-  const filter = requestUrl.searchParams.get('filter') ?? 'my_queue'
+  const filter = requestUrl.searchParams.get('filter') ?? 'pending'
   const sort = requestUrl.searchParams.get('sort') ?? 'confidence_asc'
 
-  const { data: currentUserReviews } = await admin
-    .from('verification_history')
-    .select('image_id')
-    .eq('expert_id', authData.user.id)
-  const reviewedImageIds = new Set((currentUserReviews ?? []).map((review) => review.image_id))
-
-  const [allCount, pendingCount, verifiedCount, unclearCount, waitingCount, openImages] = await Promise.all([
+  const [allCount, pendingCount, verifiedCount, unclearCount, waitingCount] = await Promise.all([
     admin.from('snake_images').select('id', { count: 'exact', head: true }),
     admin.from('snake_images').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
     admin.from('snake_images').select('id', { count: 'exact', head: true }).eq('status', 'verified'),
     admin.from('snake_images').select('id', { count: 'exact', head: true }).eq('status', 'unclear'),
     admin.from('snake_images').select('id', { count: 'exact', head: true }).eq('status', 'waiting_for_new_class'),
-    admin.from('snake_images').select('id').in('status', ['pending', 'unclear']),
   ])
 
   let imageQuery = admin
     .from('snake_images')
     .select('id, storage_path, original_filename, status, confidence, predicted_scientific, predicted_bbox, created_at, predicted_species:snake_species!snake_images_predicted_species_id_fkey(scientific_name, name_th)', { count: 'exact' })
 
-  if (filter === 'my_queue') {
-    imageQuery = imageQuery.in('status', ['pending', 'unclear'])
-    if (reviewedImageIds.size) imageQuery = imageQuery.not('id', 'in', `(${[...reviewedImageIds].join(',')})`)
-  } else if (['pending', 'verified', 'unclear', 'waiting_for_new_class'].includes(filter)) {
+  if (['pending', 'verified', 'unclear', 'waiting_for_new_class'].includes(filter)) {
     imageQuery = imageQuery.eq('status', filter)
   }
 
@@ -124,9 +114,6 @@ export async function GET(request: Request) {
     }
   }))
 
-  const unresolvedIds = new Set((openImages.data ?? []).map((image) => image.id))
-  const reviewedOpenCount = [...reviewedImageIds].filter((imageId) => unresolvedIds.has(imageId)).length
-
   return Response.json({
     images,
     total: total ?? 0,
@@ -138,7 +125,6 @@ export async function GET(request: Request) {
       verified: verifiedCount.count ?? 0,
       unclear: unclearCount.count ?? 0,
       waiting_for_new_class: waitingCount.count ?? 0,
-      my_queue: Math.max(0, unresolvedIds.size - reviewedOpenCount),
     },
   })
 }

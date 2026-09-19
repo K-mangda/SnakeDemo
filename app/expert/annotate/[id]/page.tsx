@@ -10,7 +10,7 @@ import { useToast } from '@/components/ui/Toast'
 import { formatScanLabel } from '@/lib/scan-label'
 import { getPrefetchedReview, prefetchExpertReview } from '@/lib/expert-review-cache'
 import { clearWorkspaceCache } from '@/lib/expert-workspace-cache'
-import { getExpertQueue, setExpertQueue } from '@/lib/expert-queue-cache'
+import { getPendingQueue, setPendingQueue } from '@/lib/expert-queue-cache'
 
 type Box = { x: number; y: number; width: number; height: number }
 type Decision = 'pending' | 'unclear' | 'waiting_for_new_class'
@@ -69,20 +69,20 @@ export default function AnnotatePage({ params }: { params: Promise<{ id: string 
         return
       }
 
-      const cachedQueue = getExpertQueue()
+      const cachedQueue = getPendingQueue()
       if (cachedQueue.includes(id)) {
         setQueueIds(cachedQueue)
         const nextId = cachedQueue[cachedQueue.indexOf(id) + 1]
         if (nextId) void prefetchExpertReview(nextId, session.access_token)
       } else {
-        void fetch('/api/expert/images?filter=my_queue&page=0&page_size=200&sort=confidence_asc', {
+        void fetch('/api/expert/images?filter=pending&page=0&page_size=200&sort=confidence_asc', {
           headers: { Authorization: `Bearer ${session.access_token}` },
           cache: 'no-store',
         })
           .then(async (response) => response.ok ? await response.json() as { images: { id: string }[] } : null)
           .then((payload) => {
             const ids = payload?.images.map((image) => image.id) ?? []
-            setExpertQueue(ids)
+            setPendingQueue(ids)
             setQueueIds(ids)
             const nextId = ids[ids.indexOf(id) + 1]
             if (nextId) void prefetchExpertReview(nextId, session.access_token)
