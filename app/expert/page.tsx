@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { ChevronLeft, ChevronRight, User } from 'lucide-react'
 import { supabase } from '@/lib/supabase/client'
+import { cacheWorkspacePage, getCachedWorkspacePage } from '@/lib/expert-workspace-cache'
 
 import ExpertHeader from '@/components/expert/ExpertHeader'
 import ExpertTabs, { FilterStatus, ViewMode, SortMode } from '@/components/expert/ExpertTabs'
@@ -21,6 +22,27 @@ type WorkspaceImage = {
   prediction: { scientific: string; nameTh: string | null }
 }
 
+type WorkspacePayload = {
+  images: WorkspaceImage[]
+  counts: Record<FilterStatus, number>
+  total: number
+}
+
+function workspacePageKey(filter: FilterStatus, page: number, pageSize: number, sort: SortMode) {
+  return `${filter}:${page}:${pageSize}:${sort}`
+}
+
+async function fetchWorkspacePage(accessToken: string, filter: FilterStatus, page: number, pageSize: number, sort: SortMode) {
+  const params = new URLSearchParams({ filter, page: String(page), page_size: String(pageSize), sort })
+  const response = await fetch(`/api/expert/images?${params}`, {
+    headers: { Authorization: `Bearer ${accessToken}` },
+    cache: 'no-store',
+  })
+  const payload = await response.json()
+  if (!response.ok) throw new Error(payload.detail ?? 'Could not load saved scans.')
+  return payload as WorkspacePayload
+}
+
 export default function ExpertPage() {
   const [currentFilter, setCurrentFilter] = useState<FilterStatus>('my_queue')
   const [viewMode, setViewMode]           = useState<ViewMode>('grid')
@@ -35,13 +57,23 @@ export default function ExpertPage() {
 
   useEffect(() => {
     let cancelled = false
+    const cacheKey = workspacePageKey(currentFilter, page, pageSize, sortMode)
+    const cached = getCachedWorkspacePage<WorkspacePayload>(cacheKey)
 
-    // Never leave cards from the previous tab on screen while this tab loads.
-    setLoading(true)
-    setImages([])
-    setLoadError(null)
+    if (cached) {
+      setImages(cached.images)
+      setCounts(cached.counts)
+      setTotal(cached.total)
+      setLoadError(null)
+      setLoading(false)
+    } else {
+      setLoading(true)
+      setImages([])
+      setLoadError(null)
+    }
 
     async function loadImages() {
+      if (cached) return
       const { data: { session } } = await supabase.auth.getSession()
       if (!session || cancelled) {
         if (!cancelled) setLoading(false)
@@ -49,31 +81,29 @@ export default function ExpertPage() {
       }
 
       try {
-        const params = new URLSearchParams({
-          filter: currentFilter,
-          page: String(page),
-          page_size: String(pageSize),
-          sort: sortMode,
-        })
-        const response = await fetch(`/api/expert/images?${params}`, {
-          headers: { Authorization: `Bearer ${session.access_token}` },
-          cache: 'no-store',
-        })
-        const payload = await response.json()
+        const payload = await fetchWorkspacePage(session.access_token, currentFilter, page, pageSize, sortMode)
         if (cancelled) return
 
-        if (!response.ok) {
-          setLoadError(payload.detail ?? 'Could not load saved scans.')
-          return
-        }
-
-        const nextImages = payload.images as WorkspaceImage[]
-        setImages(nextImages)
-        setCounts(payload.counts as Record<FilterStatus, number>)
-        setTotal(payload.total as number)
+        cacheWorkspacePage(cacheKey, payload)
+        setImages(payload.images)
+        setCounts(payload.counts)
+        setTotal(payload.total)
         setLoadError(null)
-      } catch {
-        if (!cancelled) setLoadError('Could not load saved scans. Please try again.')
+
+        // Warm only the first 20 records of non-empty tabs. The browser does
+        // not download thumbnails until that tab is actually shown.
+        if (page === 0 && pageSize === 20) {
+          const filters: FilterStatus[] = ['all', 'pending', 'verified', 'unclear', 'waiting_for_new_class']
+          for (const filter of filters) {
+            const preloadKey = workspacePageKey(filter, 0, 20, sortMode)
+            if (filter === currentFilter || payload.counts[filter] === 0 || getCachedWorkspacePage(preloadKey)) continue
+            void fetchWorkspacePage(session.access_token, filter, 0, 20, sortMode)
+              .then((preloaded) => cacheWorkspacePage(preloadKey, preloaded))
+              .catch(() => undefined)
+          }
+        }
+      } catch (error) {
+        if (!cancelled) setLoadError(error instanceof Error ? error.message : 'Could not load saved scans. Please try again.')
       } finally {
         if (!cancelled) setLoading(false)
       }
@@ -98,9 +128,6 @@ export default function ExpertPage() {
         <ExpertTabs 
           currentFilter={currentFilter}
           setCurrentFilter={(filter) => {
-            setImages([])
-            setLoadError(null)
-            setLoading(true)
             setCurrentFilter(filter)
             setPage(0)
           }}
