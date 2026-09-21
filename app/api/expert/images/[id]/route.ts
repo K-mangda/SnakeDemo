@@ -19,6 +19,10 @@ type ReviewHistoryRow = {
   created_at: string
 }
 
+function normalizeScientificName(value: string) {
+  return value.normalize('NFC').trim().replace(/\s+/g, ' ').toLocaleLowerCase()
+}
+
 async function requireExpert(token: string | undefined) {
   if (!token) return { error: 'Sign in is required.', status: 401 as const }
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL
@@ -69,7 +73,14 @@ export async function GET(request: Request, context: RouteContext<'/api/expert/i
   const reviewerNameById = new Map((reviewerProfiles ?? []).map((profile) => [profile.id, profile.full_name]))
 
   const stored = image as StoredImage
-  const modelSpecies = stored.predicted_species?.[0] ?? null
+  // Older scans can have the AI scientific name but no foreign-key reference.
+  // Resolve against the current catalogue so the reviewer gets the AI choice
+  // preselected without changing the stored historical prediction.
+  const predictedScientific = stored.predicted_scientific
+  const modelSpecies = stored.predicted_species?.[0]
+    ?? (predictedScientific
+      ? (species ?? []).find((item) => normalizeScientificName(item.scientific_name) === normalizeScientificName(predictedScientific)) ?? null
+      : null)
   // Do not show an old placeholder/stale box unless the model actually
   // supplied both a label and a confidence value for this image.
   const hasAiPrediction = stored.predicted_scientific !== null && stored.confidence !== null

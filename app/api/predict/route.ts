@@ -13,6 +13,10 @@ function safeFilename(filename: string) {
   return originalFilename(filename).replace(/[^a-zA-Z0-9._-]/g, '_')
 }
 
+function normalizeScientificName(value: string) {
+  return value.normalize('NFC').trim().replace(/\s+/g, ' ').toLocaleLowerCase()
+}
+
 async function findReference(scientificName: string): Promise<SpeciesReference | null> {
   const admin = getSupabaseAdmin()
   const { data, error } = await admin
@@ -100,12 +104,16 @@ export async function POST(request: Request) {
     if (!payload.top_detection && !saveNoDetection) return Response.json({ ...payload, recorded: false })
 
     const reference = payload.top_detection ? await findReference(payload.top_detection.scientific) : null
-    const { data: species } = payload.top_detection
-      ? await getSupabaseAdmin().from('snake_species').select('id').eq('scientific_name', payload.top_detection.scientific).maybeSingle()
-      : { data: null }
+    const { data: speciesRows, error: speciesError } = payload.top_detection
+      ? await getSupabaseAdmin().from('snake_species').select('id, scientific_name')
+      : { data: null, error: null }
+    if (speciesError) throw speciesError
+    const speciesId = payload.top_detection
+      ? speciesRows?.find((item) => normalizeScientificName(item.scientific_name) === normalizeScientificName(payload.top_detection.scientific))?.id ?? null
+      : null
 
     try {
-      await savePrediction(image, payload, species?.id ?? null)
+      await savePrediction(image, payload, speciesId)
       return Response.json({ ...payload, reference, recorded: true })
     } catch (error) {
       console.error('Prediction completed but could not be stored.', error)
