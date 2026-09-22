@@ -32,7 +32,7 @@ export default function ImageGrid({ filtered, currentFilter, reviewHref }: Image
 
   async function warmReview(imageId: string) {
     const { data: { session } } = await supabase.auth.getSession()
-    if (session) void prefetchExpertReview(imageId, session.access_token)
+    if (session) void prefetchExpertReview(imageId, session.access_token, currentFilter)
   }
 
   const workingImages = currentFilter === 'all' ? filtered.filter((image) => image.status !== 'verified') : filtered

@@ -8,29 +8,34 @@ type ReviewPayload = {
 const cachedReviews = new Map<string, ReviewPayload>()
 const pendingReviews = new Map<string, Promise<ReviewPayload | null>>()
 
-export function getPrefetchedReview(imageId: string) {
-  return cachedReviews.get(imageId) ?? null
+function cacheKey(imageId: string, queueFilter: string) {
+  return `${imageId}:${queueFilter}`
 }
 
-export async function prefetchExpertReview(imageId: string, accessToken: string) {
-  const cached = cachedReviews.get(imageId)
+export function getPrefetchedReview(imageId: string, queueFilter = 'pending') {
+  return cachedReviews.get(cacheKey(imageId, queueFilter)) ?? null
+}
+
+export async function prefetchExpertReview(imageId: string, accessToken: string, queueFilter = 'pending') {
+  const key = cacheKey(imageId, queueFilter)
+  const cached = cachedReviews.get(key)
   if (cached) return cached
 
-  const inFlight = pendingReviews.get(imageId)
+  const inFlight = pendingReviews.get(key)
   if (inFlight) return inFlight
 
-  const request = fetch(`/api/expert/images/${imageId}`, {
+  const request = fetch(`/api/expert/images/${imageId}?queue_filter=${encodeURIComponent(queueFilter)}`, {
     headers: { Authorization: `Bearer ${accessToken}` },
   })
     .then(async (response) => {
       if (!response.ok) return null
       const payload = await response.json() as ReviewPayload
-      cachedReviews.set(imageId, payload)
+      cachedReviews.set(key, payload)
       return payload
     })
     .catch(() => null)
-    .finally(() => pendingReviews.delete(imageId))
+    .finally(() => pendingReviews.delete(key))
 
-  pendingReviews.set(imageId, request)
+  pendingReviews.set(key, request)
   return request
 }

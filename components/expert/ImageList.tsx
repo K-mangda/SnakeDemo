@@ -31,7 +31,7 @@ export default function ImageList({ filtered, currentFilter, reviewHref }: Image
 
   async function warmReview(imageId: string) {
     const { data: { session } } = await supabase.auth.getSession()
-    if (session) void prefetchExpertReview(imageId, session.access_token)
+    if (session) void prefetchExpertReview(imageId, session.access_token, currentFilter)
   }
 
   // Confidence color text (only for list view label — no bar per design)

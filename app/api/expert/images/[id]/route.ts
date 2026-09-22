@@ -47,6 +47,10 @@ export async function GET(request: Request, context: RouteContext<'/api/expert/i
   const access = await requireExpert(token)
   if ('error' in access) return Response.json({ detail: access.error }, { status: access.status })
   const { id } = await context.params
+  const requestedQueueFilter = new URL(request.url).searchParams.get('queue_filter')
+  const queueFilter = ['all', 'pending', 'verified', 'unclear', 'waiting_for_new_class'].includes(requestedQueueFilter ?? '')
+    ? requestedQueueFilter!
+    : 'pending'
   const admin = getSupabaseAdmin()
 
   const { data: image, error } = await admin
@@ -60,18 +64,17 @@ export async function GET(request: Request, context: RouteContext<'/api/expert/i
   if (signedError || !signed?.signedUrl) return Response.json({ detail: 'Saved scan image is unavailable.' }, { status: 500 })
   const stored = image as StoredImage
 
-  const [{ data: species }, { data: existingVerification }, { data: reviewRows }, { data: pendingQueue }] = await Promise.all([
+  let queueQuery = admin.from('snake_images').select('id').order('confidence', { ascending: true, nullsFirst: true }).limit(200)
+  if (queueFilter !== 'all') queueQuery = queueQuery.eq('status', queueFilter)
+
+  const [{ data: species }, { data: existingVerification }, { data: reviewRows }, { data: queueRows }] = await Promise.all([
     admin.from('snake_species').select('id, scientific_name, name_th, name_en').order('scientific_name'),
     admin.from('verification_history').select('voted_species_id, bbox').eq('image_id', id).eq('expert_id', access.userId).maybeSingle(),
     admin.from('verification_history').select('expert_id, voted_species_id, created_at').eq('image_id', id).order('created_at'),
-    admin.from('snake_images').select('id').eq('status', 'pending').order('confidence', { ascending: true, nullsFirst: true }).limit(200),
+    queueQuery,
   ])
 
-  let queueIds = (pendingQueue ?? []).map((item) => item.id)
-  if (!queueIds.includes(stored.id)) {
-    const { data: allQueue } = await admin.from('snake_images').select('id').order('confidence', { ascending: true, nullsFirst: true }).limit(200)
-    queueIds = (allQueue ?? []).map((item) => item.id)
-  }
+  const queueIds = (queueRows ?? []).map((item) => item.id)
 
   const history = (reviewRows ?? []) as ReviewHistoryRow[]
   const reviewerIds = [...new Set(history.map((review) => review.expert_id))]

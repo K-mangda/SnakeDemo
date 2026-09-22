@@ -38,6 +38,8 @@ export default function AnnotatePage({ params }: { params: Promise<{ id: string 
   const { id } = use(params)
   const requestedReturnTo = searchParams.get('returnTo')
   const returnTo = requestedReturnTo?.startsWith('/expert') ? requestedReturnTo : '/expert?filter=pending'
+  const requestedQueueFilter = new URLSearchParams(returnTo.split('?')[1] ?? '').get('filter')
+  const queueFilter = ['all', 'pending', 'verified', 'unclear', 'waiting_for_new_class'].includes(requestedQueueFilter ?? '') ? requestedQueueFilter! : 'pending'
   const { showToast } = useToast()
   const [scan, setScan] = useState<Scan | null>(null)
   const [species, setSpecies] = useState<Species[]>([])
@@ -58,11 +60,27 @@ export default function AnnotatePage({ params }: { params: Promise<{ id: string 
   const [startBox, setStartBox] = useState<Box | null>(null)
   const [queueIds, setQueueIds] = useState<string[]>([])
   const imageRef = useRef<HTMLDivElement>(null)
-  const loadedImageRef = useRef<HTMLImageElement>(null)
+  const [readyImageUrl, setReadyImageUrl] = useState<string | null>(null)
 
   useEffect(() => {
-    const image = loadedImageRef.current
-    if (image?.complete) setImageState(image.naturalWidth > 0 ? 'ready' : 'error')
+    const imageUrl = scan?.imageUrl
+    if (!imageUrl) return
+    let active = true
+    setImageState('loading')
+    setReadyImageUrl(null)
+    const image = new Image()
+    image.onload = () => {
+      if (!active) return
+      setReadyImageUrl(imageUrl)
+      setImageState('ready')
+    }
+    image.onerror = () => {
+      if (!active) return
+      setReadyImageUrl(null)
+      setImageState('error')
+    }
+    image.src = imageUrl
+    return () => { active = false }
   }, [scan?.imageUrl])
 
   useEffect(() => {
@@ -70,6 +88,7 @@ export default function AnnotatePage({ params }: { params: Promise<{ id: string 
       setLoading(true)
       setError(null)
       setImageState('loading')
+      setReadyImageUrl(null)
       setDecision('pending')
       setSpeciesMenuOpen(false)
       const { data: { session } } = await supabase.auth.getSession()
@@ -86,7 +105,7 @@ export default function AnnotatePage({ params }: { params: Promise<{ id: string 
         const ids = payload.queueIds ?? []
         setQueueIds(ids)
         const nextId = ids[ids.indexOf(id) + 1]
-        if (nextId) void prefetchExpertReview(nextId, session.access_token)
+        if (nextId) void prefetchExpertReview(nextId, session.access_token, queueFilter)
         setBbox(item.existingVerification ? item.existingVerification.bbox : item.bbox)
         setSelectedSpeciesId(item.existingVerification?.voted_species_id ?? item.prediction.id)
         setHasExpertSelectedSpecies(item.existingVerification?.voted_species_id !== null && item.existingVerification?.voted_species_id !== undefined)
@@ -96,13 +115,13 @@ export default function AnnotatePage({ params }: { params: Promise<{ id: string 
         setLoading(false)
       }
 
-      const prefetched = getPrefetchedReview(id) as { image: Scan; species: Species[]; queueIds: string[] } | null
+      const prefetched = getPrefetchedReview(id, queueFilter) as { image: Scan; species: Species[]; queueIds: string[] } | null
       if (prefetched) {
         applyPayload(prefetched)
         return
       }
 
-      const payload = await prefetchExpertReview(id, session.access_token) as { image: Scan; species: Species[]; queueIds: string[] } | null
+      const payload = await prefetchExpertReview(id, session.access_token, queueFilter) as { image: Scan; species: Species[]; queueIds: string[] } | null
       if (!payload) {
         setError('Could not load saved scan.')
         setLoading(false)
@@ -111,7 +130,7 @@ export default function AnnotatePage({ params }: { params: Promise<{ id: string 
       applyPayload(payload)
     }
     load()
-  }, [id])
+  }, [id, queueFilter])
 
   const queueIndex = queueIds.indexOf(id)
   const previousQueueId = queueIndex > 0 ? queueIds[queueIndex - 1] : null
@@ -322,8 +341,8 @@ export default function AnnotatePage({ params }: { params: Promise<{ id: string 
           <section className="overflow-hidden rounded-2xl border border-zinc-800 bg-zinc-900/20">
             <div className="flex items-center justify-between gap-3 border-b border-zinc-800 px-5 py-4"><span className="flex items-center gap-2 text-sm font-medium text-zinc-200"><Crosshair size={16} className="text-emerald-400" /> Subject boundary</span><div className="flex items-center gap-2">{bbox ? <><Button size="sm" variant="outline" disabled={imageState !== 'ready'} onClick={redrawBox}><MousePointer2 size={14} /> Redraw</Button><Button size="sm" variant="ghost" disabled={imageState !== 'ready'} onClick={clearBox} className="text-zinc-400"><Eraser size={14} /> Clear</Button></> : <Button size="sm" variant={placingBox ? 'primary' : 'outline'} disabled={imageState !== 'ready'} onClick={beginPlacingBox}>{placingBox ? 'Drag on image to draw' : <><Plus size={14} /> Add box</>}</Button>}</div></div>
             <div className="flex min-h-[420px] items-center justify-center bg-zinc-950 p-4 sm:p-6">
-              {imageState === 'error' ? <p className="text-sm text-zinc-500">Image unavailable. Please return to Workspace and try again.</p> : <div ref={imageRef} className={`relative inline-block max-h-[600px] max-w-full select-none ${placingBox && imageState === 'ready' ? 'cursor-crosshair' : ''}`} onMouseDown={imageState === 'ready' ? beginDrawingBox : undefined} onMouseMove={imageState === 'ready' ? updateBox : undefined} onMouseUp={imageState === 'ready' ? endBoxAction : undefined} onMouseLeave={imageState === 'ready' ? endBoxAction : undefined}>
-                <img ref={loadedImageRef} src={scan.imageUrl} alt="Saved subject for Expert review" draggable={false} onLoad={() => setImageState('ready')} onError={() => setImageState('error')} className={`block max-h-[600px] max-w-full rounded-lg object-contain transition-opacity ${imageState === 'ready' ? 'opacity-100' : 'opacity-0'}`} />
+              {imageState === 'error' ? <p className="text-sm text-zinc-500">Image unavailable. Please return to Workspace and try again.</p> : readyImageUrl && <div ref={imageRef} className={`relative inline-block max-h-[600px] max-w-full select-none ${placingBox && imageState === 'ready' ? 'cursor-crosshair' : ''}`} onMouseDown={imageState === 'ready' ? beginDrawingBox : undefined} onMouseMove={imageState === 'ready' ? updateBox : undefined} onMouseUp={imageState === 'ready' ? endBoxAction : undefined} onMouseLeave={imageState === 'ready' ? endBoxAction : undefined}>
+                <img src={readyImageUrl} alt="Saved subject for Expert review" draggable={false} className="block max-h-[600px] max-w-full rounded-lg object-contain" />
                 {imageState === 'ready' && !bbox && <div className="pointer-events-none absolute inset-0 grid place-items-center"><span className="rounded-lg border border-zinc-700 bg-zinc-950/90 px-3 py-2 text-xs text-zinc-400">{placingBox ? 'Drag over the snake to draw a box' : 'No AI box · click Add box to create one'}</span></div>}
                 {imageState === 'ready' && bbox && <div className="absolute cursor-move border-2 border-emerald-400 bg-emerald-500/10 shadow-[0_0_18px_rgba(16,185,129,0.22)]" style={{ left: `${bbox.x}%`, top: `${bbox.y}%`, width: `${bbox.width}%`, height: `${bbox.height}%` }} onMouseDown={(event) => beginBoxAction(event, 'move')}><span className="absolute -top-7 left-0 max-w-[220px] truncate rounded bg-emerald-500 px-2 py-1 text-[10px] font-medium text-zinc-950">{boxLabel}</span><ResizeHandles onStart={beginBoxAction} /></div>}
               </div>}
