@@ -10,7 +10,6 @@ import { useToast } from '@/components/ui/Toast'
 import { formatScanLabel } from '@/lib/scan-label'
 import { getPrefetchedReview, prefetchExpertReview } from '@/lib/expert-review-cache'
 import { clearWorkspaceCache } from '@/lib/expert-workspace-cache'
-import { getPendingQueue, setPendingQueue } from '@/lib/expert-queue-cache'
 
 type Box = { x: number; y: number; width: number; height: number }
 type Decision = 'pending' | 'unclear' | 'waiting_for_new_class'
@@ -56,6 +55,12 @@ export default function AnnotatePage({ params }: { params: Promise<{ id: string 
   const [startBox, setStartBox] = useState<Box | null>(null)
   const [queueIds, setQueueIds] = useState<string[]>([])
   const imageRef = useRef<HTMLDivElement>(null)
+  const loadedImageRef = useRef<HTMLImageElement>(null)
+
+  useEffect(() => {
+    const image = loadedImageRef.current
+    if (image?.complete) setImageState(image.naturalWidth > 0 ? 'ready' : 'error')
+  }, [scan?.imageUrl])
 
   useEffect(() => {
     async function load() {
@@ -71,39 +76,14 @@ export default function AnnotatePage({ params }: { params: Promise<{ id: string 
         return
       }
 
-      setQueueIds([])
-      void (async () => {
-        const loadQueue = async (filter: 'pending' | 'all') => {
-          const response = await fetch(`/api/expert/images?filter=${filter}&page=0&page_size=200&sort=confidence_asc`, {
-            headers: { Authorization: `Bearer ${session.access_token}` },
-            cache: 'no-store',
-          })
-          if (!response.ok) return []
-          const payload = await response.json() as { images: { id: string }[] }
-          return payload.images.map((image) => image.id)
-        }
-
-        try {
-          let ids = getPendingQueue()
-          if (!ids.includes(id)) {
-            ids = await loadQueue('pending')
-            setPendingQueue(ids)
-          }
-          // A direct link, an audit, or an already-verified task is not in the
-          // Pending queue. Fall back to All so task navigation never disappears.
-          if (!ids.includes(id)) ids = await loadQueue('all')
-          setQueueIds(ids)
-          const nextId = ids[ids.indexOf(id) + 1]
-          if (nextId) void prefetchExpertReview(nextId, session.access_token)
-        } catch {
-          setQueueIds([])
-        }
-      })()
-
-      const applyPayload = (payload: { image: Scan; species: Species[] }) => {
+      const applyPayload = (payload: { image: Scan; species: Species[]; queueIds: string[] }) => {
         const item = payload.image
         setScan(item)
         setSpecies(payload.species)
+        const ids = payload.queueIds ?? []
+        setQueueIds(ids)
+        const nextId = ids[ids.indexOf(id) + 1]
+        if (nextId) void prefetchExpertReview(nextId, session.access_token)
         setBbox(item.existingVerification ? item.existingVerification.bbox : item.bbox)
         setSelectedSpeciesId(item.existingVerification?.voted_species_id ?? item.prediction.id)
         setHasExpertSelectedSpecies(item.existingVerification?.voted_species_id !== null && item.existingVerification?.voted_species_id !== undefined)
@@ -113,13 +93,13 @@ export default function AnnotatePage({ params }: { params: Promise<{ id: string 
         setLoading(false)
       }
 
-      const prefetched = getPrefetchedReview(id) as { image: Scan; species: Species[] } | null
+      const prefetched = getPrefetchedReview(id) as { image: Scan; species: Species[]; queueIds: string[] } | null
       if (prefetched) {
         applyPayload(prefetched)
         return
       }
 
-      const payload = await prefetchExpertReview(id, session.access_token) as { image: Scan; species: Species[] } | null
+      const payload = await prefetchExpertReview(id, session.access_token) as { image: Scan; species: Species[]; queueIds: string[] } | null
       if (!payload) {
         setError('Could not load saved scan.')
         setLoading(false)
@@ -340,7 +320,7 @@ export default function AnnotatePage({ params }: { params: Promise<{ id: string 
             <div className="flex items-center justify-between gap-3 border-b border-zinc-800 px-5 py-4"><span className="flex items-center gap-2 text-sm font-medium text-zinc-200"><Crosshair size={16} className="text-emerald-400" /> Subject boundary</span><div className="flex items-center gap-2">{bbox ? <><Button size="sm" variant="outline" disabled={imageState !== 'ready'} onClick={redrawBox}><MousePointer2 size={14} /> Redraw</Button><Button size="sm" variant="ghost" disabled={imageState !== 'ready'} onClick={clearBox} className="text-zinc-400"><Eraser size={14} /> Clear</Button></> : <Button size="sm" variant={placingBox ? 'primary' : 'outline'} disabled={imageState !== 'ready'} onClick={beginPlacingBox}>{placingBox ? 'Drag on image to draw' : <><Plus size={14} /> Add box</>}</Button>}</div></div>
             <div className="flex min-h-[420px] items-center justify-center bg-zinc-950 p-4 sm:p-6">
               {imageState === 'error' ? <p className="text-sm text-zinc-500">Image unavailable. Please return to Workspace and try again.</p> : <div ref={imageRef} className={`relative inline-block max-h-[600px] max-w-full select-none ${placingBox && imageState === 'ready' ? 'cursor-crosshair' : ''}`} onMouseDown={imageState === 'ready' ? beginDrawingBox : undefined} onMouseMove={imageState === 'ready' ? updateBox : undefined} onMouseUp={imageState === 'ready' ? endBoxAction : undefined} onMouseLeave={imageState === 'ready' ? endBoxAction : undefined}>
-                <img src={scan.imageUrl} alt="Saved subject for Expert review" draggable={false} onLoad={() => setImageState('ready')} onError={() => setImageState('error')} className={`block max-h-[600px] max-w-full rounded-lg object-contain transition-opacity ${imageState === 'ready' ? 'opacity-100' : 'opacity-0'}`} />
+                <img ref={loadedImageRef} src={scan.imageUrl} alt="Saved subject for Expert review" draggable={false} onLoad={() => setImageState('ready')} onError={() => setImageState('error')} className={`block max-h-[600px] max-w-full rounded-lg object-contain transition-opacity ${imageState === 'ready' ? 'opacity-100' : 'opacity-0'}`} />
                 {imageState === 'ready' && !bbox && <div className="pointer-events-none absolute inset-0 grid place-items-center"><span className="rounded-lg border border-zinc-700 bg-zinc-950/90 px-3 py-2 text-xs text-zinc-400">{placingBox ? 'Drag over the snake to draw a box' : 'No AI box · click Add box to create one'}</span></div>}
                 {imageState === 'ready' && bbox && <div className="absolute cursor-move border-2 border-emerald-400 bg-emerald-500/10 shadow-[0_0_18px_rgba(16,185,129,0.22)]" style={{ left: `${bbox.x}%`, top: `${bbox.y}%`, width: `${bbox.width}%`, height: `${bbox.height}%` }} onMouseDown={(event) => beginBoxAction(event, 'move')}><span className="absolute -top-7 left-0 max-w-[220px] truncate rounded bg-emerald-500 px-2 py-1 text-[10px] font-medium text-zinc-950">{boxLabel}</span><ResizeHandles onStart={beginBoxAction} /></div>}
               </div>}

@@ -57,12 +57,20 @@ export async function GET(request: Request, context: RouteContext<'/api/expert/i
 
   const { data: signed, error: signedError } = await admin.storage.from('prediction-images').createSignedUrl((image as StoredImage).storage_path, 60 * 15)
   if (signedError || !signed?.signedUrl) return Response.json({ detail: 'Saved scan image is unavailable.' }, { status: 500 })
+  const stored = image as StoredImage
 
-  const [{ data: species }, { data: existingVerification }, { data: reviewRows }] = await Promise.all([
+  const [{ data: species }, { data: existingVerification }, { data: reviewRows }, { data: pendingQueue }] = await Promise.all([
     admin.from('snake_species').select('id, scientific_name, name_th, name_en').order('scientific_name'),
     admin.from('verification_history').select('voted_species_id, bbox').eq('image_id', id).eq('expert_id', access.userId).maybeSingle(),
     admin.from('verification_history').select('expert_id, voted_species_id, created_at').eq('image_id', id).order('created_at'),
+    admin.from('snake_images').select('id').eq('status', 'pending').order('confidence', { ascending: true, nullsFirst: true }).limit(200),
   ])
+
+  let queueIds = (pendingQueue ?? []).map((item) => item.id)
+  if (!queueIds.includes(stored.id)) {
+    const { data: allQueue } = await admin.from('snake_images').select('id').order('confidence', { ascending: true, nullsFirst: true }).limit(200)
+    queueIds = (allQueue ?? []).map((item) => item.id)
+  }
 
   const history = (reviewRows ?? []) as ReviewHistoryRow[]
   const reviewerIds = [...new Set(history.map((review) => review.expert_id))]
@@ -72,7 +80,6 @@ export async function GET(request: Request, context: RouteContext<'/api/expert/i
   const speciesById = new Map((species ?? []).map((item) => [item.id, item]))
   const reviewerNameById = new Map((reviewerProfiles ?? []).map((profile) => [profile.id, profile.full_name]))
 
-  const stored = image as StoredImage
   // Older scans can have the AI scientific name but no foreign-key reference.
   // Resolve against the current catalogue so the reviewer gets the AI choice
   // preselected without changing the stored historical prediction.
@@ -106,5 +113,6 @@ export async function GET(request: Request, context: RouteContext<'/api/expert/i
       })) : [],
     },
     species: species ?? [],
+    queueIds,
   })
 }
