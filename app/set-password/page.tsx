@@ -25,6 +25,11 @@ function SetPasswordForm() {
   useEffect(() => {
     async function verifyInvite() {
       if (preview) { setReady(true); setMessage(''); return }
+      const hashParams = new URLSearchParams(window.location.hash.slice(1))
+      if (hashParams.get('error_code') === 'otp_expired' || hashParams.get('error') === 'access_denied') {
+        setMessage('This invitation link is invalid or has expired.')
+        return
+      }
       const tokenHash = searchParams.get('token_hash')
       const type = searchParams.get('type')
       const code = searchParams.get('code')
