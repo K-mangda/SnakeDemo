@@ -23,9 +23,10 @@ interface ImageItem {
 interface ImageGridProps {
   filtered: ImageItem[];
   currentFilter: FilterStatus;
+  reviewHref: (imageId: string) => string;
 }
 
-export default function ImageGrid({ filtered, currentFilter }: ImageGridProps) {
+export default function ImageGrid({ filtered, currentFilter, reviewHref }: ImageGridProps) {
   if (filtered.length === 0) return null;
 
   async function warmReview(imageId: string) {
@@ -42,7 +43,7 @@ export default function ImageGrid({ filtered, currentFilter }: ImageGridProps) {
     return (
       <Link
         key={`${currentFilter}-${img.id}`}
-        href={`/expert/annotate/${img.id}`}
+        href={reviewHref(img.id)}
         aria-label={`Open ${img.prediction.scientific} for review`}
         className="group h-full cursor-pointer rounded-xl border border-zinc-800 bg-zinc-900/20 p-5 flex flex-col transition-all hover:border-emerald-500/60 hover:bg-emerald-500/[0.035] focus:outline-none focus-visible:border-emerald-400 focus-visible:ring-2 focus-visible:ring-emerald-500/30"
         onMouseEnter={() => void warmReview(img.id)}

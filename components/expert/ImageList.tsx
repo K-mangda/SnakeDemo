@@ -22,9 +22,10 @@ interface ImageItem {
 interface ImageListProps {
   filtered: ImageItem[];
   currentFilter: FilterStatus;
+  reviewHref: (imageId: string) => string;
 }
 
-export default function ImageList({ filtered, currentFilter }: ImageListProps) {
+export default function ImageList({ filtered, currentFilter, reviewHref }: ImageListProps) {
   if (filtered.length === 0) return null;
 
   async function warmReview(imageId: string) {
@@ -61,7 +62,7 @@ export default function ImageList({ filtered, currentFilter }: ImageListProps) {
         return (
           <Link
             key={`${currentFilter}-${img.id}`}
-            href={`/expert/annotate/${img.id}`}
+            href={reviewHref(img.id)}
             aria-label={`Open ${img.prediction.scientific} for review`}
             className="grid grid-cols-[64px_1fr_auto] md:grid-cols-[64px_1fr_100px_120px_150px] gap-4
                        items-center px-4 py-3

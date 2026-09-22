@@ -1,7 +1,7 @@
 'use client'
 
 import { use, useEffect, useRef, useState, type MouseEvent as ReactMouseEvent } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { ArrowLeft, Check, ChevronLeft, ChevronRight, Crosshair, Eraser, MousePointer2, Plus, Search } from 'lucide-react'
 import Button from '@/components/ui/Button'
 import Badge from '@/components/ui/Badge'
@@ -34,7 +34,10 @@ function clamp(value: number, min: number, max: number) {
 
 export default function AnnotatePage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const { id } = use(params)
+  const requestedReturnTo = searchParams.get('returnTo')
+  const returnTo = requestedReturnTo?.startsWith('/expert') ? requestedReturnTo : '/expert?filter=pending'
   const { showToast } = useToast()
   const [scan, setScan] = useState<Scan | null>(null)
   const [species, setSpecies] = useState<Species[]>([])
@@ -115,7 +118,7 @@ export default function AnnotatePage({ params }: { params: Promise<{ id: string 
   const nextQueueId = queueIndex >= 0 && queueIndex + 1 < queueIds.length ? queueIds[queueIndex + 1] : null
 
   function goToQueueItem(imageId: string | null) {
-    if (imageId) router.push(`/expert/annotate/${imageId}`)
+    if (imageId) router.push(`/expert/annotate/${imageId}?returnTo=${encodeURIComponent(returnTo)}`)
   }
 
   function beginPlacingBox() {
@@ -278,9 +281,9 @@ export default function AnnotatePage({ params }: { params: Promise<{ id: string 
     showToast('Your review was saved.')
     clearWorkspaceCache()
     if (nextQueueId) {
-      router.push(`/expert/annotate/${nextQueueId}`)
+      router.push(`/expert/annotate/${nextQueueId}?returnTo=${encodeURIComponent(returnTo)}`)
     } else {
-      router.push('/expert')
+      router.push(returnTo)
     }
   }
 
@@ -308,7 +311,7 @@ export default function AnnotatePage({ params }: { params: Promise<{ id: string 
     <main className="min-h-screen px-4 pb-20 pt-24 sm:px-6 sm:pt-28">
       <div className="mx-auto max-w-6xl">
         <header className="mb-8 border-b border-zinc-900 pb-6">
-          <Button variant="ghost" size="sm" onClick={() => router.push('/expert')} className="-ml-2 mb-5 text-zinc-500"><ArrowLeft size={16} /> Back to Workspace</Button>
+          <Button variant="ghost" size="sm" onClick={() => router.push(returnTo)} className="-ml-2 mb-5 text-zinc-500"><ArrowLeft size={16} /> Back to Workspace</Button>
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div><p className="mb-2 text-xs uppercase tracking-[0.2em] text-emerald-400">Expert review</p><h1 className="text-2xl font-medium text-zinc-100">Review & correct classification</h1><p className="mt-2 text-sm text-zinc-500" title={`Original file: ${scan.originalFilename}`}>{formatScanLabel(scan.createdAt)}</p></div>
             <div className="flex flex-wrap items-center justify-end gap-2"><Badge variant="muted" className="text-xs">Independent review</Badge>{queueIndex >= 0 && <div className="flex items-center rounded-lg border border-zinc-800 bg-zinc-900/50"><Button size="sm" variant="ghost" title="Previous task (Left arrow)" disabled={!previousQueueId} onClick={() => goToQueueItem(previousQueueId)} className="rounded-r-none px-2.5"><ChevronLeft size={15} /> Previous</Button><span className="border-x border-zinc-800 px-3 py-1.5 text-xs text-zinc-400">{queueIndex + 1} / {queueIds.length}</span><Button size="sm" variant="ghost" title="Next task (Right arrow)" disabled={!nextQueueId} onClick={() => goToQueueItem(nextQueueId)} className="rounded-l-none px-2.5">Next <ChevronRight size={15} /></Button></div>}</div>
@@ -335,7 +338,7 @@ export default function AnnotatePage({ params }: { params: Promise<{ id: string 
               {decision === 'pending' && <div className="mt-5 border-t border-zinc-800 pt-5"><label className="text-xs font-medium text-zinc-400">Reference species</label><div className="relative mt-2">{selectedSpecies && !speciesMenuOpen ? <button type="button" onClick={() => { setSearch(''); setSpeciesMenuOpen(true) }} className="flex w-full items-center justify-between gap-3 rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2.5 text-left transition-colors hover:border-zinc-500"><span className="min-w-0"><span className="block truncate text-sm font-medium italic text-zinc-100">{selectedSpecies.scientific_name}</span><span className="mt-0.5 block truncate text-xs text-zinc-500">{selectedSpecies.name_th ?? selectedSpecies.name_en ?? 'No common name'}</span></span><span className="shrink-0 text-xs font-medium text-emerald-400">Change</span></button> : <><Search size={15} className="pointer-events-none absolute left-3 top-3 text-zinc-500" /><input value={search} autoFocus={speciesMenuOpen} onFocus={() => setSpeciesMenuOpen(true)} onChange={(event) => { setSearch(event.target.value); setSpeciesMenuOpen(true) }} placeholder="Search scientific or Thai name…" className="w-full rounded-lg border border-zinc-800 bg-zinc-950 py-2.5 pl-9 pr-3 text-sm text-zinc-200 outline-none transition-colors placeholder:text-zinc-600 focus:border-emerald-500" />{speciesMenuOpen && <div className="absolute z-20 mt-2 max-h-64 w-full overflow-y-auto overscroll-contain rounded-xl border border-zinc-700 bg-zinc-950 p-1.5 shadow-2xl shadow-black/50"><p className="px-3 pb-2 pt-1 text-[11px] text-zinc-500">{matchingSpecies.length} reference species</p>{matchingSpecies.length ? matchingSpecies.map((item) => { const isSelected = item.id === selectedSpeciesId; return <button key={item.id} type="button" onMouseDown={(event) => event.preventDefault()} onClick={() => { setSelectedSpeciesId(item.id); setHasExpertSelectedSpecies(true); setSearch(''); setSpeciesMenuOpen(false) }} className={`flex w-full items-center justify-between gap-3 rounded-lg px-3 py-2.5 text-left transition-colors ${isSelected ? 'bg-emerald-500/15 text-emerald-300' : 'text-zinc-200 hover:bg-zinc-800'}`}><span className="min-w-0"><span className="block truncate text-sm font-medium italic">{item.scientific_name}</span><span className="mt-0.5 block truncate text-xs text-zinc-500">{item.name_th ?? item.name_en ?? 'No common name'}</span></span>{isSelected && <Check size={16} className="shrink-0" />}</button> }) : <p className="px-3 py-4 text-center text-xs text-zinc-500">No reference species found.</p>}</div>}</>}</div></div>}
               <div className="mt-auto border-t border-zinc-800 pt-4">
                 <div className="rounded-xl border border-zinc-800 bg-zinc-950/50 px-3.5 py-3"><p className={`text-xs font-medium ${reviewSummary.tone}`}>{reviewSummary.title}</p><p className="mt-1 truncate text-xs text-zinc-500">{reviewSummary.detail}</p></div>
-                <Button disabled={saving} onClick={submit} className="mt-3 w-full">{saving ? 'Saving review…' : 'Save my review'} <Check size={16} /></Button>
+                <Button disabled={saving} onClick={submit} className="mt-3 w-full">{saving ? 'Saving review…' : 'Save my review'}</Button>
               </div>
             </section>
 

@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { useSearchParams } from 'next/navigation'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { supabase } from '@/lib/supabase/client'
 import { cacheWorkspacePage, getCachedWorkspacePage } from '@/lib/expert-workspace-cache'
@@ -44,13 +45,19 @@ async function fetchWorkspacePage(accessToken: string, filter: FilterStatus, pag
 }
 
 export default function ExpertPage() {
-  const [currentFilter, setCurrentFilter] = useState<FilterStatus>('pending')
-  const [viewMode, setViewMode]           = useState<ViewMode>('grid')
-  const [sortMode, setSortMode]           = useState<SortMode>('confidence_asc')
+  const searchParams = useSearchParams()
+  const initialFilter = searchParams.get('filter')
+  const initialView = searchParams.get('view')
+  const initialSort = searchParams.get('sort')
+  const initialPage = Number(searchParams.get('page'))
+  const initialPageSize = Number(searchParams.get('pageSize'))
+  const [currentFilter, setCurrentFilter] = useState<FilterStatus>(() => ['all', 'pending', 'verified', 'unclear', 'waiting_for_new_class'].includes(initialFilter ?? '') ? initialFilter as FilterStatus : 'pending')
+  const [viewMode, setViewMode]           = useState<ViewMode>(() => initialView === 'list' ? 'list' : 'grid')
+  const [sortMode, setSortMode]           = useState<SortMode>(() => ['date', 'confidence_asc', 'confidence_desc'].includes(initialSort ?? '') ? initialSort as SortMode : 'confidence_asc')
   const [images, setImages] = useState<WorkspaceImage[]>([])
   const [counts, setCounts] = useState<Record<FilterStatus, number>>({ all: 0, pending: 0, verified: 0, unclear: 0, waiting_for_new_class: 0 })
-  const [pageSize, setPageSize] = useState(20)
-  const [page, setPage] = useState(0)
+  const [pageSize, setPageSize] = useState(() => [20, 50, 100, 200].includes(initialPageSize) ? initialPageSize : 20)
+  const [page, setPage] = useState(() => Number.isInteger(initialPage) && initialPage >= 0 ? initialPage : 0)
   const [total, setTotal] = useState(0)
   const [loading, setLoading] = useState(true)
   const [loadError, setLoadError] = useState<string | null>(null)
@@ -143,6 +150,10 @@ export default function ExpertPage() {
   const pageCount = Math.max(1, Math.ceil(total / pageSize))
   const visibleStart = total === 0 ? 0 : page * pageSize + 1
   const visibleEnd = Math.min(total, (page + 1) * pageSize)
+  const reviewHref = (imageId: string) => {
+    const returnTo = new URLSearchParams({ filter: currentFilter, page: String(page), pageSize: String(pageSize), sort: sortMode, view: viewMode })
+    return `/expert/annotate/${imageId}?returnTo=${encodeURIComponent(`/expert?${returnTo}`)}`
+  }
 
   return (
     <main className="min-h-screen pt-24 sm:pt-28 px-4 sm:px-6 pb-20">
@@ -179,8 +190,8 @@ export default function ExpertPage() {
           </div>
         )}
 
-        {!loading && !loadError && viewMode === 'grid' && <ImageGrid filtered={images} currentFilter={currentFilter} />}
-        {!loading && !loadError && viewMode === 'list' && <ImageList filtered={images} currentFilter={currentFilter} />}
+        {!loading && !loadError && viewMode === 'grid' && <ImageGrid filtered={images} currentFilter={currentFilter} reviewHref={reviewHref} />}
+        {!loading && !loadError && viewMode === 'list' && <ImageList filtered={images} currentFilter={currentFilter} reviewHref={reviewHref} />}
 
         {!loading && !loadError && total > 0 && <div className="mt-8 flex flex-col-reverse gap-4 border-t border-zinc-800 pt-5 sm:flex-row sm:items-center sm:justify-between">
           <p className="text-xs text-zinc-500">Showing <span className="text-zinc-300">{visibleStart}–{visibleEnd}</span> of <span className="text-zinc-300">{total}</span> tasks</p>
