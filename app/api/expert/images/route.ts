@@ -9,6 +9,7 @@ type StoredImage = {
   confidence: number | null
   predicted_scientific: string | null
   predicted_bbox: { x: number; y: number; width: number; height: number } | null
+  final_bbox: { x: number; y: number; width: number; height: number } | null
   created_at: string
   predicted_species: { scientific_name: string; name_th: string | null }[] | null
 }
@@ -57,7 +58,7 @@ export async function GET(request: Request) {
 
   let imageQuery = admin
     .from('snake_images')
-    .select('id, storage_path, original_filename, status, confidence, predicted_scientific, predicted_bbox, created_at, predicted_species:snake_species!snake_images_predicted_species_id_fkey(scientific_name, name_th)', { count: 'exact' })
+    .select('id, storage_path, original_filename, status, confidence, predicted_scientific, predicted_bbox, final_bbox, created_at, predicted_species:snake_species!snake_images_predicted_species_id_fkey(scientific_name, name_th)', { count: 'exact' })
 
   if (['pending', 'verified', 'unclear', 'waiting_for_new_class'].includes(filter)) {
     imageQuery = imageQuery.eq('status', filter)
@@ -102,7 +103,9 @@ export async function GET(request: Request) {
       imageUrl: signed?.signedUrl ?? null,
       status: image.status,
       confidence: image.confidence,
-      bbox: hasAiPrediction ? image.predicted_bbox : null,
+      // Expert/consensus geometry is the reviewed source of truth. AI geometry
+      // is only a fallback while no reviewed box exists yet.
+      bbox: image.final_bbox ?? (hasAiPrediction ? image.predicted_bbox : null),
       createdAt: image.created_at,
       review: {
         count: reviewsByImage.get(image.id)?.size ?? 0,
