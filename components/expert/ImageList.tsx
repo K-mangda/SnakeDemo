@@ -6,6 +6,7 @@ import { FilterStatus } from '@/components/expert/ExpertTabs'
 import { formatScanLabel } from '@/lib/scan-label'
 import { supabase } from '@/lib/supabase/client'
 import { prefetchExpertReview } from '@/lib/expert-review-cache'
+import BoundingBoxThumbnail from '@/components/expert/BoundingBoxThumbnail'
 
 interface ImageItem {
   id: string;
@@ -72,15 +73,7 @@ export default function ImageList({ filtered, currentFilter, reviewHref }: Image
             onFocus={() => void warmReview(img.id)}
           >
             {/* Thumbnail */}
-            <div className="w-16 h-11 bg-zinc-900 rounded-lg overflow-hidden relative shrink-0">
-              {img.imageUrl && <img src={img.imageUrl} alt="" className="w-full h-full object-cover" />}
-              {img.bbox && <div
-                className="absolute border border-emerald-500/60"
-                style={{
-                  left: `${img.bbox.x}%`, top: `${img.bbox.y}%`, width: `${img.bbox.width}%`, height: `${img.bbox.height}%`,
-                }}
-              />}
-            </div>
+            <BoundingBoxThumbnail imageUrl={img.imageUrl} bbox={img.bbox} alt="" aspectRatio={16 / 11} className="relative h-11 w-16 shrink-0 overflow-hidden rounded-lg bg-zinc-900" boxClassName="absolute border border-emerald-500/60" />
 
             {/* Species / File */}
             <div className="min-w-0">
