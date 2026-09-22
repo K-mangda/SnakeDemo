@@ -16,6 +16,13 @@ export function getPrefetchedReview(imageId: string, queueFilter = 'pending') {
   return cachedReviews.get(cacheKey(imageId, queueFilter)) ?? null
 }
 
+export function clearPrefetchedReview(imageId: string) {
+  const prefix = `${imageId}:`
+  for (const key of cachedReviews.keys()) {
+    if (key.startsWith(prefix)) cachedReviews.delete(key)
+  }
+}
+
 export async function prefetchExpertReview(imageId: string, accessToken: string, queueFilter = 'pending') {
   const key = cacheKey(imageId, queueFilter)
   const cached = cachedReviews.get(key)

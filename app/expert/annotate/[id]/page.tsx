@@ -8,7 +8,7 @@ import Badge from '@/components/ui/Badge'
 import { supabase } from '@/lib/supabase/client'
 import { useToast } from '@/components/ui/Toast'
 import { formatScanLabel } from '@/lib/scan-label'
-import { getPrefetchedReview, prefetchExpertReview } from '@/lib/expert-review-cache'
+import { clearPrefetchedReview, getPrefetchedReview, prefetchExpertReview } from '@/lib/expert-review-cache'
 import { clearWorkspaceCache } from '@/lib/expert-workspace-cache'
 
 type Box = { x: number; y: number; width: number; height: number }
@@ -299,6 +299,7 @@ export default function AnnotatePage({ params }: { params: Promise<{ id: string 
 
     showToast('Your review was saved.')
     clearWorkspaceCache()
+    clearPrefetchedReview(id)
     if (nextQueueId) {
       router.push(`/expert/annotate/${nextQueueId}?returnTo=${encodeURIComponent(returnTo)}`)
     } else {
