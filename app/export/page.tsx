@@ -42,7 +42,7 @@ export default function DatabasePage() {
             </div>
             <h2 className="text-xl font-medium text-zinc-100 mb-2">Clean Dataset</h2>
             <p className="text-sm text-zinc-400 mb-6 flex-1">
-              Export {MOCK_STATS.validated_images.toLocaleString()} verified images with corresponding bounding box annotations. เลือกชนิด, สถานะ, และ format ได้ก่อน export
+              Export {MOCK_STATS.validated_images.toLocaleString()} verified images with final bounding box annotations, ready for model training.
             </p>
             <div className="flex gap-2 w-full justify-center mb-6">
               <Badge variant="success">YOLO / COCO / VOC</Badge>
@@ -60,7 +60,7 @@ export default function DatabasePage() {
             </div>
             <h2 className="text-xl font-medium text-zinc-100 mb-2">Trained Model</h2>
             <p className="text-sm text-zinc-400 mb-6 flex-1">
-              Download trained model weights พร้อมเลือกเวอร์ชันและ format ที่ต้องการ รองรับ PyTorch, ONNX, TFLite
+              Download trained model weights for external use in PyTorch, ONNX, or TFLite formats.
             </p>
             <div className="flex gap-2 w-full justify-center mb-6">
               <Badge variant="info">PyTorch / ONNX</Badge>
