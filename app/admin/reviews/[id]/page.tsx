@@ -1,7 +1,7 @@
 'use client'
 
 import { use, useEffect, useState } from 'react'
-import { ArrowLeft, Eye, LoaderCircle, ScanSearch, Users } from 'lucide-react'
+import { ArrowLeft, Eye, ScanSearch, Users } from 'lucide-react'
 import Badge from '@/components/ui/Badge'
 import Button from '@/components/ui/Button'
 import { supabase } from '@/lib/supabase/client'
@@ -27,6 +27,10 @@ function boxStyle(box: Box) {
   return { left: `${box.x}%`, top: `${box.y}%`, width: `${box.width}%`, height: `${box.height}%` }
 }
 
+function AuditInspectorSkeleton() {
+  return <main className="min-h-screen bg-zinc-950 px-4 pb-16 pt-24 sm:px-6 sm:pt-28"><div className="mx-auto max-w-6xl animate-pulse"><header className="mb-8 border-b border-zinc-900 pb-6"><div className="h-4 w-28 rounded bg-zinc-800" /><div className="mt-7 h-3 w-28 rounded bg-amber-500/20" /><div className="mt-3 h-7 w-72 max-w-full rounded bg-zinc-800" /><div className="mt-3 h-4 w-96 max-w-full rounded bg-zinc-900" /></header><div className="grid gap-7 lg:grid-cols-[minmax(0,1.45fr)_minmax(340px,0.8fr)]"><section className="overflow-hidden rounded-2xl border border-zinc-800 bg-zinc-900/20"><div className="flex items-center justify-between border-b border-zinc-800 px-5 py-4"><div className="h-4 w-36 rounded bg-zinc-800" /><div className="h-3 w-16 rounded bg-zinc-800" /></div><div className="flex min-h-[480px] items-center justify-center bg-zinc-950 p-5 sm:p-7"><div className="aspect-[4/3] w-full max-w-[560px] rounded-lg border border-zinc-800 bg-zinc-900/50" /></div></section><aside className="space-y-5"><section className="rounded-2xl border border-zinc-800 bg-zinc-900/30 p-5"><div className="h-3 w-28 rounded bg-zinc-800" /><div className="mt-5 h-5 w-3/4 rounded bg-zinc-800" /><div className="mt-5 h-14 rounded-xl bg-zinc-950/60" /></section><section className="rounded-2xl border border-zinc-800 bg-zinc-900/30 p-5"><div className="h-3 w-32 rounded bg-zinc-800" /><div className="mt-4 space-y-3"><div className="h-16 rounded-xl bg-zinc-950/60" /><div className="h-16 rounded-xl bg-zinc-950/60" /></div></section></aside></div><p className="mt-5 text-center text-sm text-zinc-500">Loading review details…</p></div></main>
+}
+
 export default function AdminReviewInspector({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params)
   const [item, setItem] = useState<AuditItem | null>(null)
@@ -50,7 +54,7 @@ export default function AdminReviewInspector({ params }: { params: Promise<{ id:
   }, [id])
 
   if (error) return <main className="grid min-h-screen place-items-center bg-zinc-950 px-6"><div className="text-center"><p className="text-sm text-red-300">{error}</p><Button href="/admin" variant="ghost" className="mt-4">Back to Admin</Button></div></main>
-  if (!item) return <main className="grid min-h-screen place-items-center bg-zinc-950 text-sm text-zinc-500"><LoaderCircle size={18} className="mr-2 animate-spin" /> Loading read-only audit…</main>
+  if (!item) return <AuditInspectorSkeleton />
 
   const status = item.status === 'pending' ? { label: 'Needs consensus', variant: 'warning' as const } : item.status === 'verified' ? { label: 'Verified', variant: 'success' as const } : item.status === 'unclear' ? { label: 'Unclear', variant: 'muted' as const } : { label: 'New class', variant: 'info' as const }
   return <main className="min-h-screen bg-zinc-950 px-4 pb-16 pt-24 sm:px-6 sm:pt-28"><div className="mx-auto max-w-6xl"><header className="mb-8 flex flex-wrap items-start justify-between gap-4 border-b border-zinc-900 pb-6"><div><Button href="/admin" variant="ghost" size="sm" className="-ml-2 mb-5"><ArrowLeft size={16} /> Back to Admin</Button><p className="text-xs uppercase tracking-[0.2em] text-amber-400">Read-only audit</p><h1 className="mt-2 text-2xl font-medium text-zinc-100">Review conflict inspector</h1><p className="mt-2 max-w-xl text-sm text-zinc-500">Inspect the original image and every submitted boundary. Editing is intentionally unavailable here.</p></div><Badge variant="muted"><Eye size={14} /> View only</Badge></header>
