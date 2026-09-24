@@ -68,11 +68,16 @@ export async function GET(request: Request) {
   if (!imageIds.length) return Response.json({ items: [] })
 
   const [{ data: images, error: imageError }, { data: profiles }, { data: species }] = await Promise.all([
-    access.admin.from('snake_images').select('id, original_filename, status, updated_at, final_species_id, final_bbox').in('id', imageIds),
+    access.admin.from('snake_images').select('id, storage_path, original_filename, status, updated_at, final_species_id, final_bbox').in('id', imageIds),
     access.admin.from('profiles').select('id, full_name'),
     access.admin.from('snake_species').select('id, scientific_name'),
   ])
   if (imageError) return Response.json({ detail: 'Could not load reviewed images.' }, { status: 500 })
+
+  const imageUrlById = new Map(await Promise.all((images ?? []).map(async (image) => {
+    const { data } = await access.admin.storage.from('prediction-images').createSignedUrl(image.storage_path, 60 * 15)
+    return [image.id, data?.signedUrl ?? null] as const
+  })))
 
   const nameByExpert = new Map((profiles ?? []).map((profile) => [profile.id, profile.full_name || 'Expert reviewer']))
   const speciesById = new Map((species ?? []).map((item) => [item.id, item.scientific_name]))
@@ -93,6 +98,7 @@ export async function GET(request: Request) {
       })))
       return {
         id: image.id,
+        imageUrl: imageUrlById.get(image.id) ?? null,
         filename: image.original_filename,
         status: image.status,
         updatedAt: image.updated_at,
