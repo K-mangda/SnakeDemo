@@ -8,6 +8,7 @@ import DatasetHealth from '@/components/admin/DatasetHealth'
 import DataReview from '@/components/admin/DataReview'
 import ModelVersionControl from '@/components/admin/ModelVersionControl'
 import AuthorizedExperts from '@/components/admin/AuthorizedExperts'
+import ConsensusAudit from '@/components/admin/ConsensusAudit'
 
 export default function AdminPage() {
   return (
@@ -28,6 +29,7 @@ export default function AdminPage() {
         <SystemTelemetry />
         <DatasetHealth />
         <DataReview />
+        <ConsensusAudit />
         <ModelVersionControl />
         <AuthorizedExperts />
 
