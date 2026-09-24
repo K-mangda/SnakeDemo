@@ -3,17 +3,32 @@ type ReviewPayload = {
   species: unknown
 }
 
+type CachedReview = {
+  payload: ReviewPayload
+  expiresAt: number
+}
+
 // Review data is intentionally memory-only. It makes a hovered task open
 // promptly in this browser session without persisting signed image URLs.
-const cachedReviews = new Map<string, ReviewPayload>()
+const cachedReviews = new Map<string, CachedReview>()
 const pendingReviews = new Map<string, Promise<ReviewPayload | null>>()
+// Review images use Supabase signed URLs that expire after 15 minutes. Keep
+// this cache shorter so an old prefetch can never reopen an expired image.
+const CACHE_DURATION_MS = 12 * 60 * 1000
 
 function cacheKey(imageId: string, queueFilter: string) {
   return `${imageId}:${queueFilter}`
 }
 
 export function getPrefetchedReview(imageId: string, queueFilter = 'pending') {
-  return cachedReviews.get(cacheKey(imageId, queueFilter)) ?? null
+  const key = cacheKey(imageId, queueFilter)
+  const cached = cachedReviews.get(key)
+  if (!cached) return null
+  if (cached.expiresAt <= Date.now()) {
+    cachedReviews.delete(key)
+    return null
+  }
+  return cached.payload
 }
 
 export function clearPrefetchedReview(imageId: string) {
@@ -25,7 +40,7 @@ export function clearPrefetchedReview(imageId: string) {
 
 export async function prefetchExpertReview(imageId: string, accessToken: string, queueFilter = 'pending') {
   const key = cacheKey(imageId, queueFilter)
-  const cached = cachedReviews.get(key)
+  const cached = getPrefetchedReview(imageId, queueFilter)
   if (cached) return cached
 
   const inFlight = pendingReviews.get(key)
@@ -37,7 +52,7 @@ export async function prefetchExpertReview(imageId: string, accessToken: string,
     .then(async (response) => {
       if (!response.ok) return null
       const payload = await response.json() as ReviewPayload
-      cachedReviews.set(key, payload)
+      cachedReviews.set(key, { payload, expiresAt: Date.now() + CACHE_DURATION_MS })
       return payload
     })
     .catch(() => null)

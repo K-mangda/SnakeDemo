@@ -61,6 +61,8 @@ export default function AnnotatePage({ params }: { params: Promise<{ id: string 
   const [queueIds, setQueueIds] = useState<string[]>([])
   const imageRef = useRef<HTMLDivElement>(null)
   const [readyImageUrl, setReadyImageUrl] = useState<string | null>(null)
+  const [imageReloadKey, setImageReloadKey] = useState(0)
+  const refreshedImageUrl = useRef<string | null>(null)
 
   useEffect(() => {
     const imageUrl = scan?.imageUrl
@@ -71,17 +73,24 @@ export default function AnnotatePage({ params }: { params: Promise<{ id: string 
     const image = new Image()
     image.onload = () => {
       if (!active) return
+      refreshedImageUrl.current = null
       setReadyImageUrl(imageUrl)
       setImageState('ready')
     }
     image.onerror = () => {
       if (!active) return
+      if (refreshedImageUrl.current !== imageUrl) {
+        refreshedImageUrl.current = imageUrl
+        clearPrefetchedReview(id)
+        setImageReloadKey((value) => value + 1)
+        return
+      }
       setReadyImageUrl(null)
       setImageState('error')
     }
     image.src = imageUrl
     return () => { active = false }
-  }, [scan?.imageUrl])
+  }, [id, imageReloadKey, scan?.imageUrl])
 
   useEffect(() => {
     async function load() {
@@ -130,7 +139,7 @@ export default function AnnotatePage({ params }: { params: Promise<{ id: string 
       applyPayload(payload)
     }
     load()
-  }, [id, queueFilter])
+  }, [id, imageReloadKey, queueFilter])
 
   const queueIndex = queueIds.indexOf(id)
   const previousQueueId = queueIndex > 0 ? queueIds[queueIndex - 1] : null
