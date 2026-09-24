@@ -56,15 +56,15 @@ function pendingReason(status: string, reviews: HistoryRow[]) {
 export async function GET(request: Request) {
   const access = await requireAdmin(request)
   if ('error' in access) return Response.json({ detail: access.error }, { status: access.status })
+  const requestedImageId = new URL(request.url).searchParams.get('imageId')
 
-  const { data: history, error: historyError } = await access.admin
-    .from('verification_history')
-    .select('image_id, expert_id, voted_species_id, bbox, created_at')
-    .order('created_at', { ascending: false })
-    .limit(300)
+  const historyRequest = requestedImageId
+    ? access.admin.from('verification_history').select('image_id, expert_id, voted_species_id, bbox, created_at').eq('image_id', requestedImageId).order('created_at')
+    : access.admin.from('verification_history').select('image_id, expert_id, voted_species_id, bbox, created_at').order('created_at', { ascending: false }).limit(300)
+  const { data: history, error: historyError } = await historyRequest
   if (historyError) return Response.json({ detail: 'Could not load review history.' }, { status: 500 })
 
-  const imageIds = [...new Set((history ?? []).map((item) => item.image_id))].slice(0, 40)
+  const imageIds = requestedImageId ? [requestedImageId] : [...new Set((history ?? []).map((item) => item.image_id))].slice(0, 40)
   if (!imageIds.length) return Response.json({ items: [] })
 
   const [{ data: images, error: imageError }, { data: profiles }, { data: species }] = await Promise.all([
