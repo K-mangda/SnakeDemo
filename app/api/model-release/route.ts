@@ -49,7 +49,9 @@ function isReleaseConfig(value: unknown): value is ReleaseConfig {
 
 async function getRegistry() {
   const response = await fetch(getPublicFileUrl(REGISTRY_FILE), { cache: 'no-store' })
-  if (response.status === 404) return [legacyV1]
+  // Supabase returns 400 (rather than 404) when a public object is missing.
+  // Keep the first release available until the optional multi-release registry is uploaded.
+  if (response.status === 400 || response.status === 404) return [legacyV1]
   if (!response.ok) throw new Error(`Could not load release registry (${response.status}).`)
 
   const body = await response.json() as { releases?: unknown }
