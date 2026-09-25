@@ -84,17 +84,17 @@ export default function ExportPage() {
                 </div>
               </div>
               <h2 className="text-3xl font-semibold tracking-tight text-zinc-100">NSTRU Snake Classifier</h2>
-              <p className="mt-2 text-sm text-zinc-400">{modelRelease ? `${modelRelease.version} · ${modelRelease.architecture}` : 'Loading release details…'}</p>
+              <p className="mt-2 text-sm text-zinc-400">{modelRelease ? `${formatReleaseVersion(modelRelease.version)} · ${modelRelease.architecture}` : 'Loading release details…'}</p>
               {modelReleases.length > 1 && (
                 <div className="relative mt-4 inline-block">
                   <button onClick={() => setReleaseMenuOpen(open => !open)} aria-haspopup="menu" aria-expanded={releaseMenuOpen} className="inline-flex items-center gap-2 rounded-lg border border-zinc-700 bg-zinc-950/70 px-3 py-2 text-sm font-medium text-zinc-200 transition hover:border-zinc-500">
-                    <span>Model version: {modelRelease?.version}</span><ChevronDown size={15} className={releaseMenuOpen ? 'rotate-180 transition-transform' : 'transition-transform'} />
+                    <span>Model version: {modelRelease ? formatReleaseVersion(modelRelease.version) : '—'}</span><ChevronDown size={15} className={releaseMenuOpen ? 'rotate-180 transition-transform' : 'transition-transform'} />
                   </button>
                   {releaseMenuOpen && (
-                    <div role="menu" className="absolute left-0 z-20 mt-2 w-64 overflow-hidden rounded-xl border border-zinc-700 bg-zinc-900 p-1.5 shadow-2xl shadow-black/50">
+                    <div role="menu" className="absolute left-0 z-20 mt-2 max-h-64 w-64 overflow-y-auto rounded-xl border border-zinc-700 bg-zinc-900 p-1.5 shadow-2xl shadow-black/50">
                       {modelReleases.map(release => (
                         <button key={release.version} role="menuitem" onClick={() => { setSelectedVersion(release.version); setReleaseMenuOpen(false) }} className={`flex w-full items-center justify-between rounded-lg px-3 py-2.5 text-left text-sm transition ${release.version === selectedVersion ? 'bg-emerald-500/10 text-emerald-200' : 'text-zinc-300 hover:bg-zinc-800'}`}>
-                          <span className="font-medium">{release.version}</span>
+                          <span className="font-medium">{formatReleaseVersion(release.version)}</span>
                           {release.version === recommendedVersion && <span className="text-xs text-emerald-400">Best</span>}
                         </button>
                       ))}
@@ -177,4 +177,10 @@ function formatFileSize(size: number | null) {
 
 function formatMetric(value: number | null | undefined) {
   return typeof value === 'number' ? `${(value * 100).toFixed(1)}%` : '—'
+}
+
+function formatReleaseVersion(version: string) {
+  if (/^v\d+$/.test(version)) return `${version}.0.0`
+  if (/^v\d+\.\d+$/.test(version)) return `${version}.0`
+  return version
 }
