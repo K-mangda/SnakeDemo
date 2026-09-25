@@ -59,6 +59,7 @@ export default function AnnotatePage({ params }: { params: Promise<{ id: string 
   const [startPoint, setStartPoint] = useState({ x: 0, y: 0 })
   const [startBox, setStartBox] = useState<Box | null>(null)
   const [queueIds, setQueueIds] = useState<string[]>([])
+  const [autoAdvance, setAutoAdvance] = useState(true)
   const imageRef = useRef<HTMLDivElement>(null)
   const [readyImageUrl, setReadyImageUrl] = useState<string | null>(null)
   const [imageReloadKey, setImageReloadKey] = useState(0)
@@ -118,6 +119,9 @@ export default function AnnotatePage({ params }: { params: Promise<{ id: string 
         setBbox(item.existingVerification ? item.existingVerification.bbox : item.bbox)
         setSelectedSpeciesId(item.existingVerification?.voted_species_id ?? item.prediction.id)
         setHasExpertSelectedSpecies(item.existingVerification?.voted_species_id !== null && item.existingVerification?.voted_species_id !== undefined)
+        // A new review benefits from a fast queue flow. When reopening an
+        // existing review, staying on the image is safer for careful edits.
+        setAutoAdvance(!item.existingVerification)
         if (item.existingVerification?.voted_species_id === null && item.existingVerification) {
           setDecision(item.status === 'waiting_for_new_class' ? 'waiting_for_new_class' : 'unclear')
         }
@@ -309,10 +313,15 @@ export default function AnnotatePage({ params }: { params: Promise<{ id: string 
     showToast('Your review was saved.')
     clearWorkspaceCache()
     clearPrefetchedReview(id)
-    if (nextQueueId) {
+    if (autoAdvance && nextQueueId) {
       router.push(`/expert/annotate/${nextQueueId}?returnTo=${encodeURIComponent(returnTo)}`)
-    } else {
+    } else if (autoAdvance) {
       router.push(returnTo)
+    } else {
+      setScan((current) => current ? {
+        ...current,
+        existingVerification: { voted_species_id: decision === 'pending' ? selectedSpeciesId : null, bbox },
+      } : current)
     }
   }
 
@@ -320,6 +329,12 @@ export default function AnnotatePage({ params }: { params: Promise<{ id: string 
     `${item.scientific_name} ${item.name_th ?? ''} ${item.name_en ?? ''}`.toLowerCase().includes(search.toLowerCase())
   )
   const selectedSpecies = species.find((item) => item.id === selectedSpeciesId) ?? null
+  const isEditingExistingReview = Boolean(scan?.existingVerification)
+  const saveLabel = saving
+    ? 'Saving review…'
+    : autoAdvance
+      ? nextQueueId ? 'Save & next' : 'Save & return to Workspace'
+      : isEditingExistingReview ? 'Save changes' : 'Save my review'
   const boxLabel = hasExpertSelectedSpecies && selectedSpecies
     ? selectedSpecies.scientific_name
     : scan?.confidence !== null ? scan?.prediction.scientific : 'Review box'
@@ -343,7 +358,7 @@ export default function AnnotatePage({ params }: { params: Promise<{ id: string 
           <Button variant="ghost" size="sm" onClick={() => router.push(returnTo)} className="-ml-2 mb-5 text-zinc-500"><ArrowLeft size={16} /> Back to Workspace</Button>
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div><p className="mb-2 text-xs uppercase tracking-[0.2em] text-emerald-400">Expert review</p><h1 className="text-2xl font-medium text-zinc-100">Review & correct classification</h1><p className="mt-2 text-sm text-zinc-500" title={`Original file: ${scan.originalFilename}`}>{formatScanLabel(scan.createdAt)}</p></div>
-            <div className="flex flex-wrap items-center justify-end gap-2"><Badge variant="muted" className="text-xs">Independent review</Badge>{queueIndex >= 0 && <div className="flex items-center rounded-lg border border-zinc-800 bg-zinc-900/50"><Button size="sm" variant="ghost" title="Previous task (Left arrow)" disabled={!previousQueueId} onClick={() => goToQueueItem(previousQueueId)} className="rounded-r-none px-2.5"><ChevronLeft size={15} /> Previous</Button><span className="border-x border-zinc-800 px-3 py-1.5 text-xs text-zinc-400">{queueIndex + 1} / {queueIds.length}</span><Button size="sm" variant="ghost" title="Next task (Right arrow)" disabled={!nextQueueId} onClick={() => goToQueueItem(nextQueueId)} className="rounded-l-none px-2.5">Next <ChevronRight size={15} /></Button></div>}</div>
+            <div className="flex flex-wrap items-center justify-end gap-2"><Badge variant="muted" className="text-xs">Independent review</Badge><label className="flex cursor-pointer items-center gap-2 rounded-lg border border-zinc-800 bg-zinc-900/50 px-3 py-1.5 text-xs text-zinc-400 transition-colors hover:border-zinc-700"><input type="checkbox" checked={autoAdvance} onChange={(event) => setAutoAdvance(event.target.checked)} className="h-3.5 w-3.5 accent-emerald-500" />Auto-advance after saving</label>{queueIndex >= 0 && <div className="flex items-center rounded-lg border border-zinc-800 bg-zinc-900/50"><Button size="sm" variant="ghost" title="Previous task (Left arrow)" disabled={!previousQueueId} onClick={() => goToQueueItem(previousQueueId)} className="rounded-r-none px-2.5"><ChevronLeft size={15} /> Previous</Button><span className="border-x border-zinc-800 px-3 py-1.5 text-xs text-zinc-400">{queueIndex + 1} / {queueIds.length}</span><Button size="sm" variant="ghost" title="Next task (Right arrow)" disabled={!nextQueueId} onClick={() => goToQueueItem(nextQueueId)} className="rounded-l-none px-2.5">Next <ChevronRight size={15} /></Button></div>}</div>
           </div>
         </header>
 
@@ -363,11 +378,11 @@ export default function AnnotatePage({ params }: { params: Promise<{ id: string 
           <aside className="flex h-full flex-col gap-5">
             <section className="shrink-0 rounded-2xl border border-zinc-800 bg-zinc-900/30 p-5"><div className="flex items-center justify-between gap-3"><p className="text-xs uppercase tracking-widest text-zinc-500">AI prediction</p><Badge variant={scan.confidence === null ? 'muted' : 'info'} className="px-2 py-0.5 text-[11px]">{scan.confidence === null ? 'No AI confidence' : `${(scan.confidence * 100).toFixed(1)}% confidence`}</Badge></div><p className="mt-3 text-lg font-medium italic text-zinc-100">{scan.prediction.scientific}</p>{!scan.prediction.id && <p className="mt-3 text-xs leading-5 text-amber-400">AI could not identify a reviewed species. Inspect the image and decide whether a snake is present.</p>}</section>
 
-            <section className="flex flex-1 flex-col rounded-2xl border border-zinc-800 bg-zinc-900/30 p-5"><p className="text-xs uppercase tracking-widest text-zinc-500">Your decision</p><div className="mt-4 space-y-2"><DecisionOption active={decision === 'pending'} onClick={() => setDecision('pending')} title="Confirm or correct species" detail="Saves species + box · Verified now." /><DecisionOption active={decision === 'unclear'} onClick={() => setDecision('unclear')} title="Cannot identify confidently" detail="Saves no species vote · Can be reviewed again." tone="amber" /><DecisionOption active={decision === 'waiting_for_new_class'} onClick={() => setDecision('waiting_for_new_class')} title="Species is not in the list" detail="Saves request · Waiting for New Class." tone="blue" /></div>
+            <section className="flex flex-1 flex-col rounded-2xl border border-zinc-800 bg-zinc-900/30 p-5"><p className="text-xs uppercase tracking-widest text-zinc-500">Your decision</p><div className="mt-4 space-y-2"><DecisionOption active={decision === 'pending'} onClick={() => setDecision('pending')} title="Confirm or correct species" detail="Saves species + box · Consensus updates automatically." /><DecisionOption active={decision === 'unclear'} onClick={() => setDecision('unclear')} title="Cannot identify confidently" detail="Saves no species vote · Can be reviewed again." tone="amber" /><DecisionOption active={decision === 'waiting_for_new_class'} onClick={() => setDecision('waiting_for_new_class')} title="Species is not in the list" detail="Saves request · Waiting for New Class." tone="blue" /></div>
               {decision === 'pending' && <div className="mt-5 border-t border-zinc-800 pt-5"><label className="text-xs font-medium text-zinc-400">Reference species</label><div className="relative mt-2">{selectedSpecies && !speciesMenuOpen ? <button type="button" onClick={() => { setSearch(''); setSpeciesMenuOpen(true) }} className="flex w-full items-center justify-between gap-3 rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2.5 text-left transition-colors hover:border-zinc-500"><span className="min-w-0"><span className="block truncate text-sm font-medium italic text-zinc-100">{selectedSpecies.scientific_name}</span><span className="mt-0.5 block truncate text-xs text-zinc-500">{selectedSpecies.name_th ?? selectedSpecies.name_en ?? 'No common name'}</span></span><span className="shrink-0 text-xs font-medium text-emerald-400">Change</span></button> : <><Search size={15} className="pointer-events-none absolute left-3 top-3 text-zinc-500" /><input value={search} autoFocus={speciesMenuOpen} onFocus={() => setSpeciesMenuOpen(true)} onChange={(event) => { setSearch(event.target.value); setSpeciesMenuOpen(true) }} placeholder="Search scientific or Thai name…" className="w-full rounded-lg border border-zinc-800 bg-zinc-950 py-2.5 pl-9 pr-3 text-sm text-zinc-200 outline-none transition-colors placeholder:text-zinc-600 focus:border-emerald-500" />{speciesMenuOpen && <div className="absolute z-20 mt-2 max-h-64 w-full overflow-y-auto overscroll-contain rounded-xl border border-zinc-700 bg-zinc-950 p-1.5 shadow-2xl shadow-black/50"><p className="px-3 pb-2 pt-1 text-[11px] text-zinc-500">{matchingSpecies.length} reference species</p>{matchingSpecies.length ? matchingSpecies.map((item) => { const isSelected = item.id === selectedSpeciesId; return <button key={item.id} type="button" onMouseDown={(event) => event.preventDefault()} onClick={() => { setSelectedSpeciesId(item.id); setHasExpertSelectedSpecies(true); setSearch(''); setSpeciesMenuOpen(false) }} className={`flex w-full items-center justify-between gap-3 rounded-lg px-3 py-2.5 text-left transition-colors ${isSelected ? 'bg-emerald-500/15 text-emerald-300' : 'text-zinc-200 hover:bg-zinc-800'}`}><span className="min-w-0"><span className="block truncate text-sm font-medium italic">{item.scientific_name}</span><span className="mt-0.5 block truncate text-xs text-zinc-500">{item.name_th ?? item.name_en ?? 'No common name'}</span></span>{isSelected && <Check size={16} className="shrink-0" />}</button> }) : <p className="px-3 py-4 text-center text-xs text-zinc-500">No reference species found.</p>}</div>}</>}</div></div>}
               <div className="mt-auto border-t border-zinc-800 pt-4">
                 <div className="rounded-xl border border-zinc-800 bg-zinc-950/50 px-3.5 py-3"><p className={`text-xs font-medium ${reviewSummary.tone}`}>{reviewSummary.title}</p><p className="mt-1 truncate text-xs text-zinc-500">{reviewSummary.detail}</p></div>
-                <Button disabled={saving} onClick={submit} className="mt-3 w-full">{saving ? 'Saving review…' : 'Save my review'}</Button>
+                <Button disabled={saving} onClick={submit} className="mt-3 w-full">{saveLabel}</Button>
               </div>
             </section>
 
