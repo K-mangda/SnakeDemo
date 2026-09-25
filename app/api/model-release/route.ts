@@ -95,7 +95,9 @@ async function discoverFiles() {
     return [...rootFiles, ...nestedFiles.flat()]
   } catch (error) {
     console.warn('Automatic release discovery is unavailable; serving the known v1 files.', error)
-    return ['snake-v1-int8.onnx', 'snake-v1.pt']
+    // Support both the original root layout and the organized v1/ folder layout.
+    // Missing paths are filtered out by the public-file check below.
+    return ['snake-v1-int8.onnx', 'snake-v1.pt', 'v1/snake-v1-int8.onnx', 'v1/snake-v1.pt']
   }
 }
 
