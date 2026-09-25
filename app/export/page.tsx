@@ -2,25 +2,53 @@
 
 import { useEffect, useState } from 'react'
 import { ArrowUpRight, BrainCircuit, CheckCircle2, Database, Download, FileCode2, FileJson, Image as ImageIcon, Package, ShieldCheck } from 'lucide-react'
-import { ACTIVE_MODEL, MOCK_STATS } from '@/lib/data'
+import { MOCK_STATS } from '@/lib/data'
 import Button from '@/components/ui/Button'
 import DatasetExportModal from '@/components/export/DatasetExportModal'
-import ModelExportModal from '@/components/export/ModelExportModal'
+
+type ModelArtifact = {
+  name: string
+  format: string
+  runtime: string
+  recommended: boolean
+  size: number | null
+  updatedAt: string | null
+  url: string
+}
+
+type ModelRelease = {
+  version: string
+  architecture: string
+  classCount: number
+  metrics: { map50: number; map50_95: number }
+  artifacts: ModelArtifact[]
+}
 
 export default function ExportPage() {
   const [showDatasetModal, setShowDatasetModal] = useState(false)
-  const [showModelModal, setShowModelModal] = useState(false)
+  const [modelRelease, setModelRelease] = useState<ModelRelease | null>(null)
 
   useEffect(() => {
-    const anyModalOpen = showDatasetModal || showModelModal
-    document.body.style.overflow = anyModalOpen ? 'hidden' : 'unset'
+    document.body.style.overflow = showDatasetModal ? 'hidden' : 'unset'
     return () => { document.body.style.overflow = 'unset' }
-  }, [showDatasetModal, showModelModal])
+  }, [showDatasetModal])
+
+  useEffect(() => {
+    const controller = new AbortController()
+    fetch('/api/model-release', { signal: controller.signal, cache: 'no-store' })
+      .then(response => response.ok ? response.json() : Promise.reject(new Error('Could not load model release.')))
+      .then((release: ModelRelease) => setModelRelease(release))
+      .catch(error => {
+        if (error.name !== 'AbortError') console.error(error)
+      })
+    return () => controller.abort()
+  }, [])
+
+  const recommendedArtifact = modelRelease?.artifacts.find(artifact => artifact.recommended) ?? modelRelease?.artifacts[0]
 
   return (
     <main className="min-h-screen bg-zinc-950 px-6 pb-24 pt-32 text-zinc-100">
       {showDatasetModal && <DatasetExportModal onClose={() => setShowDatasetModal(false)} />}
-      {showModelModal && <ModelExportModal onClose={() => setShowModelModal(false)} />}
 
       <div className="mx-auto max-w-5xl">
         <header className="mb-12 max-w-2xl">
@@ -40,18 +68,22 @@ export default function ExportPage() {
                 </div>
               </div>
               <h2 className="text-3xl font-semibold tracking-tight text-zinc-100">NSTRU Snake Classifier</h2>
-              <p className="mt-2 text-sm text-zinc-400">{ACTIVE_MODEL.version} · released {ACTIVE_MODEL.date}</p>
+              <p className="mt-2 text-sm text-zinc-400">{modelRelease ? `${modelRelease.version} · ${modelRelease.architecture}` : 'Loading release details…'}</p>
               <p className="mt-5 max-w-xl text-sm leading-6 text-zinc-400">Trained model weights for identifying Thai snake species. Choose a release format that fits your inference environment.</p>
               <div className="mt-7 flex flex-wrap gap-3">
-                <Button onClick={() => setShowModelModal(true)} size="lg" className="min-w-48 justify-center bg-emerald-600 hover:bg-emerald-500"><Download size={18} /> Download model</Button>
+                {recommendedArtifact ? (
+                  <a href={recommendedArtifact.url} className="inline-flex min-w-48 items-center justify-center gap-2 rounded-lg bg-emerald-600 px-5 py-3 text-sm font-medium text-white transition hover:bg-emerald-500"><Download size={18} /> Download {recommendedArtifact.format}</a>
+                ) : (
+                  <Button disabled size="lg" className="min-w-48 justify-center"><Download size={18} /> Release unavailable</Button>
+                )}
                 <span className="inline-flex items-center gap-2 px-3 py-3 text-sm text-zinc-400"><CheckCircle2 size={16} className="text-emerald-400" /> No account required</span>
               </div>
             </div>
 
             <div className="grid gap-3 sm:grid-cols-3 lg:grid-cols-1">
-              <Metric label="Validation accuracy" value={`${ACTIVE_MODEL.accuracy}%`} />
-              <Metric label="Snake species" value={String(ACTIVE_MODEL.classes)} />
-              <Metric label="Training images" value={ACTIVE_MODEL.trainImages.toLocaleString()} />
+              <Metric label="Validation mAP50" value={modelRelease ? `${(modelRelease.metrics.map50 * 100).toFixed(1)}%` : '—'} />
+              <Metric label="Validation mAP50–95" value={modelRelease ? `${(modelRelease.metrics.map50_95 * 100).toFixed(1)}%` : '—'} />
+              <Metric label="Snake species" value={modelRelease ? String(modelRelease.classCount) : '—'} />
             </div>
           </div>
         </section>
@@ -63,13 +95,18 @@ export default function ExportPage() {
               <span className="rounded-full border border-emerald-500/25 bg-emerald-500/10 px-3 py-1 text-xs font-medium text-emerald-300">Model files</span>
             </div>
             <h2 className="mt-7 text-xl font-semibold tracking-tight">Choose your runtime</h2>
-            <p className="mt-2 text-sm leading-6 text-zinc-500">All releases include the model weight file, class labels, and release metadata.</p>
-            <div className="mt-6 grid gap-2 sm:grid-cols-3">
-              <FormatTile icon={FileCode2} title="PyTorch" detail=".pt" />
-              <FormatTile icon={FileJson} title="ONNX" detail=".onnx" />
-              <FormatTile icon={Package} title="TFLite" detail=".tflite" />
+            <p className="mt-2 text-sm leading-6 text-zinc-500">Published files are loaded directly from the public model release bucket.</p>
+            <div className="mt-6 grid gap-2 sm:grid-cols-2">
+              {modelRelease?.artifacts.map(artifact => (
+                <a key={artifact.name} href={artifact.url} className="rounded-lg border border-zinc-800 bg-zinc-950/40 p-3 transition hover:border-emerald-500/50 hover:bg-emerald-500/5">
+                  {artifact.format.includes('ONNX') ? <FileJson size={16} className="text-zinc-400" /> : <FileCode2 size={16} className="text-zinc-400" />}
+                  <p className="mt-3 text-sm font-medium text-zinc-200">{artifact.format}</p>
+                  <p className="mt-0.5 text-xs text-zinc-500">{artifact.name} · {formatFileSize(artifact.size)}</p>
+                </a>
+              ))}
             </div>
-            <button onClick={() => setShowModelModal(true)} className="mt-6 inline-flex items-center gap-2 text-sm font-medium text-emerald-400 transition hover:text-emerald-300">Browse releases <ArrowUpRight size={16} /></button>
+            {modelRelease && modelRelease.artifacts.length === 0 && <p className="mt-6 text-sm text-amber-300">No published files are available for this release yet.</p>}
+            <a href="https://docs.ultralytics.com/modes/export/" target="_blank" rel="noreferrer" className="mt-6 inline-flex items-center gap-2 text-sm font-medium text-emerald-400 transition hover:text-emerald-300">About the available formats <ArrowUpRight size={16} /></a>
           </div>
 
           <div className="rounded-2xl border border-zinc-800 bg-zinc-900/20 p-6 sm:p-7">
@@ -81,7 +118,7 @@ export default function ExportPage() {
             <p className="mt-2 text-sm leading-6 text-zinc-500">Reviewed images with final species labels and bounding boxes for training and research.</p>
             <div className="mt-6 border-y border-zinc-800 py-4">
               <p className="text-2xl font-semibold tracking-tight text-zinc-100">{MOCK_STATS.validated_images.toLocaleString()}</p>
-              <p className="mt-1 text-xs text-zinc-500">verified images across {ACTIVE_MODEL.classes} snake species</p>
+              <p className="mt-1 text-xs text-zinc-500">verified images available for dataset export</p>
             </div>
             <Button onClick={() => setShowDatasetModal(true)} variant="outline" className="mt-6 w-full justify-center"><Database size={16} /> Export dataset</Button>
           </div>
@@ -100,6 +137,7 @@ function Metric({ label, value }: { label: string; value: string }) {
   return <div className="rounded-xl border border-zinc-800 bg-zinc-950/60 px-5 py-4"><p className="text-xs text-zinc-500">{label}</p><p className="mt-1 text-xl font-semibold tracking-tight text-zinc-100">{value}</p></div>
 }
 
-function FormatTile({ icon: Icon, title, detail }: { icon: typeof Package; title: string; detail: string }) {
-  return <div className="rounded-lg border border-zinc-800 bg-zinc-950/40 p-3"><Icon size={16} className="text-zinc-400" /><p className="mt-3 text-sm font-medium text-zinc-200">{title}</p><p className="mt-0.5 text-xs text-zinc-500">{detail}</p></div>
+function formatFileSize(size: number | null) {
+  if (!size) return 'size unavailable'
+  return `${(size / 1024 / 1024).toFixed(1)} MB`
 }
