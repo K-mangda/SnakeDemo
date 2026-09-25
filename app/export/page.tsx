@@ -18,9 +18,9 @@ type ModelArtifact = {
 type ModelRelease = {
   version: string
   architecture: string
-  classCount: number
-  releasedAt?: string
-  metrics: { map50: number; map50_95: number }
+  classCount: number | null
+  releasedAt: string | null
+  metrics: { map50: number | null; map50_95: number | null }
   artifacts: ModelArtifact[]
 }
 
@@ -93,9 +93,9 @@ export default function ExportPage() {
             </div>
 
             <div className="grid gap-3 sm:grid-cols-3 lg:grid-cols-1">
-              <Metric label="Validation mAP50" value={modelRelease ? `${(modelRelease.metrics.map50 * 100).toFixed(1)}%` : '—'} />
-              <Metric label="Validation mAP50–95" value={modelRelease ? `${(modelRelease.metrics.map50_95 * 100).toFixed(1)}%` : '—'} />
-              <Metric label="Snake species" value={modelRelease ? String(modelRelease.classCount) : '—'} />
+              <Metric label="Validation mAP50" value={formatMetric(modelRelease?.metrics.map50)} />
+              <Metric label="Validation mAP50–95" value={formatMetric(modelRelease?.metrics.map50_95)} />
+              <Metric label="Snake species" value={modelRelease?.classCount ? String(modelRelease.classCount) : '—'} />
             </div>
           </div>
         </section>
@@ -170,4 +170,8 @@ function Metric({ label, value }: { label: string; value: string }) {
 function formatFileSize(size: number | null) {
   if (!size) return 'size unavailable'
   return `${(size / 1024 / 1024).toFixed(1)} MB`
+}
+
+function formatMetric(value: number | null | undefined) {
+  return typeof value === 'number' ? `${(value * 100).toFixed(1)}%` : '—'
 }
