@@ -35,6 +35,8 @@ export default function ExportPage() {
   const [recommendedVersion, setRecommendedVersion] = useState<string | null>(null)
   const [selectedVersion, setSelectedVersion] = useState<string | null>(null)
   const [releaseMenuOpen, setReleaseMenuOpen] = useState(false)
+  const [releaseStatus, setReleaseStatus] = useState<'loading' | 'ready' | 'error'>('loading')
+  const [releaseRetry, setReleaseRetry] = useState(0)
 
   useEffect(() => {
     document.body.style.overflow = showDatasetModal ? 'hidden' : 'unset'
@@ -49,16 +51,24 @@ export default function ExportPage() {
         setModelReleases(response.releases)
         setRecommendedVersion(response.recommendedVersion)
         setSelectedVersion(response.recommendedVersion)
+        setReleaseStatus('ready')
       })
       .catch(error => {
-        if (error.name !== 'AbortError') console.error(error)
+        if (error.name !== 'AbortError') {
+          console.error(error)
+          setReleaseStatus('error')
+        }
       })
     return () => controller.abort()
-  }, [])
+  }, [releaseRetry])
 
   const modelRelease = modelReleases.find(release => release.version === selectedVersion) ?? null
   const recommendedArtifact = modelRelease?.artifacts.find(artifact => artifact.format.includes('ONNX')) ?? modelRelease?.artifacts[0]
   const alternativeArtifacts = modelRelease?.artifacts.filter(artifact => artifact.name !== recommendedArtifact?.name) ?? []
+  const retryRelease = () => {
+    setReleaseStatus('loading')
+    setReleaseRetry(retry => retry + 1)
+  }
 
   return (
     <main className="min-h-screen bg-zinc-950 px-6 pb-24 pt-32 text-zinc-100">
@@ -85,7 +95,7 @@ export default function ExportPage() {
                 </div>
               </div>
               <h2 className="text-3xl font-semibold tracking-tight text-zinc-100">NSTRU Snake Classifier</h2>
-              <p className="mt-2 text-sm text-zinc-400">{modelRelease ? [formatReleaseVersion(modelRelease.version), modelRelease.architecture].filter(Boolean).join(' · ') : 'Loading release details…'}</p>
+              <p className="mt-2 text-sm text-zinc-400">{modelRelease ? [formatReleaseVersion(modelRelease.version), modelRelease.architecture].filter(Boolean).join(' · ') : releaseStatus === 'error' ? 'Release details could not be loaded.' : 'Loading release details…'}</p>
               {modelReleases.length > 1 && (
                 <div className="relative mt-4 inline-block">
                   <button onClick={() => setReleaseMenuOpen(open => !open)} aria-haspopup="menu" aria-expanded={releaseMenuOpen} className="inline-flex items-center gap-2 rounded-lg border border-zinc-700 bg-zinc-950/70 px-3 py-2 text-sm font-medium text-zinc-200 transition hover:border-zinc-500">
@@ -108,7 +118,7 @@ export default function ExportPage() {
                 {recommendedArtifact ? (
                   <a href={recommendedArtifact.url} className="inline-flex min-w-48 items-center justify-center gap-2 rounded-lg bg-emerald-600 px-5 py-3 text-sm font-medium text-white transition hover:bg-emerald-500"><Download size={18} /> Download {recommendedArtifact.format}</a>
                 ) : (
-                  <Button disabled size="lg" className="min-w-48 justify-center"><Download size={18} /> Release unavailable</Button>
+                  <Button onClick={retryRelease} disabled={releaseStatus === 'loading'} size="lg" className="min-w-48 justify-center"><Download size={18} /> {releaseStatus === 'error' ? 'Retry release' : 'Loading release'}</Button>
                 )}
                 <span className="inline-flex items-center gap-2 px-3 py-3 text-sm text-zinc-400"><CheckCircle2 size={16} className="text-emerald-400" /> No account required</span>
               </div>
@@ -142,18 +152,22 @@ export default function ExportPage() {
             <a href="https://docs.ultralytics.com/modes/export/" target="_blank" rel="noreferrer" className="mt-6 inline-flex items-center gap-2 text-sm font-medium text-emerald-400 transition hover:text-emerald-300">About the available formats <ArrowUpRight size={16} /></a>
           </div>}
 
-          <div className={`rounded-2xl border border-zinc-800 bg-zinc-900/20 p-6 sm:p-7 ${alternativeArtifacts.length === 0 ? 'mx-auto w-full max-w-xl' : ''}`}>
-            <div className="flex items-start justify-between gap-5">
-              <div className="grid size-11 place-items-center rounded-xl bg-zinc-800 text-zinc-300"><ImageIcon size={20} /></div>
-              <span className="rounded-full border border-zinc-700 bg-zinc-800/60 px-3 py-1 text-xs font-medium text-zinc-400">Verified data</span>
+          <div className={`rounded-2xl border border-zinc-800 bg-zinc-900/20 p-6 sm:p-7 ${alternativeArtifacts.length === 0 ? 'lg:grid lg:grid-cols-[1fr_320px] lg:items-center lg:gap-12' : ''}`}>
+            <div>
+              <div className="flex items-start justify-between gap-5">
+                <div className="grid size-11 place-items-center rounded-xl bg-zinc-800 text-zinc-300"><ImageIcon size={20} /></div>
+                <span className="rounded-full border border-zinc-700 bg-zinc-800/60 px-3 py-1 text-xs font-medium text-zinc-400">Verified data</span>
+              </div>
+              <h2 className="mt-7 text-xl font-semibold tracking-tight">Training dataset</h2>
+              <p className="mt-2 max-w-xl text-sm leading-6 text-zinc-500">Reviewed images with final species labels and bounding boxes for training and research.</p>
             </div>
-            <h2 className="mt-7 text-xl font-semibold tracking-tight">Training dataset</h2>
-            <p className="mt-2 text-sm leading-6 text-zinc-500">Reviewed images with final species labels and bounding boxes for training and research.</p>
-            <div className="mt-6 border-y border-zinc-800 py-4">
+            <div className={alternativeArtifacts.length === 0 ? 'mt-6 lg:mt-0' : ''}>
+              <div className="border-y border-zinc-800 py-4">
               <p className="text-2xl font-semibold tracking-tight text-zinc-100">{MOCK_STATS.validated_images.toLocaleString()}</p>
               <p className="mt-1 text-xs text-zinc-500">verified images available for dataset export</p>
+              </div>
+              <Button onClick={() => setShowDatasetModal(true)} variant="outline" className="mt-6 w-full justify-center"><Database size={16} /> Export dataset</Button>
             </div>
-            <Button onClick={() => setShowDatasetModal(true)} variant="outline" className="mt-6 w-full justify-center"><Database size={16} /> Export dataset</Button>
           </div>
         </section>
 
