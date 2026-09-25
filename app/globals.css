@@ -18,6 +18,35 @@ body {
   overflow-x: hidden;
 }
 
+/* Use the application's password toggle, not browser-supplied controls. */
+input[type='password']::-ms-reveal,
+input[type='password']::-ms-clear,
+input[type='password']::-webkit-credentials-auto-fill-button {
+  display: none;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+/* Keep every interactive control visually discoverable on hover. */
+button:not(:disabled),
+a[href],
+[role='button'],
+[role='option'],
+input[type='checkbox']:not(:disabled),
+input[type='radio']:not(:disabled),
+input[type='file']:not(:disabled),
+select:not(:disabled),
+summary,
+label {
+  cursor: pointer;
+}
+
+button:disabled,
+input:disabled,
+select:disabled {
+  cursor: not-allowed;
+}
+
 ::-webkit-scrollbar { width: 5px; }
 ::-webkit-scrollbar-track { background: var(--bg-secondary); }
 ::-webkit-scrollbar-thumb { background: #3f3f46; border-radius: 3px; }
