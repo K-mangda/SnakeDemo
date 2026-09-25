@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { ArrowUpRight, BrainCircuit, CheckCircle2, Database, Download, FileCode2, FileJson, Image as ImageIcon, Package, ShieldCheck } from 'lucide-react'
+import { ArrowUpRight, BrainCircuit, CheckCircle2, ChevronDown, Database, Download, FileCode2, FileJson, Image as ImageIcon, Package, ShieldCheck } from 'lucide-react'
 import { MOCK_STATS } from '@/lib/data'
 import Button from '@/components/ui/Button'
 import DatasetExportModal from '@/components/export/DatasetExportModal'
@@ -34,6 +34,7 @@ export default function ExportPage() {
   const [modelReleases, setModelReleases] = useState<ModelRelease[]>([])
   const [recommendedVersion, setRecommendedVersion] = useState<string | null>(null)
   const [selectedVersion, setSelectedVersion] = useState<string | null>(null)
+  const [releaseMenuOpen, setReleaseMenuOpen] = useState(false)
 
   useEffect(() => {
     document.body.style.overflow = showDatasetModal ? 'hidden' : 'unset'
@@ -79,19 +80,26 @@ export default function ExportPage() {
                     <p className="text-sm font-medium text-emerald-300">Free model download</p>
                     {modelRelease?.version === recommendedVersion && <span className="rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5 text-[11px] font-medium text-emerald-300">Recommended</span>}
                   </div>
-                  <p className="mt-0.5 text-xs text-zinc-500">Recommended by validation results</p>
+                  <p className="mt-0.5 text-xs text-zinc-500">{modelRelease?.version === recommendedVersion ? 'Recommended by validation results' : 'Available model release'}</p>
                 </div>
               </div>
               <h2 className="text-3xl font-semibold tracking-tight text-zinc-100">NSTRU Snake Classifier</h2>
               <p className="mt-2 text-sm text-zinc-400">{modelRelease ? `${modelRelease.version} · ${modelRelease.architecture}` : 'Loading release details…'}</p>
               {modelReleases.length > 1 && (
-                <div className="mt-4 flex flex-wrap items-center gap-2">
-                  <span className="mr-1 text-xs font-medium text-zinc-500">Choose release</span>
-                  {modelReleases.map(release => (
-                    <button key={release.version} onClick={() => setSelectedVersion(release.version)} className={`rounded-md border px-2.5 py-1.5 text-xs font-medium transition ${release.version === selectedVersion ? 'border-emerald-500 bg-emerald-500/10 text-emerald-300' : 'border-zinc-700 bg-zinc-950/50 text-zinc-400 hover:border-zinc-500 hover:text-zinc-200'}`}>
-                      {release.version}{release.version === recommendedVersion && <span className="ml-1.5 text-emerald-400">Best</span>}
-                    </button>
-                  ))}
+                <div className="relative mt-4 inline-block">
+                  <button onClick={() => setReleaseMenuOpen(open => !open)} aria-haspopup="menu" aria-expanded={releaseMenuOpen} className="inline-flex items-center gap-2 rounded-lg border border-zinc-700 bg-zinc-950/70 px-3 py-2 text-sm font-medium text-zinc-200 transition hover:border-zinc-500">
+                    <span>Model version: {modelRelease?.version}</span><ChevronDown size={15} className={releaseMenuOpen ? 'rotate-180 transition-transform' : 'transition-transform'} />
+                  </button>
+                  {releaseMenuOpen && (
+                    <div role="menu" className="absolute left-0 z-20 mt-2 w-64 overflow-hidden rounded-xl border border-zinc-700 bg-zinc-900 p-1.5 shadow-2xl shadow-black/50">
+                      {modelReleases.map(release => (
+                        <button key={release.version} role="menuitem" onClick={() => { setSelectedVersion(release.version); setReleaseMenuOpen(false) }} className={`flex w-full items-center justify-between rounded-lg px-3 py-2.5 text-left text-sm transition ${release.version === selectedVersion ? 'bg-emerald-500/10 text-emerald-200' : 'text-zinc-300 hover:bg-zinc-800'}`}>
+                          <span className="font-medium">{release.version}</span>
+                          {release.version === recommendedVersion && <span className="text-xs text-emerald-400">Best</span>}
+                        </button>
+                      ))}
+                    </div>
+                  )}
                 </div>
               )}
               <p className="mt-5 max-w-xl text-sm leading-6 text-zinc-400">Trained model weights for identifying Thai snake species. Choose a release format that fits your inference environment.</p>
