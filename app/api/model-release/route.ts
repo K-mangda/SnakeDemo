@@ -117,7 +117,7 @@ export async function GET() {
       const fallback = inferredVersion === 'v1' ? knownV1 : null
       return {
         version: metadata.version ?? fallback?.version ?? inferredVersion,
-        architecture: metadata.architecture ?? fallback?.architecture ?? 'Model release',
+        architecture: metadata.architecture ?? fallback?.architecture ?? '',
         classCount: metadata.classCount ?? fallback?.classCount ?? null,
         releasedAt: metadata.releasedAt ?? fallback?.releasedAt ?? null,
         metrics: {

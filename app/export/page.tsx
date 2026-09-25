@@ -84,7 +84,7 @@ export default function ExportPage() {
                 </div>
               </div>
               <h2 className="text-3xl font-semibold tracking-tight text-zinc-100">NSTRU Snake Classifier</h2>
-              <p className="mt-2 text-sm text-zinc-400">{modelRelease ? `${formatReleaseVersion(modelRelease.version)} · ${modelRelease.architecture}` : 'Loading release details…'}</p>
+              <p className="mt-2 text-sm text-zinc-400">{modelRelease ? [formatReleaseVersion(modelRelease.version), modelRelease.architecture].filter(Boolean).join(' · ') : 'Loading release details…'}</p>
               {modelReleases.length > 1 && (
                 <div className="relative mt-4 inline-block">
                   <button onClick={() => setReleaseMenuOpen(open => !open)} aria-haspopup="menu" aria-expanded={releaseMenuOpen} className="inline-flex items-center gap-2 rounded-lg border border-zinc-700 bg-zinc-950/70 px-3 py-2 text-sm font-medium text-zinc-200 transition hover:border-zinc-500">
