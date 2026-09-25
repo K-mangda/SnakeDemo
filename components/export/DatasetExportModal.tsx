@@ -8,7 +8,7 @@ import {
   BoxSelect, Package, Check, Search, Archive, Download
 } from 'lucide-react'
 
-type DatasetFormat = 'YOLO' | 'COCO' | 'VOC' | 'CSV' | 'RAW'
+type DatasetFormat = 'YOLO' | 'COCO' | 'CSV'
 
 interface DatasetExportModalProps {
   onClose: () => void;
@@ -60,9 +60,7 @@ export default function DatasetExportModal({ onClose }: DatasetExportModalProps)
   const formatInfo: Record<DatasetFormat, { icon: React.ReactNode; desc: string }> = {
     YOLO: { icon: <BoxSelect size={14} />, desc: 'txt labels, images/ folder' },
     COCO: { icon: <FileJson size={14} />, desc: 'instances_*.json + images/' },
-    VOC: { icon: <Layers size={14} />, desc: 'XML per image (Pascal VOC)' },
     CSV: { icon: <FileSpreadsheet size={14} />, desc: 'Metadata only, no images' },
-    RAW: { icon: <ImageIcon size={14} />, desc: 'Raw images only, no labels' },
   }
 
   const handleDownload = () => {
@@ -181,10 +179,7 @@ export default function DatasetExportModal({ onClose }: DatasetExportModalProps)
                   key={f}
                   onClick={() => {
                     setFormat(f)
-                    if (f === 'RAW') {
-                      setIncludeImages(true)
-                      setIncludeLabels(false)
-                    } else if (f === 'CSV') {
+                    if (f === 'CSV') {
                       setIncludeImages(false)
                       setIncludeLabels(false)
                     } else {
