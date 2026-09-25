@@ -75,7 +75,10 @@ export default function ExportPage() {
               <div className="mb-7 flex items-center gap-3">
                 <div className="grid size-12 place-items-center rounded-xl border border-emerald-500/30 bg-emerald-500/10 text-emerald-400"><BrainCircuit size={23} /></div>
                 <div>
-                  <p className="text-sm font-medium text-emerald-300">Free model download</p>
+                  <div className="flex items-center gap-2">
+                    <p className="text-sm font-medium text-emerald-300">Free model download</p>
+                    {modelRelease?.version === recommendedVersion && <span className="rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5 text-[11px] font-medium text-emerald-300">Recommended</span>}
+                  </div>
                   <p className="mt-0.5 text-xs text-zinc-500">Recommended by validation results</p>
                 </div>
               </div>
@@ -100,20 +103,17 @@ export default function ExportPage() {
           </div>
         </section>
 
-        {modelReleases.length > 1 && (
+        {modelReleases.length > 0 && (
           <section className="mt-6 rounded-2xl border border-zinc-800 bg-zinc-900/20 p-5 sm:p-6">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div>
-                <h2 className="text-sm font-semibold text-zinc-100">Available releases</h2>
+                <h2 className="text-sm font-semibold text-zinc-100">Model release</h2>
                 <p className="mt-1 text-xs text-zinc-500">The recommended release has the strongest validation mAP50–95.</p>
               </div>
-              <div className="flex flex-wrap gap-2">
-                {modelReleases.map(release => (
-                  <button key={release.version} onClick={() => setSelectedVersion(release.version)} className={`rounded-lg border px-3 py-2 text-sm transition ${release.version === selectedVersion ? 'border-emerald-500 bg-emerald-500/10 text-emerald-300' : 'border-zinc-700 text-zinc-400 hover:border-zinc-500 hover:text-zinc-200'}`}>
-                    {release.version}{release.version === recommendedVersion && <span className="ml-2 text-xs text-emerald-400">Recommended</span>}
-                  </button>
-                ))}
-              </div>
+              <label className="sr-only" htmlFor="model-release">Choose model release</label>
+              <select id="model-release" value={selectedVersion ?? ''} onChange={event => setSelectedVersion(event.target.value)} className="min-w-52 rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm text-zinc-100 outline-none transition focus:border-emerald-500">
+                {modelReleases.map(release => <option key={release.version} value={release.version}>{release.version}{release.version === recommendedVersion ? ' — Recommended' : ''}</option>)}
+              </select>
             </div>
           </section>
         )}
