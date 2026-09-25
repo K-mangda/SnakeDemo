@@ -9,7 +9,6 @@ import {
 } from 'lucide-react'
 
 type DatasetFormat = 'YOLO' | 'COCO' | 'VOC' | 'CSV' | 'RAW'
-type ImageStatus = 'verified' | 'pending' | 'unclear' | 'new_class'
 
 interface DatasetExportModalProps {
   onClose: () => void;
@@ -41,17 +40,6 @@ export default function DatasetExportModal({ onClose }: DatasetExportModalProps)
   const baseCount = selectedSpecies.reduce((sum, id) => sum + MOCK_STATS.species_distribution[id - 1], 0)
   const speciesRatio = MOCK_STATS.total_images > 0 ? baseCount / MOCK_STATS.total_images : 0
 
-  // Status filter
-  const statusOptions: { key: ImageStatus; label: string; count: number; color: string }[] = [
-    { key: 'verified', label: 'Verified', count: Math.round(MOCK_STATS.validated_images * speciesRatio), color: 'emerald' },
-    { key: 'pending', label: 'Pending Review', count: Math.round(MOCK_STATS.pending_images * speciesRatio), color: 'amber' },
-    { key: 'unclear', label: 'Unclear', count: Math.round(MOCK_STATS.unclear_images * speciesRatio), color: 'red' },
-    { key: 'new_class', label: 'New Class', count: Math.round(MOCK_STATS.waiting_for_new_class_images * speciesRatio), color: 'blue' },
-  ]
-  const [selectedStatus, setSelectedStatus] = useState<ImageStatus[]>(['verified'])
-  const toggleStatus = (k: ImageStatus) =>
-    setSelectedStatus(p => p.includes(k) ? p.filter(x => x !== k) : [...p, k])
-
   // Include options
   const [includeImages, setIncludeImages] = useState(true)
   const [includeLabels, setIncludeLabels] = useState(true)
@@ -60,10 +48,7 @@ export default function DatasetExportModal({ onClose }: DatasetExportModalProps)
   const [trainRatio, setTrainRatio] = useState(80)
 
   // Estimated count & size
-  const estImages = selectedStatus.reduce((sum, s) => {
-    const opt = statusOptions.find(o => o.key === s)
-    return sum + (opt ? opt.count : 0)
-  }, 0)
+  const estImages = Math.round(MOCK_STATS.validated_images * speciesRatio)
 
   const sizePerImageMB = includeImages ? 0.2 : 0 // ~200KB per image
   const sizePerLabelMB = includeLabels ? 0.005 : 0 // ~5KB per label
@@ -174,19 +159,15 @@ export default function DatasetExportModal({ onClose }: DatasetExportModalProps)
 
           </section>
 
-          {/* 2. Status Filter */}
-          <section>
-            <p className="text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-3 flex items-center gap-1.5">
-              <Filter size={12} /> Image Status
-            </p>
-            <div className="flex flex-wrap gap-2">
-              {statusOptions.map(s => (
-                <SelectBtn key={s.key} active={selectedStatus.includes(s.key)} onClick={() => toggleStatus(s.key)} color={s.color}>
-                  {s.label}
-                  <span className="ml-1 opacity-60">({s.count.toLocaleString()})</span>
-                </SelectBtn>
-              ))}
+          {/* 2. Export eligibility */}
+          <section className="rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-4">
+            <div className="flex items-center justify-between gap-3">
+              <p className="text-xs font-semibold uppercase tracking-wider text-emerald-300 flex items-center gap-1.5">
+                <Filter size={12} /> Export eligibility
+              </p>
+              <span className="rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2 py-1 text-xs font-medium text-emerald-300">Verified only</span>
             </div>
+            <p className="mt-2 text-sm leading-5 text-zinc-400">Only verified images with a final species and final bounding box can be included in an export.</p>
           </section>
 
           {/* 3. Export Format */}
@@ -280,7 +261,7 @@ export default function DatasetExportModal({ onClose }: DatasetExportModalProps)
             </div>
             <div className="text-xs text-zinc-600">ZIP</div>
           </div>
-          <Button onClick={handleDownload} disabled={downloading || selectedSpecies.length === 0 || selectedStatus.length === 0} className="w-full justify-center py-3.5 text-sm shadow-lg shadow-emerald-500/20">
+          <Button onClick={handleDownload} disabled={downloading || selectedSpecies.length === 0} className="w-full justify-center py-3.5 text-sm shadow-lg shadow-emerald-500/20">
             {downloading ? <><Archive className="animate-spin" size={18} /> Compressing...</> : <><Download size={18} /> Export Dataset Package</>}
           </Button>
         </div>
