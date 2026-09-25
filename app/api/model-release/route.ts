@@ -1,5 +1,3 @@
-import { getSupabaseAdmin } from '@/lib/supabase/admin'
-
 export const dynamic = 'force-dynamic'
 
 const BUCKET = 'model-releases'
@@ -9,24 +7,27 @@ const releaseFiles = [
   { name: 'snake-v1.pt', format: 'PyTorch', runtime: 'Ultralytics YOLO', recommended: false },
 ] as const
 
+function getPublicFileUrl(name: string) {
+  const projectUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+  if (!projectUrl) throw new Error('Missing Supabase project URL.')
+  return `${projectUrl.replace(/\/$/, '')}/storage/v1/object/public/${BUCKET}/${encodeURIComponent(name)}`
+}
+
 export async function GET() {
   try {
-    const storage = getSupabaseAdmin().storage.from(BUCKET)
-    const { data: objects, error } = await storage.list('', { limit: 100 })
-    if (error) throw error
+    const artifacts = (await Promise.all(releaseFiles.map(async releaseFile => {
+      const url = getPublicFileUrl(releaseFile.name)
+      const response = await fetch(url, { method: 'HEAD', cache: 'no-store' })
+      if (!response.ok) return null
 
-    const artifacts = releaseFiles.flatMap(releaseFile => {
-      const object = objects?.find(candidate => candidate.name === releaseFile.name)
-      if (!object) return []
-
-      const { data: publicUrl } = storage.getPublicUrl(releaseFile.name)
-      return [{
+      const size = Number(response.headers.get('content-length'))
+      return {
         ...releaseFile,
-        size: typeof object.metadata?.size === 'number' ? object.metadata.size : null,
-        updatedAt: object.updated_at,
-        url: publicUrl.publicUrl,
-      }]
-    })
+        size: Number.isFinite(size) && size > 0 ? size : null,
+        updatedAt: response.headers.get('last-modified'),
+        url,
+      }
+    }))).filter((artifact): artifact is NonNullable<typeof artifact> => artifact !== null)
 
     return Response.json({
       version: 'v1.0.0',
