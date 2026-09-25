@@ -18,6 +18,7 @@ interface ImageItem {
   createdAt: string;
   review: { count: number; hasReviewed: boolean };
   prediction: { scientific: string, nameTh: string | null };
+  consensus: { scientific: string; nameTh: string | null; reviewCount: number } | null;
 }
 
 interface ImageListProps {
@@ -82,7 +83,15 @@ export default function ImageList({ filtered, currentFilter, reviewHref }: Image
                 {img.prediction.nameTh ?? 'No mapped reference'} &middot; {formatScanLabel(img.createdAt)}
               </p>
               <p className="mt-1 text-[11px] text-zinc-600">
-                {img.review.hasReviewed ? `Your review saved · ${img.review.count} total review${img.review.count === 1 ? '' : 's'}` : canAudit ? `Verified · ${img.review.count} expert review${img.review.count === 1 ? '' : 's'}` : img.status === 'pending' && img.review.count > 1 ? 'Review conflict · another review is needed' : 'Your review is needed'}
+                {img.consensus
+                  ? `Your review saved · ${img.review.count} total review${img.review.count === 1 ? '' : 's'}`
+                  : img.review.hasReviewed && img.status === 'pending'
+                    ? `Your review saved · ${img.review.count} total review${img.review.count === 1 ? '' : 's'} · Consensus pending`
+                    : img.review.hasReviewed
+                      ? `Your review saved · ${img.review.count} total review${img.review.count === 1 ? '' : 's'}`
+                      : canAudit
+                        ? `Verified · ${img.review.count} expert review${img.review.count === 1 ? '' : 's'}`
+                        : 'Your independent review is needed'}
               </p>
             </div>
 

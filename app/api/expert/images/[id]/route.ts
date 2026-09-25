@@ -11,13 +11,20 @@ type StoredImage = {
   predicted_scientific: string | null
   predicted_bbox: { x: number; y: number; width: number; height: number } | null
   final_bbox: { x: number; y: number; width: number; height: number } | null
-  predicted_species: { id: number; scientific_name: string; name_th: string | null; name_en: string | null }[] | null
+  predicted_species: SpeciesRelation
+  final_species: SpeciesRelation
 }
+
+type SpeciesRelation = { id: number; scientific_name: string; name_th: string | null; name_en: string | null } | { id: number; scientific_name: string; name_th: string | null; name_en: string | null }[] | null
 
 type ReviewHistoryRow = {
   expert_id: string
   voted_species_id: number | null
   created_at: string
+}
+
+function firstSpecies(relation: SpeciesRelation) {
+  return Array.isArray(relation) ? relation[0] ?? null : relation
 }
 
 function normalizeScientificName(value: string) {
@@ -55,7 +62,7 @@ export async function GET(request: Request, context: RouteContext<'/api/expert/i
 
   const { data: image, error } = await admin
     .from('snake_images')
-    .select('id, storage_path, original_filename, status, confidence, created_at, predicted_scientific, predicted_bbox, final_bbox, predicted_species:snake_species!snake_images_predicted_species_id_fkey(id, scientific_name, name_th, name_en)')
+    .select('id, storage_path, original_filename, status, confidence, created_at, predicted_scientific, predicted_bbox, final_bbox, predicted_species:snake_species!snake_images_predicted_species_id_fkey(id, scientific_name, name_th, name_en), final_species:snake_species!snake_images_final_species_id_fkey(id, scientific_name, name_th, name_en)')
     .eq('id', id)
     .single()
   if (error || !image) return Response.json({ detail: 'Saved scan not found.' }, { status: 404 })
@@ -88,13 +95,14 @@ export async function GET(request: Request, context: RouteContext<'/api/expert/i
   // Resolve against the current catalogue so the reviewer gets the AI choice
   // preselected without changing the stored historical prediction.
   const predictedScientific = stored.predicted_scientific
-  const modelSpecies = stored.predicted_species?.[0]
+  const modelSpecies = firstSpecies(stored.predicted_species)
     ?? (predictedScientific
       ? (species ?? []).find((item) => normalizeScientificName(item.scientific_name) === normalizeScientificName(predictedScientific)) ?? null
       : null)
   // Do not show an old placeholder/stale box unless the model actually
   // supplied both a label and a confidence value for this image.
   const hasAiPrediction = stored.predicted_scientific !== null && stored.confidence !== null
+  const finalSpecies = firstSpecies(stored.final_species)
   return Response.json({
     image: {
       id: stored.id,
@@ -108,6 +116,11 @@ export async function GET(request: Request, context: RouteContext<'/api/expert/i
         ? { id: modelSpecies.id, scientific: modelSpecies.scientific_name, nameTh: modelSpecies.name_th, nameEn: modelSpecies.name_en }
         : { id: null, scientific: stored.predicted_scientific ?? 'Reference pending', nameTh: null, nameEn: null },
       existingVerification,
+      // Consensus is visible only after the current Expert has submitted a
+      // review, keeping the independent-review workflow free from bias.
+      consensus: existingVerification && stored.status === 'verified' && finalSpecies && stored.final_bbox
+        ? { scientific: finalSpecies.scientific_name, bbox: stored.final_bbox, reviewCount: reviewerIds.length }
+        : null,
       // Keep reviews independent: another Expert's decision is returned only
       // after this viewer has submitted their own review.
       reviewHistory: existingVerification ? history.map((review) => ({

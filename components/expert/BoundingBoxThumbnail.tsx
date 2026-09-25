@@ -47,11 +47,10 @@ export default function BoundingBoxThumbnail({ imageUrl, bbox, alt, className, a
   const imageReady = loadedUrl === imageUrl && imageAspect !== null
   const failed = failedUrl === imageUrl
   const boxStyle = bbox && imageReady ? coverBoxStyle(bbox, imageAspect, aspectRatio) : undefined
-  const revealImage = !bbox || imageReady
 
   return (
     <div className={className}>
-      {imageUrl && !failed ? <img ref={imageRef} src={imageUrl} alt={alt} className={`h-full w-full object-cover transition-opacity duration-150 ${revealImage ? 'opacity-100' : 'opacity-0'}`} onLoad={(event) => { setImageAspect(event.currentTarget.naturalWidth / event.currentTarget.naturalHeight); setLoadedUrl(imageUrl) }} onError={() => setFailedUrl(imageUrl)} /> : <span className="text-xs text-zinc-600">Image unavailable</span>}
+      {imageUrl && !failed ? <img ref={imageRef} src={imageUrl} alt={alt} className="h-full w-full object-cover" onLoad={(event) => { setImageAspect(event.currentTarget.naturalWidth / event.currentTarget.naturalHeight); setLoadedUrl(imageUrl) }} onError={() => setFailedUrl(imageUrl)} /> : <span className="text-xs text-zinc-600">Image unavailable</span>}
       {bbox && boxStyle && <div className={boxClassName} style={boxStyle} />}
     </div>
   )

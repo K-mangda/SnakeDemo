@@ -21,12 +21,27 @@ type WorkspaceImage = {
   createdAt: string
   review: { count: number; hasReviewed: boolean }
   prediction: { scientific: string; nameTh: string | null }
+  consensus: { scientific: string; nameTh: string | null; reviewCount: number } | null
 }
 
 type WorkspacePayload = {
   images: WorkspaceImage[]
   counts: Record<FilterStatus, number>
   total: number
+}
+
+// The API response cache makes tab data instant. Warm the matching image URLs
+// as well, so changing from All to a status tab does not feel like loading the
+// same thumbnails for a second time.
+const warmedThumbnailUrls = new Set<string>()
+
+function warmThumbnails(images: WorkspaceImage[]) {
+  for (const { imageUrl } of images) {
+    if (!imageUrl || warmedThumbnailUrls.has(imageUrl)) continue
+    warmedThumbnailUrls.add(imageUrl)
+    const image = new window.Image()
+    image.src = imageUrl
+  }
 }
 
 function workspacePageKey(filter: FilterStatus, page: number, pageSize: number, sort: SortMode) {
@@ -94,6 +109,7 @@ export default function ExpertPage() {
         if (cancelled) return
 
         cacheWorkspacePage(cacheKey, payload)
+        warmThumbnails(payload.images)
         setImages(payload.images)
         setCounts(payload.counts)
         setTotal(payload.total)
@@ -107,7 +123,10 @@ export default function ExpertPage() {
             const preloadKey = workspacePageKey(filter, 0, 20, sortMode)
             if (filter === currentFilter || payload.counts[filter] === 0 || getCachedWorkspacePage(preloadKey)) continue
             void fetchWorkspacePage(session.access_token, filter, 0, 20, sortMode)
-              .then((preloaded) => cacheWorkspacePage(preloadKey, preloaded))
+              .then((preloaded) => {
+                cacheWorkspacePage(preloadKey, preloaded)
+                warmThumbnails(preloaded.images)
+              })
               .catch(() => undefined)
           }
         }

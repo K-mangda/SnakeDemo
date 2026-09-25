@@ -25,6 +25,7 @@ type Scan = {
   status: Decision | 'verified'
   prediction: { id: number | null; scientific: string }
   existingVerification: { voted_species_id: number | null; bbox: Box | null } | null
+  consensus: { scientific: string; bbox: Box; reviewCount: number } | null
   reviewHistory: { reviewer: string; species: string | null; createdAt: string }[]
 }
 
@@ -60,6 +61,7 @@ export default function AnnotatePage({ params }: { params: Promise<{ id: string 
   const [startBox, setStartBox] = useState<Box | null>(null)
   const [queueIds, setQueueIds] = useState<string[]>([])
   const [autoAdvance, setAutoAdvance] = useState(true)
+  const [showFinalConsensus, setShowFinalConsensus] = useState(false)
   const imageRef = useRef<HTMLDivElement>(null)
   const [readyImageUrl, setReadyImageUrl] = useState<string | null>(null)
   const [imageReloadKey, setImageReloadKey] = useState(0)
@@ -122,6 +124,7 @@ export default function AnnotatePage({ params }: { params: Promise<{ id: string 
         // A new review benefits from a fast queue flow. When reopening an
         // existing review, staying on the image is safer for careful edits.
         setAutoAdvance(!item.existingVerification)
+        setShowFinalConsensus(false)
         if (item.existingVerification?.voted_species_id === null && item.existingVerification) {
           setDecision(item.status === 'waiting_for_new_class' ? 'waiting_for_new_class' : 'unclear')
         }
@@ -330,14 +333,16 @@ export default function AnnotatePage({ params }: { params: Promise<{ id: string 
   )
   const selectedSpecies = species.find((item) => item.id === selectedSpeciesId) ?? null
   const isEditingExistingReview = Boolean(scan?.existingVerification)
+  const boxLabel = hasExpertSelectedSpecies && selectedSpecies
+    ? selectedSpecies.scientific_name
+    : scan?.confidence !== null ? scan?.prediction.scientific : 'Review box'
+  const displayedBox = showFinalConsensus && scan?.consensus ? scan.consensus.bbox : bbox
+  const displayedBoxLabel = showFinalConsensus && scan?.consensus ? scan.consensus.scientific : boxLabel
   const saveLabel = saving
     ? 'Saving review…'
     : autoAdvance
       ? nextQueueId ? 'Save & next' : 'Save & return to Workspace'
       : isEditingExistingReview ? 'Save changes' : 'Save my review'
-  const boxLabel = hasExpertSelectedSpecies && selectedSpecies
-    ? selectedSpecies.scientific_name
-    : scan?.confidence !== null ? scan?.prediction.scientific : 'Review box'
   const reviewSummary = decision === 'pending'
     ? selectedSpecies && bbox
       ? { title: 'Ready to verify', detail: `${selectedSpecies.scientific_name} · 1 review box`, tone: 'text-emerald-300' }
@@ -364,15 +369,15 @@ export default function AnnotatePage({ params }: { params: Promise<{ id: string 
 
         <div className="grid gap-7 lg:grid-cols-[minmax(0,1.45fr)_minmax(340px,0.8fr)]">
           <section className="flex h-full flex-col overflow-hidden rounded-2xl border border-zinc-800 bg-zinc-900/20">
-            <div className="flex items-center justify-between gap-3 border-b border-zinc-800 px-5 py-4"><span className="flex items-center gap-2 text-sm font-medium text-zinc-200"><Crosshair size={16} className="text-emerald-400" /> Subject boundary</span><div className="flex items-center gap-2">{bbox ? <><Button size="sm" variant="outline" disabled={imageState !== 'ready'} onClick={redrawBox}><MousePointer2 size={14} /> Redraw</Button><Button size="sm" variant="ghost" disabled={imageState !== 'ready'} onClick={clearBox} className="text-zinc-400"><Eraser size={14} /> Clear</Button></> : <Button size="sm" variant={placingBox ? 'primary' : 'outline'} disabled={imageState !== 'ready'} onClick={beginPlacingBox}>{placingBox ? 'Drag on image to draw' : <><Plus size={14} /> Add box</>}</Button>}</div></div>
+            <div className="flex items-center justify-between gap-3 border-b border-zinc-800 px-5 py-4"><span className="flex items-center gap-2 text-sm font-medium text-zinc-200"><Crosshair size={16} className="text-emerald-400" /> {showFinalConsensus ? 'Final consensus boundary' : 'Subject boundary'}</span><div className="flex items-center gap-2">{scan.consensus && <Button size="sm" variant={showFinalConsensus ? 'primary' : 'outline'} onClick={() => setShowFinalConsensus((current) => !current)}>{showFinalConsensus ? 'Back to my review' : 'View final consensus'}</Button>}{!showFinalConsensus && (bbox ? <><Button size="sm" variant="outline" disabled={imageState !== 'ready'} onClick={redrawBox}><MousePointer2 size={14} /> Redraw</Button><Button size="sm" variant="ghost" disabled={imageState !== 'ready'} onClick={clearBox} className="text-zinc-400"><Eraser size={14} /> Clear</Button></> : <Button size="sm" variant={placingBox ? 'primary' : 'outline'} disabled={imageState !== 'ready'} onClick={beginPlacingBox}>{placingBox ? 'Drag on image to draw' : <><Plus size={14} /> Add box</>}</Button>)}</div></div>
             <div className="flex min-h-[420px] flex-1 items-center justify-center bg-zinc-950 p-4 sm:p-6">
-              {imageState === 'error' ? <p className="text-sm text-zinc-500">Image unavailable. Please return to Workspace and try again.</p> : readyImageUrl && <div ref={imageRef} className={`relative inline-block max-h-[600px] max-w-full select-none ${placingBox && imageState === 'ready' ? 'cursor-crosshair' : ''}`} onMouseDown={imageState === 'ready' ? beginDrawingBox : undefined} onMouseMove={imageState === 'ready' ? updateBox : undefined} onMouseUp={imageState === 'ready' ? endBoxAction : undefined} onMouseLeave={imageState === 'ready' ? endBoxAction : undefined}>
+              {imageState === 'error' ? <p className="text-sm text-zinc-500">Image unavailable. Please return to Workspace and try again.</p> : readyImageUrl && <div ref={imageRef} className={`relative inline-block max-h-[600px] max-w-full select-none ${!showFinalConsensus && placingBox && imageState === 'ready' ? 'cursor-crosshair' : ''}`} onMouseDown={!showFinalConsensus && imageState === 'ready' ? beginDrawingBox : undefined} onMouseMove={!showFinalConsensus && imageState === 'ready' ? updateBox : undefined} onMouseUp={!showFinalConsensus && imageState === 'ready' ? endBoxAction : undefined} onMouseLeave={!showFinalConsensus && imageState === 'ready' ? endBoxAction : undefined}>
                 <img src={readyImageUrl} alt="Saved subject for Expert review" draggable={false} className="block max-h-[600px] max-w-full rounded-lg object-contain" />
-                {imageState === 'ready' && !bbox && <div className="pointer-events-none absolute inset-0 grid place-items-center"><span className="rounded-lg border border-zinc-700 bg-zinc-950/90 px-3 py-2 text-xs text-zinc-400">{placingBox ? 'Drag over the snake to draw a box' : 'No AI box · click Add box to create one'}</span></div>}
-                {imageState === 'ready' && bbox && <div className="absolute cursor-move border-2 border-emerald-400 bg-emerald-500/10 shadow-[0_0_18px_rgba(16,185,129,0.22)]" style={{ left: `${bbox.x}%`, top: `${bbox.y}%`, width: `${bbox.width}%`, height: `${bbox.height}%` }} onMouseDown={(event) => beginBoxAction(event, 'move')}><span className="absolute -top-7 left-0 max-w-[220px] truncate rounded bg-emerald-500 px-2 py-1 text-[10px] font-medium text-zinc-950">{boxLabel}</span><ResizeHandles onStart={beginBoxAction} /></div>}
+                {imageState === 'ready' && !displayedBox && <div className="pointer-events-none absolute inset-0 grid place-items-center"><span className="rounded-lg border border-zinc-700 bg-zinc-950/90 px-3 py-2 text-xs text-zinc-400">{placingBox ? 'Drag over the snake to draw a box' : 'No AI box · click Add box to create one'}</span></div>}
+                {imageState === 'ready' && displayedBox && <div className={`absolute border-2 border-emerald-400 bg-emerald-500/10 shadow-[0_0_18px_rgba(16,185,129,0.22)] ${showFinalConsensus ? 'cursor-default' : 'cursor-move'}`} style={{ left: `${displayedBox.x}%`, top: `${displayedBox.y}%`, width: `${displayedBox.width}%`, height: `${displayedBox.height}%` }} onMouseDown={showFinalConsensus ? undefined : (event) => beginBoxAction(event, 'move')}><span className="absolute -top-7 left-0 max-w-[220px] truncate rounded bg-emerald-500 px-2 py-1 text-[10px] font-medium text-zinc-950">{displayedBoxLabel}</span>{!showFinalConsensus && <ResizeHandles onStart={beginBoxAction} />}</div>}
               </div>}
             </div>
-            <div className="border-t border-zinc-800 px-5 py-3 text-xs text-zinc-500">{imageState === 'loading' ? 'Loading image…' : imageState === 'error' ? 'The image could not be loaded, so the review box is hidden.' : bbox ? 'Drag inside the box to move it. Drag any edge or corner to resize it.' : placingBox ? 'Click and drag over the snake to draw a review box.' : 'No box was detected by AI. Add one only if you identify a snake.'}</div>
+            <div className="border-t border-zinc-800 px-5 py-3 text-xs text-zinc-500">{imageState === 'loading' ? 'Loading image…' : imageState === 'error' ? 'The image could not be loaded, so the review box is hidden.' : showFinalConsensus && scan.consensus ? `Final consensus: ${scan.consensus.scientific} · ${scan.consensus.reviewCount} expert reviews.` : bbox ? 'Drag inside the box to move it. Drag any edge or corner to resize it.' : placingBox ? 'Click and drag over the snake to draw a review box.' : 'No box was detected by AI. Add one only if you identify a snake.'}</div>
           </section>
 
           <aside className="flex h-full flex-col gap-5">

@@ -11,12 +11,19 @@ type StoredImage = {
   predicted_bbox: { x: number; y: number; width: number; height: number } | null
   final_bbox: { x: number; y: number; width: number; height: number } | null
   created_at: string
-  predicted_species: { scientific_name: string; name_th: string | null }[] | null
+  predicted_species: SpeciesRelation
+  final_species: SpeciesRelation
 }
+
+type SpeciesRelation = { scientific_name: string; name_th: string | null } | { scientific_name: string; name_th: string | null }[] | null
 
 type ReviewRow = {
   image_id: string
   expert_id: string
+}
+
+function firstSpecies(relation: SpeciesRelation) {
+  return Array.isArray(relation) ? relation[0] ?? null : relation
 }
 
 export async function GET(request: Request) {
@@ -58,7 +65,7 @@ export async function GET(request: Request) {
 
   let imageQuery = admin
     .from('snake_images')
-    .select('id, storage_path, original_filename, status, confidence, predicted_scientific, predicted_bbox, final_bbox, created_at, predicted_species:snake_species!snake_images_predicted_species_id_fkey(scientific_name, name_th)', { count: 'exact' })
+    .select('id, storage_path, original_filename, status, confidence, predicted_scientific, predicted_bbox, final_bbox, created_at, predicted_species:snake_species!snake_images_predicted_species_id_fkey(scientific_name, name_th), final_species:snake_species!snake_images_final_species_id_fkey(scientific_name, name_th)', { count: 'exact' })
 
   if (['pending', 'verified', 'unclear', 'waiting_for_new_class'].includes(filter)) {
     imageQuery = imageQuery.eq('status', filter)
@@ -97,6 +104,11 @@ export async function GET(request: Request) {
 
     if (signedError) console.error('Could not sign saved scan image.', signedError)
 
+    const reviewers = reviewsByImage.get(image.id) ?? new Set<string>()
+    const hasReviewed = reviewers.has(authData.user.id)
+    const finalSpecies = firstSpecies(image.final_species)
+    const predictedSpecies = firstSpecies(image.predicted_species)
+
     return {
       id: image.id,
       originalFilename: image.original_filename,
@@ -108,11 +120,16 @@ export async function GET(request: Request) {
       bbox: image.final_bbox ?? (hasAiPrediction ? image.predicted_bbox : null),
       createdAt: image.created_at,
       review: {
-        count: reviewsByImage.get(image.id)?.size ?? 0,
-        hasReviewed: reviewsByImage.get(image.id)?.has(authData.user.id) ?? false,
+        count: reviewers.size,
+        hasReviewed,
       },
-      prediction: image.predicted_species?.[0]
-        ? { scientific: image.predicted_species[0].scientific_name, nameTh: image.predicted_species[0].name_th }
+      // Do not disclose a group consensus to an Expert who has not yet made
+      // an independent decision on this image.
+      consensus: hasReviewed && image.status === 'verified' && finalSpecies
+        ? { scientific: finalSpecies.scientific_name, nameTh: finalSpecies.name_th, reviewCount: reviewers.size }
+        : null,
+      prediction: predictedSpecies
+        ? { scientific: predictedSpecies.scientific_name, nameTh: predictedSpecies.name_th }
         : { scientific: image.predicted_scientific ?? 'Reference pending', nameTh: null },
     }
   }))
