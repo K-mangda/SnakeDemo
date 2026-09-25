@@ -10,7 +10,6 @@ type ModelArtifact = {
   name: string
   format: string
   runtime: string
-  recommended: boolean
   size: number | null
   updatedAt: string | null
   url: string
@@ -20,13 +19,21 @@ type ModelRelease = {
   version: string
   architecture: string
   classCount: number
+  releasedAt?: string
   metrics: { map50: number; map50_95: number }
   artifacts: ModelArtifact[]
 }
 
+type ModelReleaseResponse = {
+  releases: ModelRelease[]
+  recommendedVersion: string
+}
+
 export default function ExportPage() {
   const [showDatasetModal, setShowDatasetModal] = useState(false)
-  const [modelRelease, setModelRelease] = useState<ModelRelease | null>(null)
+  const [modelReleases, setModelReleases] = useState<ModelRelease[]>([])
+  const [recommendedVersion, setRecommendedVersion] = useState<string | null>(null)
+  const [selectedVersion, setSelectedVersion] = useState<string | null>(null)
 
   useEffect(() => {
     document.body.style.overflow = showDatasetModal ? 'hidden' : 'unset'
@@ -37,14 +44,19 @@ export default function ExportPage() {
     const controller = new AbortController()
     fetch('/api/model-release', { signal: controller.signal, cache: 'no-store' })
       .then(response => response.ok ? response.json() : Promise.reject(new Error('Could not load model release.')))
-      .then((release: ModelRelease) => setModelRelease(release))
+      .then((response: ModelReleaseResponse) => {
+        setModelReleases(response.releases)
+        setRecommendedVersion(response.recommendedVersion)
+        setSelectedVersion(response.recommendedVersion)
+      })
       .catch(error => {
         if (error.name !== 'AbortError') console.error(error)
       })
     return () => controller.abort()
   }, [])
 
-  const recommendedArtifact = modelRelease?.artifacts.find(artifact => artifact.recommended) ?? modelRelease?.artifacts[0]
+  const modelRelease = modelReleases.find(release => release.version === selectedVersion) ?? null
+  const recommendedArtifact = modelRelease?.artifacts.find(artifact => artifact.format.includes('ONNX')) ?? modelRelease?.artifacts[0]
 
   return (
     <main className="min-h-screen bg-zinc-950 px-6 pb-24 pt-32 text-zinc-100">
@@ -64,7 +76,7 @@ export default function ExportPage() {
                 <div className="grid size-12 place-items-center rounded-xl border border-emerald-500/30 bg-emerald-500/10 text-emerald-400"><BrainCircuit size={23} /></div>
                 <div>
                   <p className="text-sm font-medium text-emerald-300">Free model download</p>
-                  <p className="mt-0.5 text-xs text-zinc-500">Latest production release</p>
+                  <p className="mt-0.5 text-xs text-zinc-500">Recommended by validation results</p>
                 </div>
               </div>
               <h2 className="text-3xl font-semibold tracking-tight text-zinc-100">NSTRU Snake Classifier</h2>
@@ -87,6 +99,24 @@ export default function ExportPage() {
             </div>
           </div>
         </section>
+
+        {modelReleases.length > 1 && (
+          <section className="mt-6 rounded-2xl border border-zinc-800 bg-zinc-900/20 p-5 sm:p-6">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <h2 className="text-sm font-semibold text-zinc-100">Available releases</h2>
+                <p className="mt-1 text-xs text-zinc-500">The recommended release has the strongest validation mAP50–95.</p>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {modelReleases.map(release => (
+                  <button key={release.version} onClick={() => setSelectedVersion(release.version)} className={`rounded-lg border px-3 py-2 text-sm transition ${release.version === selectedVersion ? 'border-emerald-500 bg-emerald-500/10 text-emerald-300' : 'border-zinc-700 text-zinc-400 hover:border-zinc-500 hover:text-zinc-200'}`}>
+                    {release.version}{release.version === recommendedVersion && <span className="ml-2 text-xs text-emerald-400">Recommended</span>}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </section>
+        )}
 
         <section className="mt-6 grid gap-6 lg:grid-cols-[1.25fr_0.75fr]">
           <div className="rounded-2xl border border-zinc-800 bg-zinc-900/35 p-6 sm:p-7">

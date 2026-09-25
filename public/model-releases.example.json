@@ -1,0 +1,26 @@
+{
+  "releases": [
+    {
+      "version": "v1.0.0",
+      "architecture": "YOLOv8m",
+      "classCount": 25,
+      "releasedAt": "2026-09-25",
+      "metrics": {
+        "map50": 0.57607,
+        "map50_95": 0.43995
+      },
+      "artifacts": [
+        {
+          "name": "snake-v1-int8.onnx",
+          "format": "ONNX INT8",
+          "runtime": "ONNX Runtime"
+        },
+        {
+          "name": "snake-v1.pt",
+          "format": "PyTorch",
+          "runtime": "Ultralytics YOLO"
+        }
+      ]
+    }
+  ]
+}
