@@ -58,6 +58,7 @@ export default function ExportPage() {
 
   const modelRelease = modelReleases.find(release => release.version === selectedVersion) ?? null
   const recommendedArtifact = modelRelease?.artifacts.find(artifact => artifact.format.includes('ONNX')) ?? modelRelease?.artifacts[0]
+  const alternativeArtifacts = modelRelease?.artifacts.filter(artifact => artifact.name !== recommendedArtifact?.name) ?? []
 
   return (
     <main className="min-h-screen bg-zinc-950 px-6 pb-24 pt-32 text-zinc-100">
@@ -127,10 +128,10 @@ export default function ExportPage() {
               <div className="grid size-11 place-items-center rounded-xl bg-zinc-800 text-zinc-300"><Package size={20} /></div>
               <span className="rounded-full border border-emerald-500/25 bg-emerald-500/10 px-3 py-1 text-xs font-medium text-emerald-300">Model files</span>
             </div>
-            <h2 className="mt-7 text-xl font-semibold tracking-tight">Choose your runtime</h2>
-            <p className="mt-2 text-sm leading-6 text-zinc-500">Published files are loaded directly from the public model release bucket.</p>
+            <h2 className="mt-7 text-xl font-semibold tracking-tight">Other available formats</h2>
+            <p className="mt-2 text-sm leading-6 text-zinc-500">The primary button above downloads the recommended format for this release.</p>
             <div className="mt-6 grid gap-2 sm:grid-cols-2">
-              {modelRelease?.artifacts.map(artifact => (
+              {alternativeArtifacts.map(artifact => (
                 <a key={artifact.name} href={artifact.url} className="rounded-lg border border-zinc-800 bg-zinc-950/40 p-3 transition hover:border-emerald-500/50 hover:bg-emerald-500/5">
                   {artifact.format.includes('ONNX') ? <FileJson size={16} className="text-zinc-400" /> : <FileCode2 size={16} className="text-zinc-400" />}
                   <p className="mt-3 text-sm font-medium text-zinc-200">{artifact.format}</p>
@@ -138,7 +139,7 @@ export default function ExportPage() {
                 </a>
               ))}
             </div>
-            {modelRelease && modelRelease.artifacts.length === 0 && <p className="mt-6 text-sm text-amber-300">No published files are available for this release yet.</p>}
+            {modelRelease && alternativeArtifacts.length === 0 && <p className="mt-6 text-sm text-zinc-500">No alternative format has been published for this release.</p>}
             <a href="https://docs.ultralytics.com/modes/export/" target="_blank" rel="noreferrer" className="mt-6 inline-flex items-center gap-2 text-sm font-medium text-emerald-400 transition hover:text-emerald-300">About the available formats <ArrowUpRight size={16} /></a>
           </div>
 
