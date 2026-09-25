@@ -272,22 +272,27 @@ export default function AnnotatePage({ params }: { params: Promise<{ id: string 
         goToQueueItem(nextQueueId)
         return
       }
-      if (event.key.toLowerCase() === 'b' && !bbox) {
+      if (event.key.toLowerCase() === 'b' && !showFinalConsensus && !bbox) {
+        event.preventDefault()
         setPlacingBox(true)
+      }
+      if (event.key.toLowerCase() === 'r' && !showFinalConsensus && bbox) {
+        event.preventDefault()
+        redrawBox()
       }
       if (event.key === 'Escape') {
         setPlacingBox(false)
         setDrawStart(null)
         if (bbox && bbox.width < 3 && bbox.height < 3) setBbox(null)
       }
-      if ((event.key === 'Delete' || event.key === 'Backspace') && bbox) {
+      if ((event.key === 'Delete' || event.key === 'Backspace') && !showFinalConsensus && bbox) {
         event.preventDefault()
         clearBox()
       }
     }
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [bbox, nextQueueId, previousQueueId])
+  }, [bbox, nextQueueId, previousQueueId, showFinalConsensus])
 
   async function submit() {
     if (decision === 'pending' && !selectedSpeciesId) {
@@ -369,13 +374,15 @@ export default function AnnotatePage({ params }: { params: Promise<{ id: string 
 
         <div className="grid gap-7 lg:grid-cols-[minmax(0,1.45fr)_minmax(340px,0.8fr)]">
           <section className="flex h-full flex-col overflow-hidden rounded-2xl border border-zinc-800 bg-zinc-900/20">
-            <div className="flex items-center justify-between gap-3 border-b border-zinc-800 px-5 py-4"><span className="flex items-center gap-2 text-sm font-medium text-zinc-200"><Crosshair size={16} className="text-emerald-400" /> {showFinalConsensus ? 'Final consensus boundary' : 'Subject boundary'}</span><div className="flex items-center gap-2">{scan.consensus && <Button size="sm" variant={showFinalConsensus ? 'primary' : 'outline'} onClick={() => setShowFinalConsensus((current) => !current)}>{showFinalConsensus ? 'Back to my review' : 'View final consensus'}</Button>}{!showFinalConsensus && (bbox ? <><Button size="sm" variant="outline" disabled={imageState !== 'ready'} onClick={redrawBox}><MousePointer2 size={14} /> Redraw</Button><Button size="sm" variant="ghost" disabled={imageState !== 'ready'} onClick={clearBox} className="text-zinc-400"><Eraser size={14} /> Clear</Button></> : <Button size="sm" variant={placingBox ? 'primary' : 'outline'} disabled={imageState !== 'ready'} onClick={beginPlacingBox}>{placingBox ? 'Drag on image to draw' : <><Plus size={14} /> Add box</>}</Button>)}</div></div>
-            <div className="flex min-h-[420px] flex-1 items-center justify-center bg-zinc-950 p-4 sm:p-6">
-              {imageState === 'error' ? <p className="text-sm text-zinc-500">Image unavailable. Please return to Workspace and try again.</p> : readyImageUrl && <div ref={imageRef} className={`relative inline-block max-h-[600px] max-w-full select-none ${!showFinalConsensus && placingBox && imageState === 'ready' ? 'cursor-crosshair' : ''}`} onMouseDown={!showFinalConsensus && imageState === 'ready' ? beginDrawingBox : undefined} onMouseMove={!showFinalConsensus && imageState === 'ready' ? updateBox : undefined} onMouseUp={!showFinalConsensus && imageState === 'ready' ? endBoxAction : undefined} onMouseLeave={!showFinalConsensus && imageState === 'ready' ? endBoxAction : undefined}>
+            <div className="flex items-center justify-between gap-3 border-b border-zinc-800 px-5 py-4"><span className="flex items-center gap-2 text-sm font-medium text-zinc-200"><Crosshair size={16} className="text-emerald-400" /> {showFinalConsensus ? 'Final consensus boundary' : 'Subject boundary'}</span>{scan.consensus && <Button size="sm" variant={showFinalConsensus ? 'primary' : 'outline'} onClick={() => setShowFinalConsensus((current) => !current)}>{showFinalConsensus ? 'Back to my review' : 'View final consensus'}</Button>}</div>
+            <div className="flex min-h-[420px] flex-1 bg-zinc-950">
+              {!showFinalConsensus && <nav aria-label="Boundary tools" className="flex w-16 shrink-0 flex-col items-center gap-2 border-r border-zinc-800 bg-zinc-900/30 px-2 py-4"><span className="text-[9px] font-medium uppercase tracking-widest text-zinc-600">Tools</span><button type="button" title="Add box (B)" disabled={imageState !== 'ready' || Boolean(bbox)} onClick={beginPlacingBox} className={`grid w-full place-items-center gap-1 rounded-lg border px-1 py-2 text-zinc-400 transition-colors disabled:cursor-not-allowed disabled:opacity-35 ${placingBox ? 'border-emerald-500 bg-emerald-500/15 text-emerald-300' : 'border-transparent hover:border-zinc-700 hover:bg-zinc-800 hover:text-zinc-100'}`}><Plus size={16} /><kbd className="font-mono text-[9px]">B</kbd></button><button type="button" title="Redraw box (R)" disabled={imageState !== 'ready' || !bbox} onClick={redrawBox} className="grid w-full place-items-center gap-1 rounded-lg border border-transparent px-1 py-2 text-zinc-400 transition-colors hover:border-zinc-700 hover:bg-zinc-800 hover:text-zinc-100 disabled:cursor-not-allowed disabled:opacity-35"><MousePointer2 size={15} /><kbd className="font-mono text-[9px]">R</kbd></button><button type="button" title="Clear box (Delete)" disabled={imageState !== 'ready' || !bbox} onClick={clearBox} className="grid w-full place-items-center gap-1 rounded-lg border border-transparent px-1 py-2 text-zinc-400 transition-colors hover:border-red-500/30 hover:bg-red-500/10 hover:text-red-300 disabled:cursor-not-allowed disabled:opacity-35"><Eraser size={15} /><kbd className="font-mono text-[9px]">Del</kbd></button></nav>}
+              <div className="flex min-w-0 flex-1 items-center justify-center p-4 sm:p-6">{imageState === 'error' ? <p className="text-sm text-zinc-500">Image unavailable. Please return to Workspace and try again.</p> : readyImageUrl && <div ref={imageRef} className={`relative inline-block max-h-[600px] max-w-full select-none ${!showFinalConsensus && placingBox && imageState === 'ready' ? 'cursor-crosshair' : ''}`} onMouseDown={!showFinalConsensus && imageState === 'ready' ? beginDrawingBox : undefined} onMouseMove={!showFinalConsensus && imageState === 'ready' ? updateBox : undefined} onMouseUp={!showFinalConsensus && imageState === 'ready' ? endBoxAction : undefined} onMouseLeave={!showFinalConsensus && imageState === 'ready' ? endBoxAction : undefined}>
                 <img src={readyImageUrl} alt="Saved subject for Expert review" draggable={false} className="block max-h-[600px] max-w-full rounded-lg object-contain" />
                 {imageState === 'ready' && !displayedBox && <div className="pointer-events-none absolute inset-0 grid place-items-center"><span className="rounded-lg border border-zinc-700 bg-zinc-950/90 px-3 py-2 text-xs text-zinc-400">{placingBox ? 'Drag over the snake to draw a box' : 'No AI box · click Add box to create one'}</span></div>}
-                {imageState === 'ready' && displayedBox && <div className={`absolute border-2 border-emerald-400 bg-emerald-500/10 shadow-[0_0_18px_rgba(16,185,129,0.22)] ${showFinalConsensus ? 'cursor-default' : 'cursor-move'}`} style={{ left: `${displayedBox.x}%`, top: `${displayedBox.y}%`, width: `${displayedBox.width}%`, height: `${displayedBox.height}%` }} onMouseDown={showFinalConsensus ? undefined : (event) => beginBoxAction(event, 'move')}><span className="absolute -top-7 left-0 max-w-[220px] truncate rounded bg-emerald-500 px-2 py-1 text-[10px] font-medium text-zinc-950">{displayedBoxLabel}</span>{!showFinalConsensus && <ResizeHandles onStart={beginBoxAction} />}</div>}
+                {imageState === 'ready' && displayedBox && <div className={`absolute border border-emerald-300/90 bg-emerald-500/[0.06] shadow-[0_0_12px_rgba(16,185,129,0.14)] ${showFinalConsensus ? 'cursor-default' : 'cursor-move'}`} style={{ left: `${displayedBox.x}%`, top: `${displayedBox.y}%`, width: `${displayedBox.width}%`, height: `${displayedBox.height}%` }} onMouseDown={showFinalConsensus ? undefined : (event) => beginBoxAction(event, 'move')}><span className="absolute -top-6 left-0 max-w-[220px] truncate rounded-md bg-emerald-500 px-2 py-0.5 text-[10px] font-medium text-zinc-950">{displayedBoxLabel}</span>{!showFinalConsensus && <ResizeHandles onStart={beginBoxAction} />}</div>}
               </div>}
+              </div>
             </div>
             <div className="border-t border-zinc-800 px-5 py-3 text-xs text-zinc-500">{imageState === 'loading' ? 'Loading image…' : imageState === 'error' ? 'The image could not be loaded, so the review box is hidden.' : showFinalConsensus && scan.consensus ? `Final consensus: ${scan.consensus.scientific} · ${scan.consensus.reviewCount} expert reviews.` : bbox ? 'Drag inside the box to move it. Drag any edge or corner to resize it.' : placingBox ? 'Click and drag over the snake to draw a review box.' : 'No box was detected by AI. Add one only if you identify a snake.'}</div>
           </section>
@@ -402,17 +409,17 @@ export default function AnnotatePage({ params }: { params: Promise<{ id: string 
 
 function ResizeHandles({ onStart }: { onStart: (event: ReactMouseEvent, mode: DragMode) => void }) {
   const handles: Array<{ mode: Exclude<DragMode, 'move'>; className: string; label: string }> = [
-    { mode: 'nw', className: '-left-2 -top-2 cursor-nwse-resize', label: 'Resize from top left' },
-    { mode: 'n', className: 'left-1/2 -top-1.5 h-3 w-10 -translate-x-1/2 cursor-ns-resize', label: 'Resize from top' },
-    { mode: 'ne', className: '-right-2 -top-2 cursor-nesw-resize', label: 'Resize from top right' },
-    { mode: 'e', className: '-right-1.5 top-1/2 h-10 w-3 -translate-y-1/2 cursor-ew-resize', label: 'Resize from right' },
-    { mode: 'se', className: '-bottom-2 -right-2 cursor-nwse-resize', label: 'Resize from bottom right' },
-    { mode: 's', className: '-bottom-1.5 left-1/2 h-3 w-10 -translate-x-1/2 cursor-ns-resize', label: 'Resize from bottom' },
-    { mode: 'sw', className: '-bottom-2 -left-2 cursor-nesw-resize', label: 'Resize from bottom left' },
-    { mode: 'w', className: '-left-1.5 top-1/2 h-10 w-3 -translate-y-1/2 cursor-ew-resize', label: 'Resize from left' },
+    { mode: 'nw', className: '-left-1.5 -top-1.5 cursor-nwse-resize', label: 'Resize from top left' },
+    { mode: 'n', className: 'left-1/2 -top-1 h-2.5 w-7 -translate-x-1/2 cursor-ns-resize', label: 'Resize from top' },
+    { mode: 'ne', className: '-right-1.5 -top-1.5 cursor-nesw-resize', label: 'Resize from top right' },
+    { mode: 'e', className: '-right-1 top-1/2 h-7 w-2.5 -translate-y-1/2 cursor-ew-resize', label: 'Resize from right' },
+    { mode: 'se', className: '-bottom-1.5 -right-1.5 cursor-nwse-resize', label: 'Resize from bottom right' },
+    { mode: 's', className: '-bottom-1 left-1/2 h-2.5 w-7 -translate-x-1/2 cursor-ns-resize', label: 'Resize from bottom' },
+    { mode: 'sw', className: '-bottom-1.5 -left-1.5 cursor-nesw-resize', label: 'Resize from bottom left' },
+    { mode: 'w', className: '-left-1 top-1/2 h-7 w-2.5 -translate-y-1/2 cursor-ew-resize', label: 'Resize from left' },
   ]
 
-  return <>{handles.map((handle) => <button key={handle.mode} type="button" aria-label={handle.label} className={`absolute z-10 h-4 w-4 rounded-sm border border-emerald-100 bg-emerald-500 shadow ${handle.className}`} onMouseDown={(event) => onStart(event, handle.mode)} />)}</>
+  return <>{handles.map((handle) => <button key={handle.mode} type="button" aria-label={handle.label} className={`absolute z-10 h-3 w-3 rounded-full border border-emerald-100/90 bg-emerald-500 shadow-sm transition-transform hover:scale-110 ${handle.className}`} onMouseDown={(event) => onStart(event, handle.mode)} />)}</>
 }
 
 function DecisionOption({ active, onClick, title, detail, tone = 'emerald' }: { active: boolean; onClick: () => void; title: string; detail: string; tone?: 'emerald' | 'amber' | 'blue' }) {
