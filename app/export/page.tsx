@@ -29,13 +29,22 @@ type ModelReleaseResponse = {
   recommendedVersion: string
 }
 
+const RELEASE_CACHE_MS = 2 * 60 * 1000
+let releaseCache: { data: ModelReleaseResponse; expiresAt: number } | null = null
+
+function getCachedRelease() {
+  if (!releaseCache || releaseCache.expiresAt <= Date.now()) return null
+  return releaseCache.data
+}
+
 export default function ExportPage() {
+  const initialRelease = getCachedRelease()
   const [showDatasetModal, setShowDatasetModal] = useState(false)
-  const [modelReleases, setModelReleases] = useState<ModelRelease[]>([])
-  const [recommendedVersion, setRecommendedVersion] = useState<string | null>(null)
-  const [selectedVersion, setSelectedVersion] = useState<string | null>(null)
+  const [modelReleases, setModelReleases] = useState<ModelRelease[]>(() => initialRelease?.releases ?? [])
+  const [recommendedVersion, setRecommendedVersion] = useState<string | null>(() => initialRelease?.recommendedVersion ?? null)
+  const [selectedVersion, setSelectedVersion] = useState<string | null>(() => initialRelease?.recommendedVersion ?? null)
   const [releaseMenuOpen, setReleaseMenuOpen] = useState(false)
-  const [releaseStatus, setReleaseStatus] = useState<'loading' | 'ready' | 'error'>('loading')
+  const [releaseStatus, setReleaseStatus] = useState<'loading' | 'ready' | 'error'>(() => initialRelease ? 'ready' : 'loading')
   const [releaseRetry, setReleaseRetry] = useState(0)
 
   useEffect(() => {
@@ -44,10 +53,13 @@ export default function ExportPage() {
   }, [showDatasetModal])
 
   useEffect(() => {
+    if (getCachedRelease() && releaseRetry === 0) return
+
     const controller = new AbortController()
     fetch('/api/model-release', { signal: controller.signal, cache: 'no-store' })
       .then(response => response.ok ? response.json() : Promise.reject(new Error('Could not load model release.')))
       .then((response: ModelReleaseResponse) => {
+        releaseCache = { data: response, expiresAt: Date.now() + RELEASE_CACHE_MS }
         setModelReleases(response.releases)
         setRecommendedVersion(response.recommendedVersion)
         setSelectedVersion(response.recommendedVersion)
@@ -62,11 +74,19 @@ export default function ExportPage() {
     return () => controller.abort()
   }, [releaseRetry])
 
+  useEffect(() => {
+    if (releaseStatus !== 'ready' || !releaseCache) return
+    const delay = Math.max(0, releaseCache.expiresAt - Date.now())
+    const timer = window.setTimeout(() => setReleaseRetry(retry => retry + 1), delay)
+    return () => window.clearTimeout(timer)
+  }, [releaseStatus, releaseRetry])
+
   const modelRelease = modelReleases.find(release => release.version === selectedVersion) ?? null
   const recommendedArtifact = modelRelease?.artifacts.find(artifact => artifact.format.includes('ONNX')) ?? modelRelease?.artifacts[0]
   const alternativeArtifacts = modelRelease?.artifacts.filter(artifact => artifact.name !== recommendedArtifact?.name) ?? []
   const isReleaseLoading = releaseStatus === 'loading'
   const retryRelease = () => {
+    releaseCache = null
     setReleaseStatus('loading')
     setReleaseRetry(retry => retry + 1)
   }
