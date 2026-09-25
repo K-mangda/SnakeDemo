@@ -65,6 +65,7 @@ export default function ExportPage() {
   const modelRelease = modelReleases.find(release => release.version === selectedVersion) ?? null
   const recommendedArtifact = modelRelease?.artifacts.find(artifact => artifact.format.includes('ONNX')) ?? modelRelease?.artifacts[0]
   const alternativeArtifacts = modelRelease?.artifacts.filter(artifact => artifact.name !== recommendedArtifact?.name) ?? []
+  const isReleaseLoading = releaseStatus === 'loading'
   const retryRelease = () => {
     setReleaseStatus('loading')
     setReleaseRetry(retry => retry + 1)
@@ -125,15 +126,15 @@ export default function ExportPage() {
             </div>
 
             <div className="grid gap-3 sm:grid-cols-3 lg:grid-cols-1">
-              <Metric label="Validation mAP50" value={formatMetric(modelRelease?.metrics.map50)} />
-              <Metric label="Validation mAP50–95" value={formatMetric(modelRelease?.metrics.map50_95)} />
-              <Metric label="Snake species" value={modelRelease?.classCount ? String(modelRelease.classCount) : '—'} />
+              <Metric label="Validation mAP50" value={formatMetric(modelRelease?.metrics.map50)} loading={isReleaseLoading} />
+              <Metric label="Validation mAP50–95" value={formatMetric(modelRelease?.metrics.map50_95)} loading={isReleaseLoading} />
+              <Metric label="Snake species" value={modelRelease?.classCount ? String(modelRelease.classCount) : '—'} loading={isReleaseLoading} />
             </div>
           </div>
         </section>
 
-        <section className={`mt-6 grid gap-6 ${alternativeArtifacts.length > 0 ? 'lg:grid-cols-[1.25fr_0.75fr]' : ''}`}>
-          {alternativeArtifacts.length > 0 && <div className="rounded-2xl border border-zinc-800 bg-zinc-900/35 p-6 sm:p-7">
+        <section className={`mt-6 grid gap-6 ${alternativeArtifacts.length > 0 || isReleaseLoading ? 'lg:grid-cols-[1.25fr_0.75fr]' : ''}`}>
+          {isReleaseLoading ? <ModelFilesSkeleton /> : alternativeArtifacts.length > 0 && <div className="rounded-2xl border border-zinc-800 bg-zinc-900/35 p-6 sm:p-7">
             <div className="flex items-start justify-between gap-5">
               <div className="grid size-11 place-items-center rounded-xl bg-zinc-800 text-zinc-300"><Package size={20} /></div>
               <span className="rounded-full border border-emerald-500/25 bg-emerald-500/10 px-3 py-1 text-xs font-medium text-emerald-300">Model files</span>
@@ -152,7 +153,7 @@ export default function ExportPage() {
             <a href="https://docs.ultralytics.com/modes/export/" target="_blank" rel="noreferrer" className="mt-6 inline-flex items-center gap-2 text-sm font-medium text-emerald-400 transition hover:text-emerald-300">About the available formats <ArrowUpRight size={16} /></a>
           </div>}
 
-          <div className={`rounded-2xl border border-zinc-800 bg-zinc-900/20 p-6 sm:p-7 ${alternativeArtifacts.length === 0 ? 'lg:grid lg:grid-cols-[1fr_320px] lg:items-center lg:gap-12' : ''}`}>
+          <div className={`rounded-2xl border border-zinc-800 bg-zinc-900/20 p-6 sm:p-7 ${alternativeArtifacts.length === 0 && !isReleaseLoading ? 'lg:grid lg:grid-cols-[1fr_320px] lg:items-center lg:gap-12' : ''}`}>
             <div>
               <div className="flex items-start justify-between gap-5">
                 <div className="grid size-11 place-items-center rounded-xl bg-zinc-800 text-zinc-300"><ImageIcon size={20} /></div>
@@ -180,8 +181,20 @@ export default function ExportPage() {
   )
 }
 
-function Metric({ label, value }: { label: string; value: string }) {
-  return <div className="rounded-xl border border-zinc-800 bg-zinc-950/60 px-5 py-4"><p className="text-xs text-zinc-500">{label}</p><p className="mt-1 text-xl font-semibold tracking-tight text-zinc-100">{value}</p></div>
+function Metric({ label, value, loading }: { label: string; value: string; loading: boolean }) {
+  return <div className="rounded-xl border border-zinc-800 bg-zinc-950/60 px-5 py-4"><p className="text-xs text-zinc-500">{label}</p>{loading ? <div className="mt-2 h-5 w-16 animate-pulse rounded bg-zinc-800" /> : <p className="mt-1 text-xl font-semibold tracking-tight text-zinc-100">{value}</p>}</div>
+}
+
+function ModelFilesSkeleton() {
+  return <div className="rounded-2xl border border-zinc-800 bg-zinc-900/35 p-6 sm:p-7" aria-hidden="true">
+    <div className="flex items-start justify-between gap-5">
+      <div className="grid size-11 place-items-center rounded-xl bg-zinc-800 text-zinc-500"><Package size={20} /></div>
+      <div className="h-6 w-20 animate-pulse rounded-full bg-zinc-800" />
+    </div>
+    <div className="mt-7 h-6 w-44 animate-pulse rounded bg-zinc-800" />
+    <div className="mt-3 h-4 w-4/5 animate-pulse rounded bg-zinc-800/80" />
+    <div className="mt-6 h-24 animate-pulse rounded-lg border border-zinc-800 bg-zinc-950/40" />
+  </div>
 }
 
 function formatFileSize(size: number | null) {
