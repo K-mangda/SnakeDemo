@@ -84,6 +84,16 @@ export default function ExportPage() {
               </div>
               <h2 className="text-3xl font-semibold tracking-tight text-zinc-100">NSTRU Snake Classifier</h2>
               <p className="mt-2 text-sm text-zinc-400">{modelRelease ? `${modelRelease.version} · ${modelRelease.architecture}` : 'Loading release details…'}</p>
+              {modelReleases.length > 1 && (
+                <div className="mt-4 flex flex-wrap items-center gap-2">
+                  <span className="mr-1 text-xs font-medium text-zinc-500">Choose release</span>
+                  {modelReleases.map(release => (
+                    <button key={release.version} onClick={() => setSelectedVersion(release.version)} className={`rounded-md border px-2.5 py-1.5 text-xs font-medium transition ${release.version === selectedVersion ? 'border-emerald-500 bg-emerald-500/10 text-emerald-300' : 'border-zinc-700 bg-zinc-950/50 text-zinc-400 hover:border-zinc-500 hover:text-zinc-200'}`}>
+                      {release.version}{release.version === recommendedVersion && <span className="ml-1.5 text-emerald-400">Best</span>}
+                    </button>
+                  ))}
+                </div>
+              )}
               <p className="mt-5 max-w-xl text-sm leading-6 text-zinc-400">Trained model weights for identifying Thai snake species. Choose a release format that fits your inference environment.</p>
               <div className="mt-7 flex flex-wrap gap-3">
                 {recommendedArtifact ? (
@@ -102,21 +112,6 @@ export default function ExportPage() {
             </div>
           </div>
         </section>
-
-        {modelReleases.length > 0 && (
-          <section className="mt-6 rounded-2xl border border-zinc-800 bg-zinc-900/20 p-5 sm:p-6">
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <div>
-                <h2 className="text-sm font-semibold text-zinc-100">Model release</h2>
-                <p className="mt-1 text-xs text-zinc-500">The recommended release has the strongest validation mAP50–95.</p>
-              </div>
-              <label className="sr-only" htmlFor="model-release">Choose model release</label>
-              <select id="model-release" value={selectedVersion ?? ''} onChange={event => setSelectedVersion(event.target.value)} className="min-w-52 rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm text-zinc-100 outline-none transition focus:border-emerald-500">
-                {modelReleases.map(release => <option key={release.version} value={release.version}>{release.version}{release.version === recommendedVersion ? ' — Recommended' : ''}</option>)}
-              </select>
-            </div>
-          </section>
-        )}
 
         <section className="mt-6 grid gap-6 lg:grid-cols-[1.25fr_0.75fr]">
           <div className="rounded-2xl border border-zinc-800 bg-zinc-900/35 p-6 sm:p-7">
