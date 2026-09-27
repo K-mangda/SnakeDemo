@@ -15,7 +15,7 @@ import { spawnSync } from 'node:child_process'
 import { createRequire } from 'node:module'
 
 const require = createRequire(import.meta.url)
-const archiver = require('archiver')
+const { ZipArchive } = require('archiver')
 
 const root = resolve(import.meta.dirname, '..')
 const defaultOutput = join(root, 'dataset-release')
@@ -104,7 +104,7 @@ async function writeJson(path, data) {
 
 async function archiveFolder(source, destination) {
   const output = createWriteStream(destination)
-  const archive = archiver('zip', { zlib: { level: 6 } })
+  const archive = new ZipArchive({ zlib: { level: 6 } })
   archive.on('warning', error => { if (error.code !== 'ENOENT') throw error })
   archive.on('error', error => { throw error })
   archive.pipe(output)
