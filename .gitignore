@@ -19,6 +19,7 @@
 
 # production
 /build
+/dataset-release
 
 # misc
 .DS_Store
