@@ -28,12 +28,12 @@ export default function AccountPage() {
 
   async function changePassword(event: React.FormEvent) {
     event.preventDefault()
-    if (password.length < 8) { showToast('Use at least 8 characters.'); return }
-    if (password !== confirmPassword) { showToast('Passwords do not match.'); return }
+    if (password.length < 8) { showToast('Use at least 8 characters.', 'error'); return }
+    if (password !== confirmPassword) { showToast('Passwords do not match.', 'error'); return }
     setSaving(true)
     const { error } = await supabase.auth.updateUser({ password })
     setSaving(false)
-    if (error) { showToast(error.message); return }
+    if (error) { showToast(error.message, 'error'); return }
     setPassword('')
     setConfirmPassword('')
     showToast('Password updated.')

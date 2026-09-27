@@ -53,7 +53,7 @@ export default function LoginPage() {
     setLoading(true)
     const { data, error } = await supabase.auth.signInWithPassword({ email, password })
     if (error || !data.user) {
-      showToast(error?.message ?? 'Unable to sign in')
+      showToast(error?.message ?? 'Unable to sign in', 'error')
       setLoading(false)
       return
     }
@@ -61,12 +61,12 @@ export default function LoginPage() {
     const profile = profiles?.[0]
     setLoading(false)
     if (profileError || !profile) {
-      showToast('This account has not been assigned access. Contact an administrator.')
+      showToast('This account has not been assigned access. Contact an administrator.', 'error')
       await supabase.auth.signOut()
       return
     }
     if (profile.status !== 'active') {
-      showToast('This account is not active')
+      showToast('This account is not active', 'error')
       await supabase.auth.signOut()
       return
     }
@@ -88,7 +88,7 @@ export default function LoginPage() {
       setResetOpen(false)
       setResetEmail('')
     } catch (error) {
-      showToast(error instanceof Error ? error.message : 'Unable to send a reset link right now.')
+      showToast(error instanceof Error ? error.message : 'Unable to send a reset link right now.', 'error')
     } finally {
       setResetSending(false)
     }

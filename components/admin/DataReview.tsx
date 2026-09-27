@@ -86,7 +86,7 @@ export default function DataReview() {
                   size="sm" 
                   onClick={() => {
                     if (!anomalyForm.scientificName) {
-                      showToast('Please enter a Scientific Name first so AI can search.');
+                      showToast('Please enter a Scientific Name first so AI can search.', 'error');
                       return;
                     }
                     setIsAutoFilling(true);
@@ -281,13 +281,13 @@ export default function DataReview() {
               <Button onClick={() => {
                 if (anomalyAction.type === 'create') {
                   if (!anomalyForm.scientificName.trim()) {
-                    showToast('Scientific Name is required!');
+                    showToast('Scientific Name is required!', 'error');
                     return;
                   }
                   showToast(`Created new class: "${anomalyForm.scientificName}". Specimen reassigned.`)
                 } else {
                   if (!anomalyInputValue) {
-                    showToast('Please select an action or species first.');
+                    showToast('Please select an action or species first.', 'error');
                     return;
                   }
                   if (anomalyInputValue === 'pool') {

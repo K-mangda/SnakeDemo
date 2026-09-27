@@ -49,7 +49,7 @@ export default function PredictPage() {
         setNoDetection(true)
         setNoDetectionSaved(payload.recorded === true)
         setLoading(false)
-        showToast(payload.recorded ? 'No-detection image saved for expert review.' : 'No snake detected. The image was not saved.')
+        showToast(payload.recorded ? 'No-detection image saved for expert review.' : 'No snake detected. The image was not saved.', 'info')
         return
       }
       setDetections(payload.detections)
