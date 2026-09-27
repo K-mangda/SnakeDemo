@@ -28,7 +28,10 @@ jobs:
           cache: npm
 
       - name: Install publisher dependencies
-        run: npm ci
+        # npm ci rejects optional native packages that npm 11 generates differently
+        # on the GitHub Linux runner. This isolated publishing runner is ephemeral,
+        # so a normal install remains safe and resolves those platform packages.
+        run: npm install --no-audit --no-fund
 
       - name: Install Hugging Face CLI
         run: pip install --disable-pip-version-check huggingface_hub
