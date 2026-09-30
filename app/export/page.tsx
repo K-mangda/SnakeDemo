@@ -2,9 +2,8 @@
 
 import { useEffect, useState } from 'react'
 import { ArrowUpRight, BrainCircuit, CheckCircle2, ChevronDown, Database, Download, FileCode2, FileJson, Image as ImageIcon, Package, ShieldCheck } from 'lucide-react'
-import { MOCK_STATS } from '@/lib/data'
 import Button from '@/components/ui/Button'
-import DatasetExportModal from '@/components/export/DatasetExportModal'
+import DatasetExportModal, { type DatasetRelease } from '@/components/export/DatasetExportModal'
 
 type ModelArtifact = {
   name: string
@@ -29,8 +28,11 @@ type ModelReleaseResponse = {
   recommendedVersion: string
 }
 
+type DatasetReleaseResponse = DatasetRelease & { createdAt: string }
+
 const RELEASE_CACHE_MS = 2 * 60 * 1000
 let releaseCache: { data: ModelReleaseResponse; expiresAt: number } | null = null
+let datasetCache: { data: DatasetReleaseResponse; expiresAt: number } | null = null
 
 function getCachedRelease() {
   if (!releaseCache || releaseCache.expiresAt <= Date.now()) return null
@@ -39,6 +41,7 @@ function getCachedRelease() {
 
 export default function ExportPage() {
   const initialRelease = getCachedRelease()
+  const initialDataset = getCachedDataset()
   const [showDatasetModal, setShowDatasetModal] = useState(false)
   const [modelReleases, setModelReleases] = useState<ModelRelease[]>(() => initialRelease?.releases ?? [])
   const [recommendedVersion, setRecommendedVersion] = useState<string | null>(() => initialRelease?.recommendedVersion ?? null)
@@ -46,6 +49,8 @@ export default function ExportPage() {
   const [releaseMenuOpen, setReleaseMenuOpen] = useState(false)
   const [releaseStatus, setReleaseStatus] = useState<'loading' | 'ready' | 'error'>(() => initialRelease ? 'ready' : 'loading')
   const [releaseRetry, setReleaseRetry] = useState(0)
+  const [datasetRelease, setDatasetRelease] = useState<DatasetReleaseResponse | null>(() => initialDataset)
+  const [datasetStatus, setDatasetStatus] = useState<'loading' | 'ready' | 'error'>(() => initialDataset ? 'ready' : 'loading')
 
   useEffect(() => {
     document.body.style.overflow = showDatasetModal ? 'hidden' : 'unset'
@@ -81,6 +86,26 @@ export default function ExportPage() {
     return () => window.clearTimeout(timer)
   }, [releaseStatus, releaseRetry])
 
+  useEffect(() => {
+    if (getCachedDataset()) return
+
+    const controller = new AbortController()
+    fetch('/api/dataset-release', { signal: controller.signal })
+      .then(response => response.ok ? response.json() : Promise.reject(new Error('Could not load the published dataset.')))
+      .then((response: DatasetReleaseResponse) => {
+        datasetCache = { data: response, expiresAt: Date.now() + RELEASE_CACHE_MS }
+        setDatasetRelease(response)
+        setDatasetStatus('ready')
+      })
+      .catch(error => {
+        if (error.name !== 'AbortError') {
+          console.error(error)
+          setDatasetStatus('error')
+        }
+      })
+    return () => controller.abort()
+  }, [])
+
   const modelRelease = modelReleases.find(release => release.version === selectedVersion) ?? null
   const recommendedArtifact = modelRelease?.artifacts.find(artifact => artifact.format.includes('ONNX')) ?? modelRelease?.artifacts[0]
   const alternativeArtifacts = modelRelease?.artifacts.filter(artifact => artifact.name !== recommendedArtifact?.name) ?? []
@@ -93,7 +118,7 @@ export default function ExportPage() {
 
   return (
     <main className="min-h-screen bg-zinc-950 px-6 pb-24 pt-32 text-zinc-100">
-      {showDatasetModal && <DatasetExportModal onClose={() => setShowDatasetModal(false)} />}
+      {showDatasetModal && datasetRelease && <DatasetExportModal release={datasetRelease} onClose={() => setShowDatasetModal(false)} />}
 
       <div className="mx-auto max-w-5xl">
         <header className="mb-12 max-w-2xl">
@@ -184,10 +209,11 @@ export default function ExportPage() {
             </div>
             <div className={alternativeArtifacts.length === 0 ? 'mt-6 lg:mt-0' : ''}>
               <div className="border-y border-zinc-800 py-4">
-              <p className="text-2xl font-semibold tracking-tight text-zinc-100">{MOCK_STATS.validated_images.toLocaleString()}</p>
-              <p className="mt-1 text-xs text-zinc-500">verified images available for dataset export</p>
+              <p className="text-2xl font-semibold tracking-tight text-zinc-100">{datasetRelease ? datasetRelease.imageCount.toLocaleString() : '—'}</p>
+              <p className="mt-1 text-xs text-zinc-500">{datasetRelease ? `${datasetRelease.classCount} species · ${datasetRelease.version} published on Hugging Face` : datasetStatus === 'error' ? 'Dataset release could not be loaded.' : 'Loading published dataset…'}</p>
               </div>
-              <Button onClick={() => setShowDatasetModal(true)} variant="outline" className="mt-6 w-full justify-center"><Database size={16} /> Export dataset</Button>
+              <Button onClick={() => setShowDatasetModal(true)} disabled={!datasetRelease} variant="outline" className="mt-6 w-full justify-center"><Database size={16} /> Download dataset</Button>
+              {datasetRelease && <a href={datasetRelease.repositoryUrl} target="_blank" rel="noreferrer" className="mt-3 inline-flex text-xs font-medium text-emerald-400 transition hover:text-emerald-300">View release on Hugging Face <ArrowUpRight className="ml-1" size={13} /></a>}
             </div>
           </div>
         </section>
@@ -230,4 +256,9 @@ function formatReleaseVersion(version: string) {
   if (/^v\d+$/.test(version)) return `${version}.0.0`
   if (/^v\d+\.\d+$/.test(version)) return `${version}.0`
   return version
+}
+
+function getCachedDataset() {
+  if (!datasetCache || datasetCache.expiresAt <= Date.now()) return null
+  return datasetCache.data
 }

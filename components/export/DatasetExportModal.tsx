@@ -7,6 +7,15 @@ type DatasetFormat = 'YOLO' | 'COCO' | 'CSV'
 
 interface DatasetExportModalProps {
   onClose: () => void
+  release: DatasetRelease
+}
+
+export type DatasetRelease = {
+  version: string
+  imageCount: number
+  classCount: number
+  repositoryUrl: string
+  formats: Array<{ format: DatasetFormat; url: string }>
 }
 
 const formatOptions: Array<{
@@ -39,7 +48,7 @@ const formatOptions: Array<{
   },
 ]
 
-export default function DatasetExportModal({ onClose }: DatasetExportModalProps) {
+export default function DatasetExportModal({ onClose, release }: DatasetExportModalProps) {
   const [format, setFormat] = useState<DatasetFormat>('YOLO')
   const [downloading, setDownloading] = useState(false)
   const { showToast } = useToast()
@@ -47,12 +56,14 @@ export default function DatasetExportModal({ onClose }: DatasetExportModalProps)
 
   function handleDownload() {
     setDownloading(true)
-    setTimeout(() => {
+    window.setTimeout(() => {
       setDownloading(false)
-      showToast(`Dataset export is being prepared as ${format}.`)
+      showToast(`${format} ZIP download started.`)
       onClose()
-    }, 900)
+    }, 250)
   }
+
+  const downloadUrl = release.formats.find(option => option.format === format)?.url
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-zinc-950/75 p-4 backdrop-blur-sm animate-in fade-in">
@@ -64,7 +75,7 @@ export default function DatasetExportModal({ onClose }: DatasetExportModalProps)
             </div>
             <div>
               <h2 className="text-base font-semibold tracking-tight text-zinc-100">Export verified dataset</h2>
-              <p className="mt-1 text-sm leading-5 text-zinc-500">Choose a format for the reviewed training data.</p>
+              <p className="mt-1 text-sm leading-5 text-zinc-500">Release {release.version} · {release.imageCount.toLocaleString()} verified images · {release.classCount} species</p>
             </div>
           </div>
           <button onClick={onClose} aria-label="Close export dialog" className="grid size-9 shrink-0 place-items-center rounded-lg border border-zinc-800 text-zinc-500 transition hover:border-zinc-700 hover:bg-zinc-900 hover:text-zinc-200">
@@ -121,9 +132,9 @@ export default function DatasetExportModal({ onClose }: DatasetExportModalProps)
 
         <footer className="flex items-center justify-between gap-4 border-t border-zinc-800 bg-zinc-900/30 px-6 py-4">
           <p className="hidden text-xs text-zinc-500 sm:block">The archive uses final review data only.</p>
-          <Button onClick={handleDownload} disabled={downloading} className="ml-auto min-w-52 justify-center py-2.5">
-            {downloading ? <><Archive className="animate-spin" size={17} /> Preparing archive…</> : <><Download size={17} /> Download {format} ZIP</>}
-          </Button>
+          {downloadUrl ? <a href={downloadUrl} onClick={handleDownload} className="ml-auto inline-flex min-w-52 items-center justify-center gap-2 rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-emerald-500">
+            {downloading ? <><Archive className="animate-spin" size={17} /> Starting download…</> : <><Download size={17} /> Download {format} ZIP</>}
+          </a> : <Button disabled className="ml-auto min-w-52 justify-center py-2.5"><Download size={17} /> Download unavailable</Button>}
         </footer>
       </div>
     </div>
