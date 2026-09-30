@@ -1,8 +1,7 @@
 'use client'
 
-import { ACTIVE_MODEL } from '@/lib/data'
 import Badge from '@/components/ui/Badge'
-import { Server, Activity, RefreshCw } from 'lucide-react'
+import { Server, Activity } from 'lucide-react'
 import SystemTelemetry from '@/components/admin/SystemTelemetry'
 import DatasetHealth from '@/components/admin/DatasetHealth'
 import DataReview from '@/components/admin/DataReview'
@@ -21,9 +20,8 @@ export default function AdminPage() {
             <p className="text-zinc-500 font-light">Administrative monitoring, dataset, and infrastructure control.</p>
           </div>
           <div className="flex flex-wrap gap-4">
-            <Badge variant="success"><Server size={12} className="mr-1 animate-pulse"/> API Online</Badge>
-            <Badge variant="info"><Activity size={12} className="mr-1 animate-pulse"/> Model {ACTIVE_MODEL.version}</Badge>
-            <Badge variant="success"><RefreshCw size={12} className="mr-1 animate-[spin_2s_linear_infinite]"/> Ready to Train</Badge>
+            <Badge variant="info"><Server size={12} className="mr-1"/> Admin data: live database</Badge>
+            <Badge variant="info"><Activity size={12} className="mr-1"/> Training worker: unavailable</Badge>
           </div>
         </header>
 
