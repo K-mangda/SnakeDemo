@@ -74,7 +74,7 @@ values
     'Medical details must be reviewed by a qualified clinician; this application is not a diagnostic tool.'
   ),
   (
-    'Bungarus wanghaotingi', 'Bungarus wanghaotingi', null, 'Wanghao''s Krait', 'Elapidae',
+    'Bungarus wanghaotingi', 'Bungarus wanghaotingi', 'งูสามเหลี่ยมวังฮ่าว', 'Wanghao''s Krait', 'Elapidae',
     null, null, 'Taxonomic reference for the model label.', '[]'::jsonb, '[]'::jsonb,
     'https://reptile-database.reptarium.cz/Bungarus/wanghaotingi', null,
     'This label is not one of the QSMI monovalent-antivenom species stated in the research report.'
@@ -217,8 +217,8 @@ with thbif_reference (
     ('Bungarus fasciatus', 'งูสามเหลี่ยม', 'Banded Krait',
       'TH-BIF/ONEP and the research scope identify this Thai species; QSMI coverage is recorded separately.',
       'QSMI clinical category is included only as stated in research report section 2.2.3; it is not a diagnosis.'),
-    ('Bungarus wanghaotingi', 'ไม่มีชื่อไทยมาตรฐานในแหล่งอ้างอิงที่ใช้', 'Wanghao''s Krait',
-      'Taxonomic model class checked against The Reptile Database. A Thai common name is not asserted where TH-BIF/ONEP does not provide one for this exact label.',
+    ('Bungarus wanghaotingi', 'งูสามเหลี่ยมวังฮ่าว', 'Wanghao''s Krait',
+      'Project-facing Thai name selected for this model label. It is not asserted as a standardized Thai common name.',
       'This label is not one of the QSMI monovalent-antivenom species stated in the research report.'),
     ('Calliophis maculiceps maculiceps', 'งูปล้องหวายหัวดำ', 'Small-spotted Coral Snake',
       'TH-BIF/ONEP records Calliophis maculiceps in Thailand and lists this Thai common name.',
