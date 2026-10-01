@@ -13,7 +13,15 @@ type Telemetry = {
   counts: { total: number; verified: number; pending: number; unclear: number; waitingForNewClass: number }
   recentImageCreatedAt: string[]
   verifiedSpecies: { name: string; count: number }[]
-  modelVersions: { version: string; map50: number | null; precision: number | null; recall: number | null; recordedAt: string }[]
+}
+
+type ModelRelease = {
+  version: string
+  architecture: string
+  classCount: number | null
+  releasedAt: string | null
+  metrics: { map50: number | null; map50_95: number | null }
+  artifacts: { name: string }[]
 }
 
 function localDateKey(value: Date) {
@@ -35,6 +43,7 @@ function TelemetrySkeleton() {
 
 export default function SystemTelemetry() {
   const [telemetry, setTelemetry] = useState<Telemetry | null>(null)
+  const [modelReleases, setModelReleases] = useState<ModelRelease[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -44,10 +53,15 @@ export default function SystemTelemetry() {
     try {
       const { data: { session } } = await supabase.auth.getSession()
       if (!session) throw new Error('Sign in is required.')
-      const response = await fetch('/api/admin/telemetry', { headers: { Authorization: `Bearer ${session.access_token}` }, cache: 'no-store' })
-      const payload = await response.json()
-      if (!response.ok) throw new Error(payload.detail ?? 'Could not load system telemetry.')
+      const [telemetryResponse, releasesResponse] = await Promise.all([
+        fetch('/api/admin/telemetry', { headers: { Authorization: `Bearer ${session.access_token}` }, cache: 'no-store' }),
+        fetch('/api/model-release', { cache: 'no-store' }),
+      ])
+      const payload = await telemetryResponse.json()
+      if (!telemetryResponse.ok) throw new Error(payload.detail ?? 'Could not load system telemetry.')
       setTelemetry(payload as Telemetry)
+      const releasesPayload = await releasesResponse.json()
+      setModelReleases(releasesResponse.ok ? releasesPayload.releases ?? [] : [])
     } catch (requestError) {
       setError(requestError instanceof Error ? requestError.message : 'Could not load system telemetry.')
     } finally {
@@ -73,9 +87,12 @@ export default function SystemTelemetry() {
     })
   }, [telemetry])
 
-  const modelData = useMemo(() => (telemetry?.modelVersions ?? [])
-    .filter(model => model.map50 !== null)
-    .map(model => ({ ...model, map50Percent: (model.map50 ?? 0) * 100 })), [telemetry])
+  const modelData = useMemo(() => modelReleases
+    .filter(release => release.metrics.map50 !== null)
+    .map(release => ({
+    ...release,
+    map50Percent: (release.metrics.map50 ?? 0) * 100,
+  })), [modelReleases])
   const speciesData = useMemo(() => [...(telemetry?.verifiedSpecies ?? [])].sort((left, right) => right.count - left.count).slice(0, 5), [telemetry])
   const statusData = useMemo(() => telemetry ? [
     { name: 'Verified', value: telemetry.counts.verified, color: '#10b981' },
@@ -101,7 +118,7 @@ export default function SystemTelemetry() {
       </div>
       <div className="border border-zinc-800 bg-zinc-900/20 p-6 rounded-xl transition-all duration-300">
         <h3 className="text-sm font-medium text-zinc-300 mb-6 flex items-center gap-2"><BrainCircuit size={16} className="text-purple-500" /> Model Performance by Version</h3>
-        <div className="h-64">{loading ? <p className="pt-20 text-center text-sm text-zinc-500">Loading model versions…</p> : modelData.length ? <ResponsiveContainer width="100%" height="100%"><LineChart data={modelData} margin={{ top: 5, right: 0, left: -20, bottom: 0 }}><CartesianGrid strokeDasharray="3 3" stroke="#27272a" vertical={false} /><XAxis dataKey="version" stroke="#52525b" fontSize={12} tickLine={false} axisLine={false} /><YAxis dataKey="map50Percent" unit="%" stroke="#52525b" fontSize={12} domain={['dataMin - 1', 'dataMax + 1']} tickLine={false} axisLine={false} /><RechartsTooltip contentStyle={chartTooltipStyle} itemStyle={{ color: '#a855f7' }} formatter={(value, _name, item) => [`${Number(value).toFixed(2)}%`, 'mAP@50']} labelFormatter={(_label, payload) => { const model = payload[0]?.payload as typeof modelData[number] | undefined; return model ? `${model.version} · Precision ${model.precision === null ? 'Unavailable' : `${(model.precision * 100).toFixed(2)}%`} · Recall ${model.recall === null ? 'Unavailable' : `${(model.recall * 100).toFixed(2)}%`}` : '' }} /><Line type="monotone" dataKey="map50Percent" name="mAP@50" stroke="#a855f7" strokeWidth={3} dot={{ fill: '#18181b', strokeWidth: 2, r: 4 }} activeDot={{ r: 6 }} /></LineChart></ResponsiveContainer> : <div className="grid h-full place-items-center rounded-lg border border-dashed border-zinc-800 text-center"><p className="text-sm text-zinc-500">Unavailable<br/><span className="text-xs">No model version with mAP@50 is recorded.</span></p></div>}</div>
+        <div className="h-64">{loading ? <p className="pt-20 text-center text-sm text-zinc-500">Loading model versions…</p> : modelData.length ? <ResponsiveContainer width="100%" height="100%"><LineChart data={modelData} margin={{ top: 5, right: 0, left: -20, bottom: 0 }}><CartesianGrid strokeDasharray="3 3" stroke="#27272a" vertical={false} /><XAxis dataKey="version" stroke="#52525b" fontSize={12} tickLine={false} axisLine={false} /><YAxis dataKey="map50Percent" unit="%" stroke="#52525b" fontSize={12} domain={['dataMin - 1', 'dataMax + 1']} tickLine={false} axisLine={false} /><RechartsTooltip contentStyle={chartTooltipStyle} itemStyle={{ color: '#a855f7' }} formatter={value => [`${Number(value).toFixed(2)}%`, 'mAP@50']} labelFormatter={label => { const release = modelData.find(model => model.version === label); return release ? `${release.version} · ${release.architecture || 'Architecture unavailable'} · ${release.classCount === null ? 'Class count unavailable' : `${release.classCount} classes`}` : label }} /><Line type="monotone" dataKey="map50Percent" name="mAP@50" stroke="#a855f7" strokeWidth={3} dot={{ fill: '#18181b', strokeWidth: 2, r: 4 }} activeDot={{ r: 6 }} /></LineChart></ResponsiveContainer> : <div className="grid h-full place-items-center rounded-lg border border-dashed border-zinc-800 text-center"><p className="text-sm text-zinc-500">Unavailable<br/><span className="text-xs">No released model has mAP@50 metadata.</span></p></div>}</div>
       </div>
     </div>
     <div className="grid md:grid-cols-3 gap-6 mb-12">

@@ -42,7 +42,7 @@ export async function GET(request: Request) {
     fourteenDaysAgo.setUTCDate(fourteenDaysAgo.getUTCDate() - 13)
     fourteenDaysAgo.setUTCHours(0, 0, 0, 0)
 
-    const [total, verified, pending, unclear, waitingForNewClass, recentImagesResult, speciesResult, modelsResult] = await Promise.all([
+    const [total, verified, pending, unclear, waitingForNewClass, recentImagesResult, speciesResult] = await Promise.all([
       countImages(),
       countImages('verified'),
       countImages('pending'),
@@ -50,14 +50,10 @@ export async function GET(request: Request) {
       countImages('waiting_for_new_class'),
       access.admin.from('snake_images').select('created_at').gte('created_at', fourteenDaysAgo.toISOString()).order('created_at'),
       access.admin.from('snake_species').select('id, scientific_name, name_en, name_th').order('scientific_name'),
-      access.admin.from('model_versions').select('version_name, map50, precision_score, recall_score, created_at').order('created_at'),
     ])
 
     if (recentImagesResult.error) throw recentImagesResult.error
     if (speciesResult.error) throw speciesResult.error
-    // Model history is optional operational metadata. A missing or not-yet
-    // migrated table must not hide image telemetry that is available now.
-    if (modelsResult.error) console.warn('Model-version telemetry is unavailable.', modelsResult.error)
 
     const verifiedSpecies = await Promise.all((speciesResult.data ?? []).map(async (species) => {
       const { count, error } = await access.admin
@@ -73,13 +69,6 @@ export async function GET(request: Request) {
       counts: { total, verified, pending, unclear, waitingForNewClass },
       recentImageCreatedAt: (recentImagesResult.data ?? []).map(image => image.created_at),
       verifiedSpecies,
-      modelVersions: (modelsResult.data ?? []).map(model => ({
-        version: model.version_name,
-        map50: model.map50,
-        precision: model.precision_score,
-        recall: model.recall_score,
-        recordedAt: model.created_at,
-      })),
     }, { headers: { 'Cache-Control': 'no-store' } })
   } catch (error) {
     console.error('Could not load system telemetry.', error)
