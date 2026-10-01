@@ -27,7 +27,7 @@ export default function AdminPage() {
   return (
     <main className="min-h-screen bg-zinc-950 p-6 md:p-12 font-sans selection:bg-emerald-500/30">
       <div className="max-w-6xl mx-auto">
-        <header className="mb-12 border-b border-zinc-900 pb-8 flex flex-col sm:flex-row sm:items-end justify-between gap-6">
+        <header className="mb-10 flex flex-col justify-between gap-6 sm:flex-row sm:items-end">
           <div>
             <h1 className="text-3xl font-medium text-zinc-100 mb-2">System Telemetry & Admin</h1>
             <p className="text-zinc-500 font-light">Administrative monitoring, dataset, and infrastructure control.</p>
