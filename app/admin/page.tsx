@@ -16,9 +16,9 @@ import { useState } from 'react'
 type AdminTab = 'overview' | 'review' | 'system'
 
 const tabs: { id: AdminTab; label: string }[] = [
-  { id: 'overview', label: 'Overview' },
-  { id: 'review', label: 'Review' },
-  { id: 'system', label: 'System' },
+  { id: 'overview', label: 'Dashboard' },
+  { id: 'review', label: 'Reviews' },
+  { id: 'system', label: 'Access & models' },
 ]
 
 export default function AdminPage() {
