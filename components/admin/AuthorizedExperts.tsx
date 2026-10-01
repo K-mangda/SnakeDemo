@@ -5,17 +5,18 @@ import { AlertTriangle, LoaderCircle, Mail, Plus, ShieldCheck } from 'lucide-rea
 import Button from '@/components/ui/Button'
 import { supabase } from '@/lib/supabase/client'
 import { useToast } from '@/components/ui/Toast'
+import { readAdminCache, writeAdminCache } from '@/lib/admin-cache'
 
 type Expert = { id: string; full_name: string; specialty: string | null; status: 'active' | 'inactive' | 'pending'; verificationCount: number }
 
 export default function AuthorizedExperts() {
-  const { showToast } = useToast(); const [experts, setExperts] = useState<Expert[]>([]); const [loading, setLoading] = useState(true); const [open, setOpen] = useState(false); const [form, setForm] = useState({ fullName: '', email: '', specialty: '' }); const [sending, setSending] = useState(false); const [actionId, setActionId] = useState<string | null>(null); const [pendingStatus, setPendingStatus] = useState<{ id: string; status: Expert['status'] } | null>(null); const [removeTarget, setRemoveTarget] = useState<Expert | null>(null); const [removing, setRemoving] = useState(false)
+  const { showToast } = useToast(); const [experts, setExperts] = useState<Expert[]>(() => readAdminCache<Expert[]>('authorized-experts') ?? []); const [loading, setLoading] = useState(() => readAdminCache<Expert[]>('authorized-experts') === null); const [open, setOpen] = useState(false); const [form, setForm] = useState({ fullName: '', email: '', specialty: '' }); const [sending, setSending] = useState(false); const [actionId, setActionId] = useState<string | null>(null); const [pendingStatus, setPendingStatus] = useState<{ id: string; status: Expert['status'] } | null>(null); const [removeTarget, setRemoveTarget] = useState<Expert | null>(null); const [removing, setRemoving] = useState(false)
   async function request(method: 'GET' | 'POST' | 'PATCH' | 'DELETE', body?: object) {
     const { data: { session } } = await supabase.auth.getSession(); if (!session) throw new Error('Sign in is required.')
     const response = await fetch('/api/admin/experts', { method, headers: { Authorization: `Bearer ${session.access_token}`, 'Content-Type': 'application/json' }, body: body ? JSON.stringify(body) : undefined }); const payload = await response.json(); if (!response.ok) throw new Error(payload.detail ?? 'Request failed.'); return payload
   }
-  async function load() { try { const payload = await request('GET'); setExperts(payload.experts) } catch (error) { showToast(error instanceof Error ? error.message : 'Could not load expert accounts.', 'error') }; setLoading(false) }
-  useEffect(() => { load() }, [])
+  async function load() { try { const payload = await request('GET'); setExperts(payload.experts); writeAdminCache('authorized-experts', payload.experts) } catch (error) { showToast(error instanceof Error ? error.message : 'Could not load expert accounts.', 'error') }; setLoading(false) }
+  useEffect(() => { if (readAdminCache<Expert[]>('authorized-experts') === null) void load() }, [])
   async function invite(event: React.FormEvent) { event.preventDefault(); setSending(true); try { await request('POST', form); showToast('Invitation sent. Access will activate after password setup.'); setForm({ fullName: '', email: '', specialty: '' }); setOpen(false); await load() } catch (error) { showToast(error instanceof Error ? error.message : 'Could not invite expert.', 'error') }; setSending(false) }
   async function resendInvitation(expert: Expert) { setActionId(expert.id); try { await request('POST', { expertId: expert.id }); showToast('A new password link was sent.'); } catch (error) { showToast(error instanceof Error ? error.message : 'Could not resend the invitation.', 'error') }; setActionId(null) }
   async function setStatus(expert: Expert, status: Expert['status']) { const startedAt = Date.now(); setActionId(expert.id); setPendingStatus({ id: expert.id, status }); try { await request('PATCH', { id: expert.id, status }); const remainingFeedback = 600 - (Date.now() - startedAt); if (remainingFeedback > 0) await new Promise(resolve => setTimeout(resolve, remainingFeedback)); showToast(`Account marked ${status}.`); await load() } catch (error) { showToast(error instanceof Error ? error.message : 'Could not update account.', 'error') }; setPendingStatus(null); setActionId(null) }

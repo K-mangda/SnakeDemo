@@ -5,6 +5,7 @@ import { AlertTriangle, ArrowRight, CheckCircle2, ChevronDown, CircleHelp, Clipb
 import Badge from '@/components/ui/Badge'
 import Button from '@/components/ui/Button'
 import { supabase } from '@/lib/supabase/client'
+import { readAdminCache, writeAdminCache } from '@/lib/admin-cache'
 
 type Box = { x: number; y: number; width: number; height: number }
 type AuditItem = { id: string; imageUrl: string | null; filename: string; status: 'pending' | 'verified' | 'unclear' | 'waiting_for_new_class'; updatedAt: string; finalSpecies: string | null; finalBox: Box | null; reason: string; reviews: { expert: string; species: string | null; bbox: Box | null; createdAt: string }[]; pairs: { leftExpert: string; rightExpert: string; value: number | null }[] }
@@ -28,8 +29,8 @@ function QueueRow({ title, description, count, item, icon: _icon, tone }: { titl
 }
 
 export default function ConsensusAudit() {
-  const [items, setItems] = useState<AuditItem[]>([])
-  const [loading, setLoading] = useState(true)
+  const [items, setItems] = useState<AuditItem[]>(() => readAdminCache<AuditItem[]>('consensus-audit') ?? [])
+  const [loading, setLoading] = useState(() => readAdminCache<AuditItem[]>('consensus-audit') === null)
   const [error, setError] = useState<string | null>(null)
   const [openId, setOpenId] = useState<string | null>(null)
 
@@ -41,13 +42,15 @@ export default function ConsensusAudit() {
       const response = await fetch('/api/admin/consensus', { headers: { Authorization: `Bearer ${session.access_token}` } })
       const payload = await response.json()
       if (!response.ok) throw new Error(payload.detail ?? 'Could not load consensus audit.')
-      setItems(payload.items ?? [])
+      const nextItems = payload.items ?? []
+      setItems(nextItems)
+      writeAdminCache('consensus-audit', nextItems)
     } catch (requestError) {
       setError(requestError instanceof Error ? requestError.message : 'Could not load consensus audit.')
     } finally { setLoading(false) }
   }
 
-  useEffect(() => { void load() }, [])
+  useEffect(() => { if (readAdminCache<AuditItem[]>('consensus-audit') === null) void load() }, [])
   const conflicts = useMemo(() => items.filter((item) => item.status === 'pending' && item.reviews.length > 1), [items])
   const unclear = useMemo(() => items.filter((item) => item.status === 'unclear'), [items])
   const newClass = useMemo(() => items.filter((item) => item.status === 'waiting_for_new_class'), [items])

@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { AlertTriangle, BrainCircuit, RefreshCw } from 'lucide-react'
 import Button from '@/components/ui/Button'
 import { supabase } from '@/lib/supabase/client'
+import { readAdminCache, writeAdminCache } from '@/lib/admin-cache'
 
 type Telemetry = {
   counts: { verified: number }
@@ -20,8 +21,8 @@ function DatasetHealthSkeleton() {
 }
 
 export default function DatasetHealth() {
-  const [telemetry, setTelemetry] = useState<Telemetry | null>(null)
-  const [loading, setLoading] = useState(true)
+  const [telemetry, setTelemetry] = useState<Telemetry | null>(() => readAdminCache<Telemetry>('dataset-health') ?? null)
+  const [loading, setLoading] = useState(() => readAdminCache<Telemetry>('dataset-health') === null)
   const [error, setError] = useState<string | null>(null)
 
   async function load() {
@@ -33,7 +34,9 @@ export default function DatasetHealth() {
       const response = await fetch('/api/admin/telemetry', { headers: { Authorization: `Bearer ${session.access_token}` }, cache: 'no-store' })
       const payload = await response.json()
       if (!response.ok) throw new Error(payload.detail ?? 'Could not load verified species data.')
-      setTelemetry(payload as Telemetry)
+      const nextTelemetry = payload as Telemetry
+      setTelemetry(nextTelemetry)
+      writeAdminCache('dataset-health', nextTelemetry)
     } catch (requestError) {
       setError(requestError instanceof Error ? requestError.message : 'Could not load verified species data.')
     } finally {
@@ -41,7 +44,7 @@ export default function DatasetHealth() {
     }
   }
 
-  useEffect(() => { void load() }, [])
+  useEffect(() => { if (readAdminCache<Telemetry>('dataset-health') === null) void load() }, [])
 
   const species = telemetry?.verifiedSpecies ?? []
   const verifiedSpecies = useMemo(() => species.filter(item => item.count > 0), [species])

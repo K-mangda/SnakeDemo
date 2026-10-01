@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { CheckCircle2, CircleAlert, CloudUpload, ExternalLink, LoaderCircle, RefreshCw } from 'lucide-react'
 import Button from '@/components/ui/Button'
 import { supabase } from '@/lib/supabase/client'
+import { readAdminCache, writeAdminCache } from '@/lib/admin-cache'
 
 type PublishRun = {
   status: string
@@ -17,9 +18,9 @@ type PublishRun = {
 type PublishStatus = { configured: boolean; run: PublishRun | null }
 
 export default function DatasetPublisher() {
-  const [publisher, setPublisher] = useState<PublishStatus | null>(null)
+  const [publisher, setPublisher] = useState<PublishStatus | null>(() => readAdminCache<PublishStatus>('dataset-publisher') ?? null)
   const [version, setVersion] = useState('v1')
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(() => readAdminCache<PublishStatus>('dataset-publisher') === null)
   const [publishing, setPublishing] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [showPublishConfirm, setShowPublishConfirm] = useState(false)
@@ -40,12 +41,13 @@ export default function DatasetPublisher() {
   async function refresh() {
     setLoading(true)
     setError(null)
-    try { setPublisher(await request('GET')) } catch (requestError) { setError(requestError instanceof Error ? requestError.message : 'Could not load the dataset publisher.') } finally { setLoading(false) }
+    try { const nextPublisher = await request('GET'); setPublisher(nextPublisher); writeAdminCache('dataset-publisher', nextPublisher) } catch (requestError) { setError(requestError instanceof Error ? requestError.message : 'Could not load the dataset publisher.') } finally { setLoading(false) }
   }
 
   useEffect(() => {
     let active = true
-    void request('GET').then(payload => { if (active) setPublisher(payload) }).catch(requestError => { if (active) setError(requestError instanceof Error ? requestError.message : 'Could not load the dataset publisher.') }).finally(() => { if (active) setLoading(false) })
+    if (readAdminCache<PublishStatus>('dataset-publisher')) return () => { active = false }
+    void request('GET').then(payload => { if (active) { setPublisher(payload); writeAdminCache('dataset-publisher', payload) } }).catch(requestError => { if (active) setError(requestError instanceof Error ? requestError.message : 'Could not load the dataset publisher.') }).finally(() => { if (active) setLoading(false) })
     return () => { active = false }
   }, [])
 

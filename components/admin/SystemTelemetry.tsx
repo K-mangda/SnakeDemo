@@ -8,6 +8,7 @@ import {
 } from 'recharts'
 import { supabase } from '@/lib/supabase/client'
 import Button from '@/components/ui/Button'
+import { readAdminCache, writeAdminCache } from '@/lib/admin-cache'
 
 type Telemetry = {
   counts: { total: number; verified: number; pending: number; unclear: number; waitingForNewClass: number }
@@ -23,6 +24,8 @@ type ModelRelease = {
   metrics: { map50: number | null; map50_95: number | null }
   artifacts: { name: string }[]
 }
+
+type CachedTelemetry = { telemetry: Telemetry; modelReleases: ModelRelease[] }
 
 function localDateKey(value: Date) {
   return `${value.getFullYear()}-${String(value.getMonth() + 1).padStart(2, '0')}-${String(value.getDate()).padStart(2, '0')}`
@@ -42,9 +45,9 @@ function TelemetrySkeleton() {
 }
 
 export default function SystemTelemetry() {
-  const [telemetry, setTelemetry] = useState<Telemetry | null>(null)
-  const [modelReleases, setModelReleases] = useState<ModelRelease[]>([])
-  const [loading, setLoading] = useState(true)
+  const [telemetry, setTelemetry] = useState<Telemetry | null>(() => readAdminCache<CachedTelemetry>('system-telemetry')?.telemetry ?? null)
+  const [modelReleases, setModelReleases] = useState<ModelRelease[]>(() => readAdminCache<CachedTelemetry>('system-telemetry')?.modelReleases ?? [])
+  const [loading, setLoading] = useState(() => readAdminCache<CachedTelemetry>('system-telemetry') === null)
   const [error, setError] = useState<string | null>(null)
   const [activeStatus, setActiveStatus] = useState<{ name: string; value: number; color: string } | null>(null)
 
@@ -60,9 +63,12 @@ export default function SystemTelemetry() {
       ])
       const payload = await telemetryResponse.json()
       if (!telemetryResponse.ok) throw new Error(payload.detail ?? 'Could not load system telemetry.')
-      setTelemetry(payload as Telemetry)
+      const nextTelemetry = payload as Telemetry
+      setTelemetry(nextTelemetry)
       const releasesPayload = await releasesResponse.json()
-      setModelReleases(releasesResponse.ok ? releasesPayload.releases ?? [] : [])
+      const nextReleases = releasesResponse.ok ? releasesPayload.releases ?? [] : []
+      setModelReleases(nextReleases)
+      writeAdminCache('system-telemetry', { telemetry: nextTelemetry, modelReleases: nextReleases })
     } catch (requestError) {
       setError(requestError instanceof Error ? requestError.message : 'Could not load system telemetry.')
     } finally {
@@ -70,7 +76,7 @@ export default function SystemTelemetry() {
     }
   }
 
-  useEffect(() => { void load() }, [])
+  useEffect(() => { if (readAdminCache<CachedTelemetry>('system-telemetry') === null) void load() }, [])
 
   const activityData = useMemo(() => {
     const today = new Date()

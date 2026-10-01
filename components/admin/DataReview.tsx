@@ -7,6 +7,7 @@ import { supabase } from '@/lib/supabase/client'
 import { useToast } from '@/components/ui/Toast'
 import UnclearImagesModal from '@/components/admin/modals/UnclearImagesModal'
 import NewClassAnomalyModal from '@/components/admin/modals/NewClassAnomalyModal'
+import { readAdminCache, writeAdminCache } from '@/lib/admin-cache'
 
 type QueueStatus = 'unclear' | 'waiting_for_new_class'
 type QueueItem = { id: string; filename: string; status: QueueStatus; updatedAt: string; imageUrl: string | null }
@@ -19,8 +20,8 @@ function ReviewSkeleton() {
 
 export default function DataReview() {
   const { showToast } = useToast()
-  const [data, setData] = useState<QueueResponse | null>(null)
-  const [loading, setLoading] = useState(true)
+  const [data, setData] = useState<QueueResponse | null>(() => readAdminCache<QueueResponse>('data-review') ?? null)
+  const [loading, setLoading] = useState(() => readAdminCache<QueueResponse>('data-review') === null)
   const [error, setError] = useState<string | null>(null)
   const [openQueue, setOpenQueue] = useState<QueueStatus | null>(null)
   const [selectedIds, setSelectedIds] = useState<string[]>([])
@@ -41,10 +42,10 @@ export default function DataReview() {
   async function load() {
     setLoading(true)
     setError(null)
-    try { setData(await request('GET') as QueueResponse) } catch (requestError) { setError(requestError instanceof Error ? requestError.message : 'Could not load review queues.') } finally { setLoading(false) }
+    try { const nextData = await request('GET') as QueueResponse; setData(nextData); writeAdminCache('data-review', nextData) } catch (requestError) { setError(requestError instanceof Error ? requestError.message : 'Could not load review queues.') } finally { setLoading(false) }
   }
 
-  useEffect(() => { void load() }, [])
+  useEffect(() => { if (readAdminCache<QueueResponse>('data-review') === null) void load() }, [])
 
   const queueItems = useMemo(() => data?.items.filter((item) => item.status === openQueue) ?? [], [data, openQueue])
 
