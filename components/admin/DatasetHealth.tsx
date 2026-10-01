@@ -5,6 +5,7 @@ import { AlertTriangle, BrainCircuit, RefreshCw } from 'lucide-react'
 import Button from '@/components/ui/Button'
 import { supabase } from '@/lib/supabase/client'
 import { readAdminCache, writeAdminCache } from '@/lib/admin-cache'
+import { onAdminRefresh } from '@/lib/admin-refresh'
 
 type Telemetry = {
   counts: { verified: number }
@@ -44,7 +45,10 @@ export default function DatasetHealth() {
     }
   }
 
-  useEffect(() => { if (readAdminCache<Telemetry>('dataset-health') === null) void load() }, [])
+  useEffect(() => {
+    if (readAdminCache<Telemetry>('dataset-health') === null) void load()
+    return onAdminRefresh('overview', () => { void load() })
+  }, [])
 
   const species = telemetry?.verifiedSpecies ?? []
   const verifiedSpecies = useMemo(() => species.filter(item => item.count > 0), [species])
@@ -54,12 +58,11 @@ export default function DatasetHealth() {
   const previewReadiness = species.length ? (readySpecies / species.length) * 100 : 0
 
   return <section className="mb-12 rounded-xl border border-zinc-800 bg-zinc-900/20 p-6 transition-all duration-300">
-    <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
+    <div className="mb-6">
       <div>
         <h2 className="flex items-center gap-2 text-lg font-medium text-zinc-100"><BrainCircuit size={20} className="text-purple-500" /> Dataset Health & Export Readiness</h2>
         <p className="mt-2 text-sm text-zinc-500">Verified final annotations are live. The target below is an illustrative, read-only preview only.</p>
       </div>
-      <Button variant="ghost" size="sm" disabled={loading} onClick={() => void load()}><RefreshCw size={14} className={loading ? 'animate-spin' : ''} /> Refresh</Button>
     </div>
 
     {loading ? <DatasetHealthSkeleton /> : error ? <div className="rounded-xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-300">{error}</div> : <div className="grid gap-8 md:grid-cols-2 md:items-center">

@@ -6,6 +6,7 @@ import Button from '@/components/ui/Button'
 import { supabase } from '@/lib/supabase/client'
 import { useToast } from '@/components/ui/Toast'
 import { readAdminCache, writeAdminCache } from '@/lib/admin-cache'
+import { onAdminRefresh } from '@/lib/admin-refresh'
 
 type Species = { id: number; scientific_name: string; name_th: string | null; name_en: string | null; family: string | null; created_at: string }
 type Draft = { scientificName: string; nameTh: string; nameEn: string; family: string }
@@ -49,7 +50,10 @@ export default function SpeciesCatalogue() {
     }
   }
 
-  useEffect(() => { if (readAdminCache<CatalogueResponse>('species-catalogue') === null) void load(1, '') }, [])
+  useEffect(() => {
+    if (readAdminCache<CatalogueResponse>('species-catalogue') === null) void load(1, '')
+    return onAdminRefresh('review', () => { void load() })
+  }, [])
 
   function openEdit(item: Species) {
     setEditing(item)
@@ -101,7 +105,7 @@ export default function SpeciesCatalogue() {
   return <section className="mb-12 rounded-xl border border-zinc-800 bg-zinc-900/20 p-6">
     <div className="flex flex-wrap items-start justify-between gap-4 border-b border-zinc-800 pb-5">
       <div><h2 className="flex items-center gap-2 text-lg font-medium text-zinc-100"><BookOpen size={19} className="text-zinc-400" /> Species catalogue</h2><p className="mt-2 text-sm text-zinc-500">Edit names and taxonomy details here. Deletion is available only while a species has no saved image or expert review.</p></div>
-      <div className="flex items-center gap-3"><span className="text-sm tabular-nums text-zinc-500">{loading ? 'Loading…' : catalogue.total.toLocaleString() + ' species'}</span><Button size="sm" variant="ghost" disabled={loading} onClick={() => void load()}><RefreshCw size={14} className={loading ? 'animate-spin' : ''} /> Refresh</Button></div>
+      <span className="text-sm tabular-nums text-zinc-500">{loading ? 'Loading…' : catalogue.total.toLocaleString() + ' species'}</span>
     </div>
 
     <div className="mt-4 flex flex-wrap items-center justify-between gap-3"><label className="relative block w-full max-w-sm"><Search size={15} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500" /><input value={search} onChange={(event) => searchCatalogue(event.target.value)} placeholder="Search species, name, or family" className="w-full rounded-lg border border-zinc-800 bg-zinc-950 py-2 pl-9 pr-3 text-sm text-zinc-100 outline-none placeholder:text-zinc-600 focus:border-emerald-500" /></label><p className="text-xs text-zinc-500">{loading ? 'Updating…' : species.length + ' shown · page ' + catalogue.page + ' of ' + catalogue.totalPages}</p></div>

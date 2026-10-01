@@ -5,6 +5,7 @@ import { CheckCircle2, CircleAlert, CloudUpload, ExternalLink, LoaderCircle, Ref
 import Button from '@/components/ui/Button'
 import { supabase } from '@/lib/supabase/client'
 import { readAdminCache, writeAdminCache } from '@/lib/admin-cache'
+import { onAdminRefresh } from '@/lib/admin-refresh'
 
 type PublishRun = {
   status: string
@@ -46,9 +47,11 @@ export default function DatasetPublisher() {
 
   useEffect(() => {
     let active = true
-    if (readAdminCache<PublishStatus>('dataset-publisher')) return () => { active = false }
-    void request('GET').then(payload => { if (active) { setPublisher(payload); writeAdminCache('dataset-publisher', payload) } }).catch(requestError => { if (active) setError(requestError instanceof Error ? requestError.message : 'Could not load the dataset publisher.') }).finally(() => { if (active) setLoading(false) })
-    return () => { active = false }
+    if (!readAdminCache<PublishStatus>('dataset-publisher')) {
+      void request('GET').then(payload => { if (active) { setPublisher(payload); writeAdminCache('dataset-publisher', payload) } }).catch(requestError => { if (active) setError(requestError instanceof Error ? requestError.message : 'Could not load the dataset publisher.') }).finally(() => { if (active) setLoading(false) })
+    }
+    const unsubscribe = onAdminRefresh('overview', () => { void refresh() })
+    return () => { active = false; unsubscribe() }
   }, [])
 
   async function publish() {
@@ -72,7 +75,6 @@ export default function DatasetPublisher() {
         <div className="flex items-center gap-2 text-lg font-medium text-zinc-100"><CloudUpload size={20} className="text-emerald-400" /> Dataset publisher</div>
         <p className="mt-2 max-w-3xl text-sm leading-6 text-zinc-500">Creates YOLO, COCO, and CSV ZIP packages from verified final annotations on GitHub Actions.</p>
       </div>
-      <Button variant="ghost" size="sm" onClick={() => void refresh()} disabled={loading || publishing}><RefreshCw size={14} className={loading ? 'animate-spin' : ''} /> Refresh status</Button>
     </div>
 
     <div className="mt-5 grid gap-6 border-t border-zinc-800 pt-5 lg:grid-cols-[minmax(0,1fr)_340px]">

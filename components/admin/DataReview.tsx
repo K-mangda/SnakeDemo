@@ -8,6 +8,7 @@ import { useToast } from '@/components/ui/Toast'
 import UnclearImagesModal from '@/components/admin/modals/UnclearImagesModal'
 import NewClassAnomalyModal, { type NewClassQueueItem } from '@/components/admin/modals/NewClassAnomalyModal'
 import { readAdminCache, writeAdminCache } from '@/lib/admin-cache'
+import { onAdminRefresh } from '@/lib/admin-refresh'
 
 type QueueStatus = 'unclear' | 'waiting_for_new_class'
 type QueueItem = { id: string; filename: string; status: QueueStatus; updatedAt: string; imageUrl: string | null }
@@ -45,7 +46,10 @@ export default function DataReview() {
     try { const nextData = await request('GET') as QueueResponse; setData(nextData); writeAdminCache('data-review', nextData) } catch (requestError) { setError(requestError instanceof Error ? requestError.message : 'Could not load review queues.') } finally { setLoading(false) }
   }
 
-  useEffect(() => { if (readAdminCache<QueueResponse>('data-review') === null) void load() }, [])
+  useEffect(() => {
+    if (readAdminCache<QueueResponse>('data-review') === null) void load()
+    return onAdminRefresh('review', () => { void load() })
+  }, [])
 
   const queueItems = useMemo(() => data?.items.filter((item) => item.status === openQueue) ?? [], [data, openQueue])
 
@@ -117,7 +121,7 @@ export default function DataReview() {
   const newClassCount = data?.counts.waitingForNewClass ?? 0
 
   return <section className="mb-12 rounded-xl border border-zinc-800 bg-zinc-900/20 p-6 transition-all duration-300">
-    <div className="mb-6 flex flex-wrap items-start justify-between gap-4"><div><h2 className="flex items-center gap-2 text-lg font-medium text-zinc-100"><Filter size={20} className="text-red-500" /> Data review queues</h2><p className="mt-2 text-sm text-zinc-500">Review queues from the database. Unclear images can be restored or permanently removed; new-class requests are available for inspection.</p></div><Button variant="ghost" size="sm" disabled={loading} onClick={() => void load()}><RefreshCw size={14} className={loading ? 'animate-spin' : ''} /> Refresh</Button></div>
+    <div className="mb-6"><h2 className="flex items-center gap-2 text-lg font-medium text-zinc-100"><Filter size={20} className="text-red-500" /> Data review queues</h2><p className="mt-2 text-sm text-zinc-500">Review queues from the database. Unclear images can be restored or permanently removed; new-class requests are available for inspection.</p></div>
 
     {loading ? <ReviewSkeleton /> : error ? <p className="rounded-lg border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-300">{error}</p> : <div className="grid gap-6 md:grid-cols-2"><article className="group relative flex min-h-60 flex-col justify-between overflow-hidden rounded-xl border border-red-900/30 bg-gradient-to-br from-red-950/20 to-zinc-950/50 p-6"><AlertTriangle size={140} className="pointer-events-none absolute -bottom-8 -right-8 -rotate-12 text-red-500/5" /><div className="relative z-10"><h3 className="flex items-center gap-2 text-base font-medium text-zinc-100"><AlertTriangle size={18} className="text-red-500" /> Unclear images</h3><p className="mt-2 max-w-sm text-sm text-zinc-500">Images experts could not identify confidently. Select real queue items to restore or delete.</p><div className="absolute right-6 top-6 text-right"><span className="block text-6xl font-bold leading-none text-red-400">{unclearCount.toLocaleString()}</span><span className="mt-1 block text-xs text-zinc-500">in queue</span></div></div><Button variant="secondary" onClick={() => open('unclear')} className="relative z-10 mt-6 w-full justify-center border-red-500/30 bg-red-500/5 text-red-300 hover:bg-red-500/15"><Trash2 size={16} /> Review unclear queue</Button></article><article className="group relative flex min-h-60 flex-col justify-between overflow-hidden rounded-xl border border-blue-900/30 bg-gradient-to-br from-blue-950/20 to-zinc-950/50 p-6"><ShieldCheck size={140} className="pointer-events-none absolute -bottom-8 -right-8 rotate-12 text-blue-500/5" /><div className="relative z-10"><h3 className="flex items-center gap-2 text-base font-medium text-zinc-100"><ShieldCheck size={18} className="text-blue-500" /> New class anomalies</h3><p className="mt-2 max-w-sm text-sm text-zinc-500">Images flagged for taxonomy review before a new class could be considered.</p><div className="absolute right-6 top-6 text-right"><span className="block text-6xl font-bold leading-none text-blue-400">{newClassCount.toLocaleString()}</span><span className="mt-1 block text-xs text-zinc-500">awaiting inspection</span></div></div><Button variant="secondary" onClick={() => open('waiting_for_new_class')} className="relative z-10 mt-6 w-full justify-center border-blue-500/30 bg-blue-500/5 text-blue-300 hover:bg-blue-500/15"><Eye size={16} /> Inspect requests</Button></article></div>}
 

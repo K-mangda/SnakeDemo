@@ -9,6 +9,9 @@ import ConsensusAudit from '@/components/admin/ConsensusAudit'
 import DatasetPublisher from '@/components/admin/DatasetPublisher'
 import SpeciesCatalogue from '@/components/admin/SpeciesCatalogue'
 import { useEffect, useState } from 'react'
+import { RefreshCw } from 'lucide-react'
+import Button from '@/components/ui/Button'
+import { refreshAdminTab } from '@/lib/admin-refresh'
 
 type AdminTab = 'overview' | 'review' | 'system'
 
@@ -46,8 +49,9 @@ export default function AdminPage() {
           </div>
         </header>
 
-        <div className="mb-8 flex gap-1 border-b border-zinc-800" role="tablist" aria-label="Admin sections">
-          {tabs.map((tab) => <button key={tab.id} type="button" role="tab" aria-selected={activeTab === tab.id} onClick={() => selectTab(tab.id)} className={'relative px-4 py-3 text-sm font-medium transition-colors ' + (activeTab === tab.id ? 'text-emerald-400' : 'text-zinc-500 hover:text-zinc-300')}>{tab.label}{activeTab === tab.id && <span className="absolute inset-x-4 bottom-0 h-px bg-emerald-400" />}</button>)}
+        <div className="mb-8 flex items-center justify-between border-b border-zinc-800">
+          <div className="flex gap-1" role="tablist" aria-label="Admin sections">{tabs.map((tab) => <button key={tab.id} type="button" role="tab" aria-selected={activeTab === tab.id} onClick={() => selectTab(tab.id)} className={'relative px-4 py-3 text-sm font-medium transition-colors ' + (activeTab === tab.id ? 'text-emerald-400' : 'text-zinc-500 hover:text-zinc-300')}>{tab.label}{activeTab === tab.id && <span className="absolute inset-x-4 bottom-0 h-px bg-emerald-400" />}</button>)}</div>
+          <Button variant="ghost" size="sm" onClick={() => refreshAdminTab(activeTab)}><RefreshCw size={14} /> Refresh</Button>
         </div>
 
         {activeTab === 'overview' && <><SystemTelemetry /><DatasetHealth /><DatasetPublisher /></>}

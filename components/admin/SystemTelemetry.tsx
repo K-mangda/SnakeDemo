@@ -9,6 +9,7 @@ import {
 import { supabase } from '@/lib/supabase/client'
 import Button from '@/components/ui/Button'
 import { readAdminCache, writeAdminCache } from '@/lib/admin-cache'
+import { onAdminRefresh } from '@/lib/admin-refresh'
 
 type Telemetry = {
   counts: { total: number; verified: number; pending: number; unclear: number; waitingForNewClass: number }
@@ -76,7 +77,10 @@ export default function SystemTelemetry() {
     }
   }
 
-  useEffect(() => { if (readAdminCache<CachedTelemetry>('system-telemetry') === null) void load() }, [])
+  useEffect(() => {
+    if (readAdminCache<CachedTelemetry>('system-telemetry') === null) void load()
+    return onAdminRefresh('overview', () => { void load() })
+  }, [])
 
   const activityData = useMemo(() => {
     const today = new Date()

@@ -6,6 +6,7 @@ import Button from '@/components/ui/Button'
 import { supabase } from '@/lib/supabase/client'
 import { useToast } from '@/components/ui/Toast'
 import { readAdminCache, writeAdminCache } from '@/lib/admin-cache'
+import { onAdminRefresh } from '@/lib/admin-refresh'
 
 type Expert = { id: string; full_name: string; specialty: string | null; status: 'active' | 'inactive' | 'pending'; verificationCount: number }
 
@@ -16,7 +17,10 @@ export default function AuthorizedExperts() {
     const response = await fetch('/api/admin/experts', { method, headers: { Authorization: `Bearer ${session.access_token}`, 'Content-Type': 'application/json' }, body: body ? JSON.stringify(body) : undefined }); const payload = await response.json(); if (!response.ok) throw new Error(payload.detail ?? 'Request failed.'); return payload
   }
   async function load() { try { const payload = await request('GET'); setExperts(payload.experts); writeAdminCache('authorized-experts', payload.experts) } catch (error) { showToast(error instanceof Error ? error.message : 'Could not load expert accounts.', 'error') }; setLoading(false) }
-  useEffect(() => { if (readAdminCache<Expert[]>('authorized-experts') === null) void load() }, [])
+  useEffect(() => {
+    if (readAdminCache<Expert[]>('authorized-experts') === null) void load()
+    return onAdminRefresh('system', () => { void load() })
+  }, [])
   async function invite(event: React.FormEvent) { event.preventDefault(); setSending(true); try { await request('POST', form); showToast('Invitation sent. Access will activate after password setup.'); setForm({ fullName: '', email: '', specialty: '' }); setOpen(false); await load() } catch (error) { showToast(error instanceof Error ? error.message : 'Could not invite expert.', 'error') }; setSending(false) }
   async function resendInvitation(expert: Expert) { setActionId(expert.id); try { await request('POST', { expertId: expert.id }); showToast('A new password link was sent.'); } catch (error) { showToast(error instanceof Error ? error.message : 'Could not resend the invitation.', 'error') }; setActionId(null) }
   async function setStatus(expert: Expert, status: Expert['status']) { const startedAt = Date.now(); setActionId(expert.id); setPendingStatus({ id: expert.id, status }); try { await request('PATCH', { id: expert.id, status }); const remainingFeedback = 600 - (Date.now() - startedAt); if (remainingFeedback > 0) await new Promise(resolve => setTimeout(resolve, remainingFeedback)); showToast(`Account marked ${status}.`); await load() } catch (error) { showToast(error instanceof Error ? error.message : 'Could not update account.', 'error') }; setPendingStatus(null); setActionId(null) }
