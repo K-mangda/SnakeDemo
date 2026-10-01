@@ -29,6 +29,33 @@ export async function GET(request: Request) {
   const access = await requireAdmin(request)
   if ('error' in access) return Response.json({ detail: access.error }, { status: access.status })
 
+  const url = new URL(request.url)
+  const requestedStatus = url.searchParams.get('status')
+  const page = Math.max(1, Number.parseInt(url.searchParams.get('page') ?? '1', 10) || 1)
+  const pageSize = Math.min(48, Math.max(12, Number.parseInt(url.searchParams.get('pageSize') ?? '24', 10) || 24))
+  const query = (url.searchParams.get('query') ?? '').trim().slice(0, 120).replace(/[%_]/g, '')
+
+  if (requestedStatus === 'unclear' || requestedStatus === 'waiting_for_new_class') {
+    const from = (page - 1) * pageSize
+    let pageQuery = access.admin
+      .from('snake_images')
+      .select('id, storage_path, original_filename, status, updated_at', { count: 'exact' })
+      .eq('status', requestedStatus)
+      .order('updated_at', { ascending: false })
+      .range(from, from + pageSize - 1)
+    if (query) pageQuery = pageQuery.ilike('original_filename', `%${query}%`)
+
+    const { data: images, error, count } = await pageQuery
+    if (error) return Response.json({ detail: 'Could not load review queue images.' }, { status: 500 })
+
+    const items = await Promise.all((images ?? []).map(async (image) => {
+      const { data: signed } = await access.admin.storage.from('prediction-images').createSignedUrl(image.storage_path, 60 * 15)
+      return { id: image.id, filename: image.original_filename, status: image.status as ReviewStatus, updatedAt: image.updated_at, imageUrl: signed?.signedUrl ?? null }
+    }))
+    const total = count ?? 0
+    return Response.json({ items, page, pageSize, total, totalPages: Math.max(1, Math.ceil(total / pageSize)) }, { headers: { 'Cache-Control': 'no-store' } })
+  }
+
   const [imagesResult, unclearCountResult, newClassCountResult] = await Promise.all([
     access.admin.from('snake_images').select('id, storage_path, original_filename, status, updated_at').in('status', ['unclear', 'waiting_for_new_class']).order('updated_at', { ascending: false }).limit(100),
     access.admin.from('snake_images').select('id', { count: 'exact', head: true }).eq('status', 'unclear'),
