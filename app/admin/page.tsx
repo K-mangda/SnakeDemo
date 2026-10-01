@@ -55,7 +55,7 @@ export default function AdminPage() {
         </div>
 
         {activeTab === 'overview' && <><SystemTelemetry /><DatasetHealth /><DatasetPublisher /></>}
-        {activeTab === 'review' && <><DataReview /><ConsensusAudit /><SpeciesCatalogue /></>}
+        {activeTab === 'review' && <><section className="mb-12 rounded-xl border border-zinc-800 bg-zinc-900/20 p-6"><div className="mb-5"><h2 className="text-lg font-medium text-zinc-100">Review queues</h2><p className="mt-2 text-sm text-zinc-500">Manage items that need action and track decisions already made by experts.</p></div><div className="overflow-hidden rounded-lg border border-zinc-800"><DataReview embedded /><ConsensusAudit embedded /></div></section><SpeciesCatalogue /></>}
         {activeTab === 'system' && <><ModelVersionControl /><AuthorizedExperts /></>}
 
       </div>
