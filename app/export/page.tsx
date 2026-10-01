@@ -195,14 +195,8 @@ export default function ExportPage() {
                 </a>
               ))}
             </div>
-            <div className="mt-4 flex gap-3 rounded-lg border border-emerald-500/15 bg-emerald-500/[0.045] p-3.5">
-              <CheckCircle2 size={17} className="mt-0.5 shrink-0 text-emerald-400" />
-              <div>
-                <p className="text-sm font-medium text-zinc-200">Not sure which format to use?</p>
-                <p className="mt-1 text-xs leading-5 text-zinc-500">Use ONNX INT8 above for lightweight inference. Choose PyTorch when you need to continue training or work with Ultralytics.</p>
-              </div>
-            </div>
-            <a href="https://docs.ultralytics.com/modes/export/" target="_blank" rel="noreferrer" className="mt-6 inline-flex items-center gap-2 text-sm font-medium text-emerald-400 transition hover:text-emerald-300">About the available formats <ArrowUpRight size={16} /></a>
+            <p className="mt-4 text-xs leading-5 text-zinc-500">Use ONNX INT8 above for inference; choose PyTorch for further training or Ultralytics.</p>
+            <a href="https://docs.ultralytics.com/modes/export/" target="_blank" rel="noreferrer" className="mt-5 inline-flex items-center gap-2 text-sm font-medium text-emerald-400 transition hover:text-emerald-300">About the available formats <ArrowUpRight size={16} /></a>
           </div>}
 
           <div className={`rounded-2xl border border-zinc-800 bg-zinc-900/20 p-6 sm:p-7 ${alternativeArtifacts.length === 0 && !isReleaseLoading ? 'lg:grid lg:grid-cols-[1fr_320px] lg:items-center lg:gap-12' : ''}`}>
