@@ -64,7 +64,7 @@ export default function DatasetPublisher() {
   const running = run && ['queued', 'in_progress', 'pending', 'requested', 'waiting'].includes(run.status)
   const published = run?.status === 'completed' && run.conclusion === 'success'
 
-  return <section className="mb-12 rounded-xl border border-zinc-800 bg-zinc-900/20 p-6">
+  return <section className="mb-12 rounded-xl border border-slate-700/60 bg-slate-900/55 p-6">
     <div className="flex flex-wrap items-start justify-between gap-5">
       <div>
         <div className="flex items-center gap-2 text-lg font-medium text-zinc-100"><CloudUpload size={20} className="text-sky-400" /> Dataset publisher</div>

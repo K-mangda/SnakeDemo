@@ -13,7 +13,7 @@ import DatasetPublisher from '@/components/admin/DatasetPublisher'
 
 export default function AdminPage() {
   return (
-    <main className="min-h-screen bg-zinc-950 p-6 md:p-12 font-sans selection:bg-emerald-500/30">
+    <main className="min-h-screen bg-[#0b1120] p-6 font-sans selection:bg-emerald-500/30 md:p-12" style={{ backgroundImage: 'radial-gradient(ellipse at top, rgba(30, 58, 138, 0.24), transparent 48%), radial-gradient(ellipse at 82% 36%, rgba(13, 148, 136, 0.10), transparent 34%)' }}>
       <div className="max-w-6xl mx-auto">
         <header className="mb-12 border-b border-zinc-900 pb-8 flex flex-col sm:flex-row sm:items-end justify-between gap-6">
           <div>
