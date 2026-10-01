@@ -73,13 +73,13 @@ export default function DatasetPublisher() {
       <Button variant="ghost" size="sm" onClick={() => void refresh()} disabled={loading || publishing}><RefreshCw size={14} className={loading ? 'animate-spin' : ''} /> Refresh status</Button>
     </div>
 
-    <div className="mt-5 inline-flex max-w-full flex-wrap items-end gap-4 rounded-xl border border-emerald-500/15 bg-zinc-950/45 p-4">
-      <div className="w-80 max-w-full">
+    <div className="mt-5 grid w-full max-w-xl grid-cols-[minmax(0,1fr)_auto] items-start gap-4 rounded-xl border border-emerald-500/15 bg-zinc-950/45 p-4">
+      <div className="min-w-0">
         <label htmlFor="dataset-version" className="text-xs font-medium uppercase tracking-wider text-zinc-500">Release version</label>
         <input id="dataset-version" value={version} onChange={event => setVersion(event.target.value)} placeholder="v1" className="mt-2 block w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm text-zinc-100 outline-none transition focus:border-emerald-400" />
         <p className="mt-2 text-xs text-zinc-600">Publishing the same version replaces that version’s ZIP files with the latest verified data.</p>
       </div>
-      <Button onClick={() => setShowPublishConfirm(true)} disabled={publishing || loading || !publisher?.configured} className="px-5 py-2.5"><CloudUpload size={17} /> {publishing ? 'Starting job…' : 'Publish dataset'}</Button>
+      <Button onClick={() => setShowPublishConfirm(true)} disabled={publishing || loading || !publisher?.configured} className="mt-6 px-5 py-2.5"><CloudUpload size={17} /> {publishing ? 'Starting job…' : 'Publish dataset'}</Button>
     </div>
 
     {loading ? <div aria-busy="true" aria-label="Loading publisher status" className="mt-4 animate-pulse rounded-lg border border-zinc-800 bg-zinc-950/40 px-4 py-3"><div className="h-4 w-48 rounded bg-zinc-800" /></div> : error ? <p className="mt-4 flex gap-2 rounded-lg border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-300"><CircleAlert size={17} className="shrink-0" />{error}</p> : !publisher?.configured ? <p className="mt-4 flex gap-2 rounded-lg border border-amber-500/20 bg-amber-500/10 px-4 py-3 text-sm text-amber-200"><CircleAlert size={17} className="shrink-0" />One-time GitHub publisher setup is still required before this button can start jobs.</p> : run ? <div className={`mt-4 inline-flex max-w-full flex-wrap items-center gap-3 rounded-lg border px-3 py-2 text-sm ${published ? 'border-emerald-500/20 bg-emerald-500/10 text-emerald-200' : running ? 'border-sky-500/20 bg-sky-500/10 text-sky-200' : 'border-red-500/20 bg-red-500/10 text-red-200'}`}><span className="flex items-center gap-2">{published ? <CheckCircle2 size={17} /> : running ? <LoaderCircle size={17} className="animate-spin" /> : <CircleAlert size={17} />}{published ? 'Published successfully' : running ? `Publish job ${run.status}` : `Publish job ${run.conclusion ?? run.status}`}</span>{run.url && <a href={run.url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-xs font-medium underline underline-offset-4">View job <ExternalLink size={13} /></a>}</div> : <p className="mt-4 text-sm text-zinc-500">No dataset publish job has run yet.</p>}
