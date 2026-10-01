@@ -29,12 +29,22 @@ export async function GET(request: Request) {
   const access = await requireAdmin(request)
   if ('error' in access) return Response.json({ detail: access.error }, { status: access.status })
 
-  const { data, error } = await access.admin
+  const url = new URL(request.url)
+  const page = Math.max(1, Number.parseInt(url.searchParams.get('page') ?? '1', 10) || 1)
+  const pageSize = Math.min(50, Math.max(10, Number.parseInt(url.searchParams.get('pageSize') ?? '10', 10) || 10))
+  const search = (url.searchParams.get('search') ?? '').normalize('NFC').trim().slice(0, 120)
+  const safeSearch = search.replace(/[,%()]/g, '')
+  const from = (page - 1) * pageSize
+  let query = access.admin
     .from('snake_species')
-    .select('id, scientific_name, name_th, name_en, family, created_at')
+    .select('id, scientific_name, name_th, name_en, family, created_at', { count: 'exact' })
     .order('scientific_name')
+    .range(from, from + pageSize - 1)
+  if (safeSearch) query = query.or('scientific_name.ilike.%' + safeSearch + '%,name_th.ilike.%' + safeSearch + '%,name_en.ilike.%' + safeSearch + '%,family.ilike.%' + safeSearch + '%')
+  const { data, error, count } = await query
   if (error) return Response.json({ detail: 'Could not load the species catalogue.' }, { status: 500 })
-  return Response.json({ species: data ?? [] }, { headers: { 'Cache-Control': 'no-store' } })
+  const total = count ?? 0
+  return Response.json({ species: data ?? [], page, pageSize, total, totalPages: Math.max(1, Math.ceil(total / pageSize)) }, { headers: { 'Cache-Control': 'no-store' } })
 }
 
 export async function PATCH(request: Request) {
