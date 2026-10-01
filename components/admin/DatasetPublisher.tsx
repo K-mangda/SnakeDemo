@@ -64,7 +64,7 @@ export default function DatasetPublisher() {
   const running = run && ['queued', 'in_progress', 'pending', 'requested', 'waiting'].includes(run.status)
   const published = run?.status === 'completed' && run.conclusion === 'success'
 
-  return <section className="mb-12 rounded-xl border border-emerald-500/25 bg-emerald-500/[0.025] p-6">
+  return <section className="mb-12 rounded-xl border border-zinc-800 bg-zinc-900/20 p-6">
     <div className="flex flex-wrap items-start justify-between gap-5">
       <div>
         <div className="flex items-center gap-2 text-lg font-medium text-zinc-100"><CloudUpload size={20} className="text-emerald-400" /> Dataset publisher</div>
@@ -73,15 +73,15 @@ export default function DatasetPublisher() {
       <Button variant="ghost" size="sm" onClick={() => void refresh()} disabled={loading || publishing}><RefreshCw size={14} className={loading ? 'animate-spin' : ''} /> Refresh status</Button>
     </div>
 
-    <div className="mt-5 grid gap-4 lg:grid-cols-[minmax(0,1fr)_340px]">
-      <div className="rounded-xl border border-emerald-500/15 bg-zinc-950/45 p-5">
-        <div className="flex items-center gap-2 text-sm font-medium text-zinc-200"><CloudUpload size={16} className="text-emerald-400" /> Publish a verified dataset release</div>
-        <p className="mt-2 text-xs leading-5 text-zinc-500">Generate fresh packages from the verified final annotations currently in the database.</p>
+    <div className="mt-5 grid gap-6 border-t border-zinc-800 pt-5 lg:grid-cols-[minmax(0,1fr)_340px]">
+      <div>
+        <p className="text-sm font-medium text-zinc-200">Create a release</p>
+        <p className="mt-1 text-xs leading-5 text-zinc-500">Publish the latest verified final annotations. Reusing a version replaces its existing ZIP packages.</p>
         <div className="mt-4 flex flex-wrap items-end gap-3"><div className="w-full max-w-sm"><label htmlFor="dataset-version" className="text-xs font-medium text-zinc-400">Release version</label><input id="dataset-version" value={version} onChange={event => setVersion(event.target.value)} placeholder="v1" className="mt-2 block w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm text-zinc-100 outline-none transition focus:border-emerald-400" /></div><Button onClick={() => setShowPublishConfirm(true)} disabled={publishing || loading || !publisher?.configured} className="px-5 py-2.5"><CloudUpload size={17} /> {publishing ? 'Starting job…' : 'Publish dataset'}</Button></div>
-        <div className="mt-4 flex flex-wrap gap-2 text-xs text-zinc-500"><span className="rounded-md border border-zinc-800 px-2 py-1">Verified annotations only</span><span className="rounded-md border border-zinc-800 px-2 py-1">YOLO, COCO & CSV ZIP</span><span className="rounded-md border border-zinc-800 px-2 py-1">Runs on GitHub Actions</span></div>
+        <p className="mt-4 text-xs text-zinc-500">Verified annotations only <span className="mx-1.5 text-zinc-700">•</span> YOLO, COCO & CSV ZIP <span className="mx-1.5 text-zinc-700">•</span> GitHub Actions runner</p>
       </div>
 
-      <div className="rounded-xl border border-zinc-800 bg-zinc-950/35 p-5">
+      <div className="lg:border-l lg:border-zinc-800 lg:pl-6">
         <p className="text-sm font-medium text-zinc-200">Latest publish job</p>
         {loading ? <div aria-busy="true" aria-label="Loading publisher status" className="mt-4 animate-pulse"><div className="h-4 w-36 rounded bg-zinc-800" /><div className="mt-3 h-3 w-48 rounded bg-zinc-800/70" /></div> : error ? <p className="mt-4 flex gap-2 text-sm text-red-300"><CircleAlert size={17} className="shrink-0" />{error}</p> : !publisher?.configured ? <p className="mt-4 flex gap-2 text-sm leading-5 text-amber-200"><CircleAlert size={17} className="shrink-0" />One-time GitHub publisher setup is still required before this button can start jobs.</p> : run ? <div className="mt-4"><div className={`flex items-center gap-2 text-sm font-medium ${published ? 'text-emerald-200' : running ? 'text-sky-200' : 'text-red-200'}`}>{published ? <CheckCircle2 size={17} /> : running ? <LoaderCircle size={17} className="animate-spin" /> : <CircleAlert size={17} />}{published ? 'Published successfully' : running ? `Publish job ${run.status}` : `Publish job ${run.conclusion ?? run.status}`}</div><dl className="mt-4 divide-y divide-zinc-800 border-y border-zinc-800 text-xs"><div className="flex items-center justify-between gap-4 py-2.5"><dt className="text-zinc-500">Job</dt><dd className="truncate text-right text-zinc-300" title={run.title}>{run.title}</dd></div><div className="flex items-center justify-between gap-4 py-2.5"><dt className="text-zinc-500">Runner</dt><dd className="text-zinc-300">GitHub Actions</dd></div><div className="flex items-center justify-between gap-4 py-2.5"><dt className="text-zinc-500">Updated</dt><dd className="font-mono text-right text-zinc-300">{new Date(run.updatedAt).toLocaleString()}</dd></div></dl>{run.url && <a href={run.url} target="_blank" rel="noreferrer" className="mt-4 inline-flex items-center gap-1.5 text-xs font-medium text-emerald-300 underline underline-offset-4">Open GitHub Actions job <ExternalLink size={13} /></a>}</div> : <p className="mt-4 text-sm text-zinc-500">No dataset publish job has run yet.</p>}
       </div>
