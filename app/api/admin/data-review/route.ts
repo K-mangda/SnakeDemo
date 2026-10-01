@@ -33,7 +33,6 @@ export async function GET(request: Request) {
   const requestedStatus = url.searchParams.get('status')
   const page = Math.max(1, Number.parseInt(url.searchParams.get('page') ?? '1', 10) || 1)
   const pageSize = Math.min(48, Math.max(12, Number.parseInt(url.searchParams.get('pageSize') ?? '24', 10) || 24))
-  const query = (url.searchParams.get('query') ?? '').trim().slice(0, 120).replace(/[%_]/g, '')
 
   if (requestedStatus === 'unclear' || requestedStatus === 'waiting_for_new_class') {
     const from = (page - 1) * pageSize
@@ -43,8 +42,6 @@ export async function GET(request: Request) {
       .eq('status', requestedStatus)
       .order('updated_at', { ascending: false })
       .range(from, from + pageSize - 1)
-    if (query) pageQuery = pageQuery.ilike('original_filename', `%${query}%`)
-
     const { data: images, error, count } = await pageQuery
     if (error) return Response.json({ detail: 'Could not load review queue images.' }, { status: 500 })
 

@@ -26,7 +26,6 @@ export default function DataReview() {
   const [confirmAction, setConfirmAction] = useState<'restore' | 'delete' | null>(null)
   const [acting, setActing] = useState(false)
   const [unclearPage, setUnclearPage] = useState<QueuePage>({ items: [], page: 1, totalPages: 1, total: 0 })
-  const [unclearQuery, setUnclearQuery] = useState('')
   const [unclearLoading, setUnclearLoading] = useState(false)
 
   async function request(method: 'GET' | 'PATCH' | 'DELETE', body?: object, path = '/api/admin/data-review') {
@@ -48,11 +47,10 @@ export default function DataReview() {
 
   const queueItems = useMemo(() => data?.items.filter((item) => item.status === openQueue) ?? [], [data, openQueue])
 
-  async function loadUnclear(page: number, query: string) {
+  async function loadUnclear(page: number) {
     setUnclearLoading(true)
     try {
       const params = new URLSearchParams({ status: 'unclear', page: String(page), pageSize: '24' })
-      if (query) params.set('query', query)
       setUnclearPage(await request('GET', undefined, `/api/admin/data-review?${params.toString()}`) as QueuePage)
     } catch (requestError) {
       showToast(requestError instanceof Error ? requestError.message : 'Could not load unclear images.', 'error')
@@ -64,8 +62,7 @@ export default function DataReview() {
     setSelectedIds([])
     setConfirmAction(null)
     if (status === 'unclear') {
-      setUnclearQuery('')
-      void loadUnclear(1, '')
+      void loadUnclear(1)
     }
   }
 
@@ -110,7 +107,7 @@ export default function DataReview() {
 
     {loading ? <ReviewSkeleton /> : error ? <p className="rounded-lg border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-300">{error}</p> : <div className="grid gap-6 md:grid-cols-2"><article className="group relative flex min-h-60 flex-col justify-between overflow-hidden rounded-xl border border-red-900/30 bg-gradient-to-br from-red-950/20 to-zinc-950/50 p-6"><AlertTriangle size={140} className="pointer-events-none absolute -bottom-8 -right-8 -rotate-12 text-red-500/5" /><div className="relative z-10"><h3 className="flex items-center gap-2 text-base font-medium text-zinc-100"><AlertTriangle size={18} className="text-red-500" /> Unclear images</h3><p className="mt-2 max-w-sm text-sm text-zinc-500">Images experts could not identify confidently. Select real queue items to restore or delete.</p><div className="absolute right-6 top-6 text-right"><span className="block text-6xl font-bold leading-none text-red-400">{unclearCount.toLocaleString()}</span><span className="mt-1 block text-xs text-zinc-500">in queue</span></div></div><Button variant="secondary" onClick={() => open('unclear')} className="relative z-10 mt-6 w-full justify-center border-red-500/30 bg-red-500/5 text-red-300 hover:bg-red-500/15"><Trash2 size={16} /> Review unclear queue</Button></article><article className="group relative flex min-h-60 flex-col justify-between overflow-hidden rounded-xl border border-blue-900/30 bg-gradient-to-br from-blue-950/20 to-zinc-950/50 p-6"><ShieldCheck size={140} className="pointer-events-none absolute -bottom-8 -right-8 rotate-12 text-blue-500/5" /><div className="relative z-10"><h3 className="flex items-center gap-2 text-base font-medium text-zinc-100"><ShieldCheck size={18} className="text-blue-500" /> New class anomalies</h3><p className="mt-2 max-w-sm text-sm text-zinc-500">Images flagged for taxonomy review before a new class could be considered.</p><div className="absolute right-6 top-6 text-right"><span className="block text-6xl font-bold leading-none text-blue-400">{newClassCount.toLocaleString()}</span><span className="mt-1 block text-xs text-zinc-500">awaiting inspection</span></div></div><Button variant="secondary" onClick={() => open('waiting_for_new_class')} className="relative z-10 mt-6 w-full justify-center border-blue-500/30 bg-blue-500/5 text-blue-300 hover:bg-blue-500/15"><Eye size={16} /> Inspect requests</Button></article></div>}
 
-    {openQueue === 'unclear' && <UnclearImagesModal items={unclearPage.items} total={unclearPage.total} page={unclearPage.page} totalPages={unclearPage.totalPages} loading={unclearLoading} query={unclearQuery} selectedIds={selectedIds} onSelectToggle={toggle} onSelectAllToggle={toggleUnclearPageSelection} onPageChange={(page) => void loadUnclear(page, unclearQuery)} onSearch={(query) => { setUnclearQuery(query); void loadUnclear(1, query) }} onRestore={() => setConfirmAction('restore')} onDelete={() => setConfirmAction('delete')} onClose={() => setOpenQueue(null)} />}
+    {openQueue === 'unclear' && <UnclearImagesModal items={unclearPage.items} total={unclearPage.total} page={unclearPage.page} totalPages={unclearPage.totalPages} loading={unclearLoading} selectedIds={selectedIds} onSelectToggle={toggle} onSelectAllToggle={toggleUnclearPageSelection} onPageChange={(page) => void loadUnclear(page)} onRestore={() => setConfirmAction('restore')} onDelete={() => setConfirmAction('delete')} onClose={() => setOpenQueue(null)} />}
 
     {openQueue === 'waiting_for_new_class' && <div role="dialog" aria-modal="true" aria-labelledby="review-queue-title" className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm"><div className="flex max-h-[85vh] w-full max-w-3xl flex-col rounded-2xl border border-zinc-700 bg-zinc-950 p-6 shadow-2xl"><div className="flex items-start justify-between gap-4 border-b border-zinc-800 pb-4"><div><h3 id="review-queue-title" className="text-lg font-medium text-zinc-100">New class requests</h3><p className="mt-1 text-sm text-zinc-500">Read-only inspection. Reassignment and species creation will be enabled when their backend workflow is defined.</p></div><button type="button" onClick={() => setOpenQueue(null)} className="rounded-lg p-1 text-zinc-500 hover:bg-zinc-800 hover:text-zinc-200" aria-label="Close"><X size={20} /></button></div><div className="mt-4 min-h-0 flex-1 overflow-y-auto pr-1">{queueItems.length ? <div className="space-y-3">{queueItems.map((item) => <div key={item.id} className="flex gap-4 rounded-xl border border-zinc-800 bg-zinc-900/20 p-3"><div className="grid h-16 w-24 shrink-0 place-items-center overflow-hidden rounded-lg border border-zinc-800 bg-zinc-900">{item.imageUrl ? <img src={item.imageUrl} alt="Queued scan" className="h-full w-full object-cover" /> : <Eye size={17} className="text-zinc-600" />}</div><div className="min-w-0 flex-1"><p className="truncate text-sm font-medium text-zinc-200" title={item.filename}>{item.filename}</p><p className="mt-1 text-xs text-zinc-500">Updated {new Date(item.updatedAt).toLocaleString()}</p></div></div>)}</div> : <p className="py-10 text-center text-sm text-zinc-500">No queued images are currently available.</p>}</div></div></div>}
 
