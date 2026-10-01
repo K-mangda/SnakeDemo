@@ -10,6 +10,7 @@ import ModelVersionControl from '@/components/admin/ModelVersionControl'
 import AuthorizedExperts from '@/components/admin/AuthorizedExperts'
 import ConsensusAudit from '@/components/admin/ConsensusAudit'
 import DatasetPublisher from '@/components/admin/DatasetPublisher'
+import SpeciesCatalogue from '@/components/admin/SpeciesCatalogue'
 
 export default function AdminPage() {
   return (
@@ -31,6 +32,7 @@ export default function AdminPage() {
         <DatasetHealth />
         <DatasetPublisher />
         <DataReview />
+        <SpeciesCatalogue />
         <ConsensusAudit />
         <ModelVersionControl />
         <AuthorizedExperts />
