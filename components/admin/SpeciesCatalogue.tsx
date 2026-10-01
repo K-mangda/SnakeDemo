@@ -55,6 +55,13 @@ export default function SpeciesCatalogue() {
     return onAdminRefresh('review', () => { void load() })
   }, [])
 
+  useEffect(() => {
+    if (!editing && !deleting) return
+    const previousOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    return () => { document.body.style.overflow = previousOverflow }
+  }, [editing, deleting])
+
   function openEdit(item: Species) {
     setEditing(item)
     setDraft(toDraft(item))
