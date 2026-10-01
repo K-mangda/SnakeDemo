@@ -55,7 +55,7 @@ export default function AdminPage() {
         </div>
 
         {activeTab === 'overview' && <><SystemTelemetry /><DatasetHealth /><DatasetPublisher /></>}
-        {activeTab === 'review' && <><section className="mb-12 rounded-xl border border-zinc-800 bg-zinc-900/20 p-6"><div className="mb-5"><h2 className="text-lg font-medium text-zinc-100">Review queues</h2><p className="mt-2 text-sm text-zinc-500">Manage items that need action and track decisions already made by experts.</p></div><div className="overflow-hidden rounded-lg border border-zinc-800"><DataReview embedded /><ConsensusAudit embedded /></div></section><SpeciesCatalogue /></>}
+        {activeTab === 'review' && <><section className="mb-12 rounded-xl border border-zinc-800 bg-zinc-900/20 p-6"><div className="mb-5"><h2 className="text-lg font-medium text-zinc-100">Review queues</h2><p className="mt-2 text-sm text-zinc-500">Manage items that need action and track decisions already made by experts.</p></div><div className="overflow-hidden rounded-lg border border-zinc-800"><div className="hidden bg-zinc-900/40 px-5 py-3 text-[11px] font-medium uppercase tracking-wider text-zinc-500 sm:grid sm:grid-cols-[minmax(0,1fr)_72px_128px]"><span>Status</span><span className="text-right">Items</span><span className="text-right">Action</span></div><DataReview embedded /><ConsensusAudit embedded /></div></section><SpeciesCatalogue /></>}
         {activeTab === 'system' && <><ModelVersionControl /><AuthorizedExperts /></>}
 
       </div>
