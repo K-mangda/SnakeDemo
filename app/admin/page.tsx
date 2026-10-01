@@ -44,7 +44,7 @@ export default function AdminPage() {
         </div>
 
         {activeTab === 'overview' && <><SystemTelemetry /><DatasetHealth /><DatasetPublisher /></>}
-        {activeTab === 'review' && <><DataReview /><SpeciesCatalogue /><ConsensusAudit /></>}
+        {activeTab === 'review' && <><SpeciesCatalogue /><DataReview /><ConsensusAudit /></>}
         {activeTab === 'system' && <><ModelVersionControl /><AuthorizedExperts /></>}
 
       </div>
