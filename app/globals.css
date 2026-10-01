@@ -99,3 +99,35 @@ select:disabled {
 .animate-float { animation: float 8s ease-in-out infinite; }
 .animate-float-small { animation: float-small 4s ease-in-out infinite; }
 .animate-ping-slow { animation: ping-slow 3s cubic-bezier(0, 0, 0.2, 1) infinite; }
+
+@keyframes thumbnail-shimmer {
+  from { transform: translateX(-130%); }
+  to { transform: translateX(130%); }
+}
+
+.thumbnail-skeleton {
+  overflow: hidden;
+  background: #18181b;
+}
+
+.thumbnail-skeleton::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  width: 45%;
+  background: linear-gradient(90deg, transparent, rgba(63, 63, 70, 0.5), transparent);
+  animation: thumbnail-shimmer 1.6s ease-in-out infinite;
+}
+
+.thumbnail-skeleton::after {
+  content: '';
+  position: absolute;
+  inset: auto 12% 8px;
+  height: 1px;
+  background: rgba(16, 185, 129, 0.5);
+  box-shadow: 0 0 8px rgba(16, 185, 129, 0.45);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .thumbnail-skeleton::before { animation: none; }
+}

@@ -49,8 +49,10 @@ export default function BoundingBoxThumbnail({ imageUrl, bbox, alt, className, a
   const boxStyle = bbox && imageReady ? coverBoxStyle(bbox, imageAspect, aspectRatio) : undefined
 
   return (
-    <div className={className}>
-      {imageUrl && !failed ? <img ref={imageRef} src={imageUrl} alt={alt} className="h-full w-full object-cover" onLoad={(event) => { setImageAspect(event.currentTarget.naturalWidth / event.currentTarget.naturalHeight); setLoadedUrl(imageUrl) }} onError={() => setFailedUrl(imageUrl)} /> : <span className="text-xs text-zinc-600">Image unavailable</span>}
+    <div className={`${className} relative`} aria-busy={Boolean(imageUrl && !imageReady && !failed)}>
+      {imageUrl && !failed && <img ref={imageRef} src={imageUrl} alt={alt} className={`h-full w-full object-cover transition-opacity duration-200 ${imageReady ? 'opacity-100' : 'opacity-0'}`} onLoad={(event) => { setImageAspect(event.currentTarget.naturalWidth / event.currentTarget.naturalHeight); setLoadedUrl(imageUrl) }} onError={() => setFailedUrl(imageUrl)} />}
+      {imageUrl && !imageReady && !failed && <div className="thumbnail-skeleton pointer-events-none absolute inset-0"><span className="sr-only">Loading scan image</span></div>}
+      {(!imageUrl || failed) && <span className="text-xs text-zinc-600">Image unavailable</span>}
       {bbox && boxStyle && <div className={boxClassName} style={boxStyle} />}
     </div>
   )
