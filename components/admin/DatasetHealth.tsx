@@ -50,7 +50,7 @@ export default function DatasetHealth() {
   const coverage = species.length ? (verifiedSpecies.length / species.length) * 100 : 0
   const previewReadiness = species.length ? (readySpecies / species.length) * 100 : 0
 
-  return <section className="mb-12 rounded-xl border border-slate-700/60 bg-slate-900/55 p-6 transition-all duration-300">
+  return <section className="mb-12 rounded-xl border border-zinc-800 bg-zinc-900/20 p-6 transition-all duration-300">
     <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
       <div>
         <h2 className="flex items-center gap-2 text-lg font-medium text-zinc-100"><BrainCircuit size={20} className="text-purple-500" /> Dataset Health & Export Readiness</h2>
