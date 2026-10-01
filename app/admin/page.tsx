@@ -11,8 +11,19 @@ import AuthorizedExperts from '@/components/admin/AuthorizedExperts'
 import ConsensusAudit from '@/components/admin/ConsensusAudit'
 import DatasetPublisher from '@/components/admin/DatasetPublisher'
 import SpeciesCatalogue from '@/components/admin/SpeciesCatalogue'
+import { useState } from 'react'
+
+type AdminTab = 'overview' | 'review' | 'system'
+
+const tabs: { id: AdminTab; label: string }[] = [
+  { id: 'overview', label: 'Overview' },
+  { id: 'review', label: 'Review' },
+  { id: 'system', label: 'System' },
+]
 
 export default function AdminPage() {
+  const [activeTab, setActiveTab] = useState<AdminTab>('overview')
+
   return (
     <main className="min-h-screen bg-zinc-950 p-6 md:p-12 font-sans selection:bg-emerald-500/30">
       <div className="max-w-6xl mx-auto">
@@ -28,14 +39,13 @@ export default function AdminPage() {
           </div>
         </header>
 
-        <SystemTelemetry />
-        <DatasetHealth />
-        <DatasetPublisher />
-        <DataReview />
-        <SpeciesCatalogue />
-        <ConsensusAudit />
-        <ModelVersionControl />
-        <AuthorizedExperts />
+        <div className="mb-8 flex gap-1 border-b border-zinc-800" role="tablist" aria-label="Admin sections">
+          {tabs.map((tab) => <button key={tab.id} type="button" role="tab" aria-selected={activeTab === tab.id} onClick={() => setActiveTab(tab.id)} className={'relative px-4 py-3 text-sm font-medium transition-colors ' + (activeTab === tab.id ? 'text-emerald-400' : 'text-zinc-500 hover:text-zinc-300')}>{tab.label}{activeTab === tab.id && <span className="absolute inset-x-4 bottom-0 h-px bg-emerald-400" />}</button>)}
+        </div>
+
+        {activeTab === 'overview' && <><SystemTelemetry /><DatasetHealth /><DatasetPublisher /></>}
+        {activeTab === 'review' && <><DataReview /><SpeciesCatalogue /><ConsensusAudit /></>}
+        {activeTab === 'system' && <><ModelVersionControl /><AuthorizedExperts /></>}
 
       </div>
     </main>
