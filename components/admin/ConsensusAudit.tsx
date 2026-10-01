@@ -22,8 +22,9 @@ function ConflictCard({ item, open, onToggle }: { item: AuditItem; open: boolean
 }
 
 function QueueRow({ title, description, count, item, icon, tone }: { title: string; description: string; count: number; item?: AuditItem; icon: ReactNode; tone: 'amber' | 'sky' | 'emerald' }) {
-  const tones = { amber: 'text-amber-400', sky: 'text-sky-400', emerald: 'text-emerald-400' }
-  return <div className="grid gap-3 px-5 py-4 transition-colors hover:bg-zinc-800/30 sm:grid-cols-[minmax(0,1fr)_88px_100px] sm:items-center"><div className="flex min-w-0 items-start gap-3"><span className={`mt-0.5 shrink-0 ${tones[tone]}`}>{icon}</span><div className="min-w-0"><p className="text-sm font-medium text-zinc-200">{title}</p><p className="mt-1 text-xs text-zinc-500">{description}</p></div></div><div className={`font-mono text-lg font-semibold sm:text-right ${tones[tone]}`}>{count}</div><div className="sm:text-right">{item ? <Button href={`/admin/reviews/${item.id}`} variant="ghost" size="sm" className="-ml-2 text-zinc-300 hover:text-zinc-100 sm:ml-0">Inspect <ArrowRight size={14} /></Button> : <span className="text-xs text-zinc-600">—</span>}</div></div>
+  const tones = { amber: 'text-amber-400', red: 'text-red-400', sky: 'text-sky-400', violet: 'text-violet-400', emerald: 'text-emerald-400' }
+  const resolvedTone = title === 'Unclear images' ? 'red' : title === 'New class requests' ? 'violet' : tone
+  return <div className="grid gap-3 px-5 py-4 transition-colors hover:bg-zinc-800/30 sm:grid-cols-[minmax(0,1fr)_88px_100px] sm:items-center"><div className="flex min-w-0 items-start gap-3"><span className={`mt-0.5 shrink-0 ${tones[resolvedTone]}`}>{icon}</span><div className="min-w-0"><p className="text-sm font-medium text-zinc-200">{title}</p><p className="mt-1 text-xs text-zinc-500">{description}</p></div></div><div className={`font-mono text-lg font-semibold sm:text-right ${tones[resolvedTone]}`}>{count}</div><div className="sm:text-right">{item ? <Button href={`/admin/reviews/${item.id}`} variant="ghost" size="sm" className="-ml-2 text-zinc-300 hover:text-zinc-100 sm:ml-0">Inspect <ArrowRight size={14} /></Button> : <span className="text-xs text-zinc-600">—</span>}</div></div>
 }
 
 export default function ConsensusAudit() {
