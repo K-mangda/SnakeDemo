@@ -1,12 +1,13 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
-import { Activity, BrainCircuit } from 'lucide-react'
+import { Activity, BrainCircuit, RefreshCw } from 'lucide-react'
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer,
   LineChart, Line, BarChart, Bar, PieChart, Pie, Cell,
 } from 'recharts'
 import { supabase } from '@/lib/supabase/client'
+import Button from '@/components/ui/Button'
 
 type Telemetry = {
   counts: { total: number; verified: number; pending: number; unclear: number; waitingForNewClass: number }
@@ -21,6 +22,15 @@ function localDateKey(value: Date) {
 
 function dayLabel(value: Date) {
   return value.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })
+}
+
+function TelemetrySkeleton() {
+  return <div className="animate-pulse" aria-label="Loading system telemetry">
+    <div className="grid md:grid-cols-2 gap-6 mb-6">
+      {[0, 1].map(item => <div key={item} className="h-[312px] rounded-xl border border-zinc-800 bg-zinc-900/20 p-6"><div className="h-4 w-48 rounded bg-zinc-800" /><div className="mt-8 h-52 rounded-lg bg-zinc-900/50" /></div>)}
+    </div>
+    <div className="grid md:grid-cols-3 gap-6 mb-12"><div className="h-[312px] rounded-xl border border-zinc-800 bg-zinc-900/20 p-6 md:col-span-2"><div className="h-4 w-56 rounded bg-zinc-800" /><div className="mt-8 h-52 rounded-lg bg-zinc-900/50" /></div><div className="h-[312px] rounded-xl border border-zinc-800 bg-zinc-900/20 p-6"><div className="h-4 w-32 rounded bg-zinc-800" /><div className="mx-auto mt-8 h-40 w-40 rounded-full border-[22px] border-zinc-800" /></div></div>
+  </div>
 }
 
 export default function SystemTelemetry() {
@@ -76,8 +86,14 @@ export default function SystemTelemetry() {
 
   const chartTooltipStyle = { backgroundColor: '#18181b', borderColor: '#27272a', borderRadius: '8px' }
 
+  if (loading || !telemetry) {
+    return <section className="mb-12">
+      {error && <div className="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-300"><span>{error}</span><Button variant="ghost" size="sm" onClick={() => void load()}><RefreshCw size={14} /> Retry</Button></div>}
+      <TelemetrySkeleton />
+    </section>
+  }
+
   return <section className="mb-12">
-    {error && <p className="mb-6 rounded-xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-300">{error}</p>}
     <div className="grid md:grid-cols-2 gap-6 mb-6">
       <div className="border border-zinc-800 bg-zinc-900/20 p-6 rounded-xl transition-all duration-300">
         <h3 className="text-sm font-medium text-zinc-300 mb-6 flex items-center gap-2"><Activity size={16} className="text-emerald-500" /> Image Submissions (14 Days)</h3>

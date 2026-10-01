@@ -55,7 +55,9 @@ export async function GET(request: Request) {
 
     if (recentImagesResult.error) throw recentImagesResult.error
     if (speciesResult.error) throw speciesResult.error
-    if (modelsResult.error) throw modelsResult.error
+    // Model history is optional operational metadata. A missing or not-yet
+    // migrated table must not hide image telemetry that is available now.
+    if (modelsResult.error) console.warn('Model-version telemetry is unavailable.', modelsResult.error)
 
     const verifiedSpecies = await Promise.all((speciesResult.data ?? []).map(async (species) => {
       const { count, error } = await access.admin
