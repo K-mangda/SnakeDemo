@@ -25,6 +25,13 @@ function validIds(value: unknown) {
   return [...new Set(value)]
 }
 
+function optionalText(value: unknown, maxLength: number) {
+  if (value === undefined || value === null || value === '') return null
+  if (typeof value !== 'string') return undefined
+  const normalized = value.normalize('NFC').trim().replace(/\s+/g, ' ')
+  return normalized && normalized.length <= maxLength ? normalized : undefined
+}
+
 export async function GET(request: Request) {
   const access = await requireAdmin(request)
   if ('error' in access) return Response.json({ detail: access.error }, { status: access.status })
@@ -92,6 +99,57 @@ export async function PATCH(request: Request) {
     .select('id')
   if (error) return Response.json({ detail: isNewClassReturn ? 'Could not return new-class images to review.' : 'Could not restore unclear images.' }, { status: 500 })
   return Response.json(isNewClassReturn ? { returned: data?.length ?? 0 } : { restored: data?.length ?? 0 })
+}
+
+export async function POST(request: Request) {
+  const access = await requireAdmin(request)
+  if ('error' in access) return Response.json({ detail: access.error }, { status: access.status })
+
+  const body = await request.json().catch(() => null)
+  const imageId = typeof body?.imageId === 'string' ? body.imageId : ''
+  const scientificName = optionalText(body?.species?.scientificName, 160)
+  const nameTh = optionalText(body?.species?.nameTh, 160)
+  const nameEn = optionalText(body?.species?.nameEn, 160)
+  const family = optionalText(body?.species?.family, 160)
+
+  if (!imageId || !scientificName) return Response.json({ detail: 'A scientific name is required to create a species.' }, { status: 400 })
+  if ([nameTh, nameEn, family].some((value) => value === undefined)) return Response.json({ detail: 'Species details must be valid text.' }, { status: 400 })
+
+  const { data: image, error: imageError } = await access.admin
+    .from('snake_images')
+    .select('id')
+    .eq('id', imageId)
+    .eq('status', 'waiting_for_new_class')
+    .maybeSingle()
+  if (imageError) return Response.json({ detail: 'Could not prepare this new-class request.' }, { status: 500 })
+  if (!image) return Response.json({ detail: 'This request is no longer waiting for a new class.' }, { status: 404 })
+
+  const { data: existing } = await access.admin
+    .from('snake_species')
+    .select('id')
+    .ilike('scientific_name', scientificName)
+    .maybeSingle()
+  if (existing) return Response.json({ detail: 'A species with this scientific name already exists in the catalogue.' }, { status: 409 })
+
+  const { data: species, error: speciesError } = await access.admin
+    .from('snake_species')
+    .insert({ scientific_name: scientificName, name_th: nameTh, name_en: nameEn, family })
+    .select('id, scientific_name, name_th, name_en')
+    .single()
+  if (speciesError || !species) return Response.json({ detail: speciesError?.code === '23505' ? 'A species with this scientific name already exists in the catalogue.' : 'Could not create the species.' }, { status: speciesError?.code === '23505' ? 409 : 500 })
+
+  const { data: updated, error: updateError } = await access.admin
+    .from('snake_images')
+    .update({ status: 'pending', final_species_id: null, updated_at: new Date().toISOString() })
+    .eq('id', imageId)
+    .eq('status', 'waiting_for_new_class')
+    .select('id')
+  if (updateError || !updated?.length) {
+    await access.admin.from('snake_species').delete().eq('id', species.id)
+    return Response.json({ detail: 'Could not send the image back to expert review. The species was not saved.' }, { status: 500 })
+  }
+
+  return Response.json({ species, returned: 1 })
 }
 
 export async function DELETE(request: Request) {

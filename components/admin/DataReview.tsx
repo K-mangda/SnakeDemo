@@ -6,7 +6,7 @@ import Button from '@/components/ui/Button'
 import { supabase } from '@/lib/supabase/client'
 import { useToast } from '@/components/ui/Toast'
 import UnclearImagesModal from '@/components/admin/modals/UnclearImagesModal'
-import NewClassAnomalyModal from '@/components/admin/modals/NewClassAnomalyModal'
+import NewClassAnomalyModal, { type NewClassQueueItem } from '@/components/admin/modals/NewClassAnomalyModal'
 import { readAdminCache, writeAdminCache } from '@/lib/admin-cache'
 
 type QueueStatus = 'unclear' | 'waiting_for_new_class'
@@ -30,7 +30,7 @@ export default function DataReview() {
   const [unclearPage, setUnclearPage] = useState<QueuePage>({ items: [], page: 1, totalPages: 1, total: 0 })
   const [unclearLoading, setUnclearLoading] = useState(false)
 
-  async function request(method: 'GET' | 'PATCH' | 'DELETE', body?: object, path = '/api/admin/data-review') {
+  async function request(method: 'GET' | 'POST' | 'PATCH' | 'DELETE', body?: object, path = '/api/admin/data-review') {
     const { data: { session } } = await supabase.auth.getSession()
     if (!session) throw new Error('Sign in is required.')
     const response = await fetch(path, { method, headers: { Authorization: `Bearer ${session.access_token}`, 'Content-Type': 'application/json' }, body: body ? JSON.stringify(body) : undefined, cache: 'no-store' })
@@ -101,6 +101,18 @@ export default function DataReview() {
     } finally { setActing(false) }
   }
 
+  async function createSpeciesForNewClass(item: NewClassQueueItem, species: { scientificName: string; nameTh: string; nameEn: string; family: string }) {
+    try {
+      const payload = await request('POST', { imageId: item.id, species })
+      showToast(payload.species.scientific_name + ' was added to the catalogue. The image is back in expert review.')
+      setOpenQueue(null)
+      await load()
+    } catch (requestError) {
+      showToast(requestError instanceof Error ? requestError.message : 'Could not create the species.', 'error')
+      throw requestError
+    }
+  }
+
   const unclearCount = data?.counts.unclear ?? 0
   const newClassCount = data?.counts.waitingForNewClass ?? 0
 
@@ -111,7 +123,7 @@ export default function DataReview() {
 
     {openQueue === 'unclear' && <UnclearImagesModal items={unclearPage.items} total={unclearPage.total} page={unclearPage.page} totalPages={unclearPage.totalPages} loading={unclearLoading} selectedIds={selectedIds} onSelectToggle={toggle} onSelectAllToggle={toggleUnclearPageSelection} onPageChange={(page) => void loadUnclear(page)} onRestore={() => setConfirmAction('restore')} onDelete={() => setConfirmAction('delete')} onClose={() => setOpenQueue(null)} />}
 
-    {openQueue === 'waiting_for_new_class' && <NewClassAnomalyModal items={queueItems} onReturnToPending={(item) => { setSelectedIds([item.id]); setConfirmAction('return-new-class') }} onClose={() => setOpenQueue(null)} />}
+    {openQueue === 'waiting_for_new_class' && <NewClassAnomalyModal items={queueItems} onCreateSpecies={createSpeciesForNewClass} onReturnToPending={(item) => { setSelectedIds([item.id]); setConfirmAction('return-new-class') }} onClose={() => setOpenQueue(null)} />}
 
     {confirmAction && <div role="dialog" aria-modal="true" aria-labelledby="confirm-review-action-title" className="fixed inset-0 z-[60] flex items-center justify-center bg-black/75 p-4 backdrop-blur-sm"><div className="w-full max-w-md rounded-2xl border border-zinc-700 bg-zinc-950 p-6 shadow-2xl"><div className="flex items-start justify-between gap-4"><h3 id="confirm-review-action-title" className="flex items-center gap-2 text-lg font-medium text-zinc-100">{confirmAction !== 'delete' && <RefreshCw size={19} className={confirmAction === 'return-new-class' ? 'text-blue-400' : 'text-emerald-400'} />}{confirmAction === 'restore' ? 'Restore selected images?' : confirmAction === 'return-new-class' ? 'Return image to expert review?' : 'Delete selected images permanently?'}</h3>{confirmAction === 'restore' && <span className="shrink-0 rounded-full border border-emerald-500/25 bg-emerald-500/10 px-2 py-0.5 text-[11px] font-medium text-emerald-300">Non-destructive</span>}</div><p className="mt-3 text-sm leading-6 text-zinc-400">{confirmAction === 'restore' ? `${selectedIds.length} selected image${selectedIds.length === 1 ? '' : 's'} will return to the pending expert review queue. Existing review history will be preserved.` : confirmAction === 'return-new-class' ? 'This image will return to the pending expert review queue. The new-class escalation and its review history will be preserved.' : `${selectedIds.length} selected unclear image${selectedIds.length === 1 ? '' : 's'} and their stored files will be permanently deleted.`}</p><div className="mt-6 flex justify-end gap-3"><Button variant="ghost" disabled={acting} onClick={() => setConfirmAction(null)}>Cancel</Button><Button variant={confirmAction === 'delete' ? 'danger' : 'secondary'} className={confirmAction === 'restore' ? 'border-emerald-500/35 bg-emerald-500/10 text-emerald-300 hover:bg-emerald-500/20' : confirmAction === 'return-new-class' ? 'border-blue-500/35 bg-blue-500/10 text-blue-300 hover:bg-blue-500/20' : ''} disabled={acting} onClick={() => void runAction()}>{acting ? 'Working…' : confirmAction === 'restore' ? <><RefreshCw size={16} /> Restore {selectedIds.length} image{selectedIds.length === 1 ? '' : 's'}</> : confirmAction === 'return-new-class' ? <><RefreshCw size={16} /> Return to pending review</> : 'Delete permanently'}</Button></div></div></div>}
   </section>
