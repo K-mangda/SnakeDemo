@@ -73,7 +73,7 @@ export default function DatasetPublisher() {
       <Button variant="ghost" size="sm" onClick={() => void refresh()} disabled={loading || publishing}><RefreshCw size={14} className={loading ? 'animate-spin' : ''} /> Refresh status</Button>
     </div>
 
-    <div className="mt-5 flex flex-wrap items-end gap-4 rounded-xl border border-zinc-800 bg-zinc-950/40 p-4">
+    <div className="mt-5 flex w-full max-w-3xl flex-wrap items-end gap-4 rounded-xl border border-zinc-800 bg-zinc-950/40 p-4">
       <div className="min-w-0 flex-1">
         <label htmlFor="dataset-version" className="text-xs font-medium uppercase tracking-wider text-zinc-500">Release version</label>
         <input id="dataset-version" value={version} onChange={event => setVersion(event.target.value)} placeholder="v1" className="mt-2 block w-full max-w-xs rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm text-zinc-100 outline-none transition focus:border-sky-400" />
