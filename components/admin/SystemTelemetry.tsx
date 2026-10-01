@@ -35,9 +35,9 @@ function dayLabel(value: Date) {
 function TelemetrySkeleton() {
   return <div className="animate-pulse" aria-label="Loading system telemetry">
     <div className="grid md:grid-cols-2 gap-6 mb-6">
-      {[0, 1].map(item => <div key={item} className="h-[312px] rounded-xl border border-zinc-800 bg-zinc-900/20 p-6"><div className="h-4 w-48 rounded bg-zinc-800" /><div className="mt-8 h-52 rounded-lg bg-zinc-900/50" /></div>)}
+      {[0, 1].map(item => <div key={item} className="h-[350px] rounded-xl border border-zinc-800 bg-zinc-900/20 p-6"><div className="h-4 w-48 rounded bg-zinc-800" /><div className="mt-8 h-64 rounded-lg bg-zinc-900/50" /></div>)}
     </div>
-    <div className="grid md:grid-cols-3 gap-6 mb-12"><div className="h-[312px] rounded-xl border border-zinc-800 bg-zinc-900/20 p-6 md:col-span-2"><div className="h-4 w-56 rounded bg-zinc-800" /><div className="mt-8 h-52 rounded-lg bg-zinc-900/50" /></div><div className="h-[312px] rounded-xl border border-zinc-800 bg-zinc-900/20 p-6"><div className="h-4 w-32 rounded bg-zinc-800" /><div className="mx-auto mt-8 h-40 w-40 rounded-full border-[22px] border-zinc-800" /></div></div>
+    <div className="grid md:grid-cols-3 gap-6 mb-12"><div className="h-[350px] rounded-xl border border-zinc-800 bg-zinc-900/20 p-6 md:col-span-2"><div className="h-4 w-56 rounded bg-zinc-800" /><div className="mt-8 h-64 rounded-lg bg-zinc-900/50" /></div><div className="h-[350px] rounded-xl border border-zinc-800 bg-zinc-900/20 p-6"><div className="h-4 w-32 rounded bg-zinc-800" /><div className="mx-auto mt-8 h-40 w-40 rounded-full border-[22px] border-zinc-800" /></div></div>
   </div>
 }
 
