@@ -80,16 +80,18 @@ export async function PATCH(request: Request) {
 
   const body = await request.json().catch(() => null)
   const ids = validIds(body?.ids)
-  if (body?.action !== 'restore_unclear' || !ids) return Response.json({ detail: 'Select one or more unclear images to restore.' }, { status: 400 })
+  if (!ids || !['restore_unclear', 'return_new_class_to_pending'].includes(body?.action)) return Response.json({ detail: 'Select one or more review queue images.' }, { status: 400 })
+
+  const isNewClassReturn = body.action === 'return_new_class_to_pending'
 
   const { data, error } = await access.admin
     .from('snake_images')
     .update({ status: 'pending', updated_at: new Date().toISOString() })
     .in('id', ids)
-    .eq('status', 'unclear')
+    .eq('status', isNewClassReturn ? 'waiting_for_new_class' : 'unclear')
     .select('id')
-  if (error) return Response.json({ detail: 'Could not restore unclear images.' }, { status: 500 })
-  return Response.json({ restored: data?.length ?? 0 })
+  if (error) return Response.json({ detail: isNewClassReturn ? 'Could not return new-class images to review.' : 'Could not restore unclear images.' }, { status: 500 })
+  return Response.json(isNewClassReturn ? { returned: data?.length ?? 0 } : { restored: data?.length ?? 0 })
 }
 
 export async function DELETE(request: Request) {
