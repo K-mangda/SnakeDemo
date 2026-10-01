@@ -55,8 +55,7 @@ export default function NewClassAnomalyModal({ items, onCreateSpecies, onReturnT
       <div className="custom-scrollbar min-h-0 flex-1 overflow-y-auto pr-2">
         {creatingFor ? <form onSubmit={submitCreate} className="rounded-lg border border-blue-500/25 bg-zinc-950/50 p-5">
           <div className="mb-5 flex items-start justify-between gap-4">
-            <div><p className="text-sm font-medium text-zinc-100">Add species to catalogue</p><p className="mt-1 truncate text-xs text-zinc-500" title={creatingFor.filename}>For {creatingFor.filename}</p></div>
-            <Button type="button" size="sm" variant="ghost" disabled={saving} onClick={() => setCreatingFor(null)}>Back to requests</Button>
+            <div className="min-w-0"><p className="text-sm font-medium text-zinc-100">Add species to catalogue</p><p className="mt-1 truncate text-xs text-zinc-500" title={creatingFor.filename}>For {creatingFor.filename}</p></div>
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
             <label className="sm:col-span-2 text-sm text-zinc-300">Scientific name <span className="text-red-400">*</span><input required maxLength={160} value={species.scientificName} onChange={(event) => setSpecies(current => ({ ...current, scientificName: event.target.value }))} className="mt-1.5 w-full rounded-md border border-zinc-700 bg-zinc-900 px-3 py-2 text-sm text-zinc-100 outline-none transition focus:border-blue-500" placeholder="e.g. Naja kaouthia" /></label>
@@ -65,7 +64,7 @@ export default function NewClassAnomalyModal({ items, onCreateSpecies, onReturnT
             <label className="sm:col-span-2 text-sm text-zinc-300">Family<input maxLength={160} value={species.family} onChange={(event) => setSpecies(current => ({ ...current, family: event.target.value }))} className="mt-1.5 w-full rounded-md border border-zinc-700 bg-zinc-900 px-3 py-2 text-sm text-zinc-100 outline-none transition focus:border-blue-500" placeholder="Optional" /></label>
           </div>
           <p className="mt-4 text-xs leading-5 text-zinc-500">Creating the class does not verify the image. It returns to pending so the experts can review it using the updated catalogue.</p>
-          <div className="mt-5 flex justify-end gap-3"><Button type="button" variant="ghost" disabled={saving} onClick={() => setCreatingFor(null)}>Cancel</Button><Button type="submit" variant="secondary" disabled={saving} className="border-blue-500/35 bg-blue-500/10 text-blue-200 hover:bg-blue-500/20">{saving ? 'Creating…' : <><Plus size={16} /> Create class and send to review</>}</Button></div>
+          <div className="mt-5 flex justify-end gap-3"><Button type="button" variant="ghost" disabled={saving} onClick={() => setCreatingFor(null)}>Back to requests</Button><Button type="submit" variant="secondary" disabled={saving} className="border-blue-500/35 bg-blue-500/10 text-blue-200 hover:bg-blue-500/20">{saving ? 'Creating…' : <><Plus size={16} /> Add species and send to review</>}</Button></div>
         </form> : items.length ? <div className="space-y-4">
           {items.map((item) => <article key={item.id} className="flex gap-4 rounded-lg border border-zinc-800 bg-zinc-950/50 p-4 transition-colors hover:border-zinc-700">
             <div className="grid h-24 w-24 shrink-0 place-items-center overflow-hidden rounded border border-zinc-800 bg-zinc-900">{item.imageUrl ? <img src={item.imageUrl} alt="New class candidate" className="h-full w-full object-cover" /> : <Eye size={24} className="text-blue-500/40" />}</div>
