@@ -1,5 +1,4 @@
 import { createClient } from '@supabase/supabase-js'
-import { getSupabaseAdmin } from '@/lib/supabase/admin'
 
 export const dynamic = 'force-dynamic'
 
@@ -16,7 +15,7 @@ async function requireAdmin(request: Request) {
   const { data: profiles } = await client.rpc('current_profile')
   const profile = profiles?.[0]
   if (!profile || profile.role !== 'admin' || profile.status !== 'active') return { error: 'Administrator access is required.', status: 403 as const }
-  return { admin: getSupabaseAdmin() }
+  return { admin: client }
 }
 
 const fields = 'id, version_name, model_path, map50, precision_score, recall_score, is_active, created_at'
