@@ -41,17 +41,12 @@ function TelemetrySkeleton() {
   </div>
 }
 
-function StatusTooltip({ active, payload }: { active?: boolean; payload?: { name?: string; value?: number; payload?: { name: string; color: string } }[] }) {
-  const item = payload?.[0]
-  if (!active || !item?.payload) return null
-  return <div className="rounded-lg border bg-zinc-900 px-3 py-2 text-sm shadow-xl" style={{ borderColor: `${item.payload.color}66` }}><span className="font-medium" style={{ color: item.payload.color }}>{item.payload.name} · {item.value?.toLocaleString()}</span></div>
-}
-
 export default function SystemTelemetry() {
   const [telemetry, setTelemetry] = useState<Telemetry | null>(null)
   const [modelReleases, setModelReleases] = useState<ModelRelease[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [activeStatus, setActiveStatus] = useState<{ name: string; value: number; color: string } | null>(null)
 
   async function load() {
     setLoading(true)
@@ -127,7 +122,7 @@ export default function SystemTelemetry() {
     </div>
     <div className="grid md:grid-cols-3 gap-6 mb-12">
       <div className="border border-zinc-800 bg-zinc-900/20 p-6 rounded-xl md:col-span-2 transition-all duration-300"><h3 className="text-sm font-medium text-zinc-300 mb-6">Top Verified Species Distribution</h3><div className="h-64 select-none">{loading ? <p className="pt-20 text-center text-sm text-zinc-500">Loading verified species…</p> : speciesData.length ? <ResponsiveContainer width="100%" height="100%"><BarChart accessibilityLayer={false} data={speciesData} layout="vertical" margin={{ top: 0, right: 20, left: 20, bottom: 0 }}><CartesianGrid strokeDasharray="3 3" stroke="#27272a" horizontal={false} /><XAxis type="number" stroke="#52525b" fontSize={12} tickLine={false} axisLine={false} /><YAxis dataKey="name" type="category" stroke="#a1a1aa" fontSize={11} tickLine={false} axisLine={false} width={120} /><Tooltip cursor={{ fill: 'rgba(59, 130, 246, 0.08)' }} contentStyle={{ background: '#18181b', border: '1px solid #27272a', borderRadius: '8px' }} labelStyle={{ color: '#f4f4f5' }} itemStyle={{ color: '#60a5fa' }} wrapperStyle={{ outline: 'none' }} /><Bar dataKey="count" name="Verified images" fill="#3b82f6" radius={[0, 4, 4, 0]} barSize={24} /></BarChart></ResponsiveContainer> : <p className="pt-20 text-center text-sm text-zinc-500">No verified images are recorded yet.</p>}</div></div>
-      <div className="border border-zinc-800 bg-zinc-900/20 p-6 rounded-xl flex flex-col transition-all duration-300"><h3 className="text-sm font-medium text-zinc-300 mb-2">Dataset Status</h3><div className="flex-1 min-h-[200px] relative">{loading ? <p className="pt-20 text-center text-sm text-zinc-500">Loading status…</p> : <><ResponsiveContainer width="100%" height="100%"><PieChart accessibilityLayer={false}><Tooltip content={<StatusTooltip />} wrapperStyle={{ outline: 'none' }} /><Pie data={statusData} cx="50%" cy="50%" innerRadius={60} outerRadius={80} paddingAngle={5} dataKey="value" stroke="none">{statusData.map(entry => <Cell key={entry.name} fill={entry.color} />)}</Pie></PieChart></ResponsiveContainer><div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none"><span className="text-2xl font-mono text-zinc-100">{telemetry?.counts.total.toLocaleString()}</span><span className="text-xs text-zinc-500">Total Images</span></div></>}</div><div className="grid grid-cols-2 gap-x-6 gap-y-3 mt-4 mx-auto w-fit">{statusData.map(item => <div key={item.name} className="flex items-center gap-2 text-xs text-zinc-400"><div className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: item.color }}></div>{item.name}</div>)}</div></div>
+      <div className="border border-zinc-800 bg-zinc-900/20 p-6 rounded-xl flex flex-col transition-all duration-300"><h3 className="text-sm font-medium text-zinc-300 mb-2">Dataset Status</h3><div className="flex-1 min-h-[200px] relative">{loading ? <p className="pt-20 text-center text-sm text-zinc-500">Loading status…</p> : <><ResponsiveContainer width="100%" height="100%"><PieChart accessibilityLayer={false}><Pie data={statusData} cx="50%" cy="50%" innerRadius={60} outerRadius={80} paddingAngle={5} dataKey="value" stroke="none" onMouseEnter={(_, index) => setActiveStatus(statusData[index] ?? null)} onMouseLeave={() => setActiveStatus(null)}>{statusData.map(entry => <Cell key={entry.name} fill={entry.color} />)}</Pie></PieChart></ResponsiveContainer><div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none"><span className="text-2xl font-mono" style={{ color: activeStatus?.color ?? '#f4f4f5' }}>{(activeStatus?.value ?? telemetry?.counts.total ?? 0).toLocaleString()}</span><span className="text-xs text-zinc-500">{activeStatus?.name ?? 'Total Images'}</span></div></>}</div><div className="grid grid-cols-2 gap-x-6 gap-y-3 mt-4 mx-auto w-fit">{statusData.map(item => <div key={item.name} className="flex items-center gap-2 text-xs text-zinc-400"><div className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: item.color }}></div>{item.name}</div>)}</div></div>
     </div>
   </section>
 }
