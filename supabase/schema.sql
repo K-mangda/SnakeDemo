@@ -208,6 +208,9 @@ create policy "admins manage model versions"
   on public.model_versions for all to authenticated
   using (public.is_admin()) with check (public.is_admin());
 
+grant select, update on table public.model_versions to authenticated;
+grant select, insert, update, delete on table public.model_versions to service_role;
+
 insert into public.snake_species (scientific_name, name_th, name_en, family, venom_type, danger_level)
 values
   ('Naja kaouthia', 'งูเห่าไทย', 'Monocled Cobra', 'Elapidae', 'neurotoxic', 4),
