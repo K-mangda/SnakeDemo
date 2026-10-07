@@ -1,6 +1,21 @@
+'use client'
+
 import { PredictionView } from '@/lib/prediction'
 import Badge from '@/components/ui/Badge'
+import { useLanguage } from '@/components/i18n/LanguageProvider'
 import { Droplets, ExternalLink, ScanLine, SearchX, ShieldCheck } from 'lucide-react'
+
+const venomTypeEnglish: Record<string, string> = {
+  'พิษอ่อน': 'Mildly venomous',
+  'พิษต่อระบบประสาท': 'Neurotoxic',
+  'พิษต่อระบบเลือด': 'Hemotoxic',
+  'พิษไม่อันตรายต่อคน': 'Not medically significant to humans',
+}
+
+const dangerLevelEnglish: Record<string, string> = {
+  'อันตรายสูง': 'High risk',
+  'อันตรายน้อย': 'Low risk',
+}
 
 interface PredictionResultProps {
   result: PredictionView | null;
@@ -9,6 +24,7 @@ interface PredictionResultProps {
 }
 
 export default function PredictionResult({ result, noDetection = false, noDetectionSaved = false }: PredictionResultProps) {
+  const { locale } = useLanguage()
   if (!result && noDetection) {
     return <div className="flex-1 rounded-xl border border-zinc-800 bg-zinc-900/40 p-6"><Badge variant={noDetectionSaved ? 'info' : 'muted'}>{noDetectionSaved ? 'Sent for expert review' : 'No AI detection'}</Badge><div className="mt-7 flex items-start gap-3"><div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-zinc-700 bg-zinc-900 text-zinc-400"><SearchX size={20} /></div><div><p className="text-[11px] uppercase tracking-[0.18em] text-zinc-500">Detection outcome</p><h2 className="mt-1 text-xl font-medium text-zinc-100">No snake detected</h2></div></div><p className="mt-6 rounded-lg border border-zinc-700 bg-zinc-900/60 p-3 text-sm leading-5 text-zinc-300">{noDetectionSaved ? 'This image has been saved as a no-detection case for expert review.' : 'This image was not saved. If you believe it contains a snake, send it for expert review so the model can be checked.'}</p></div>
   }
@@ -52,23 +68,27 @@ export default function PredictionResult({ result, noDetection = false, noDetect
           <p className="text-[11px] text-zinc-500 uppercase tracking-[0.18em] mb-1">{requiresReview ? 'Possible match' : 'Detected species'}</p>
           <h2 className="text-2xl font-medium text-zinc-100 leading-tight">{result.reference?.name_en ?? result.detection.scientific}</h2>
           <p className="text-sm text-zinc-400 mt-1 italic">{result.reference?.accepted_scientific_name ?? result.detection.scientific}</p>
-          {result.reference && <p className="mt-1 text-sm text-zinc-500">ชื่อไทย: {result.reference.name_th ?? 'รอผู้เชี่ยวชาญยืนยัน'}</p>}
+          {result.reference && <p className="mt-1 text-sm text-zinc-500">{locale === 'th' ? 'ชื่อไทย:' : 'Thai name:'} {result.reference.name_th ?? (locale === 'th' ? 'รอผู้เชี่ยวชาญยืนยัน' : 'Awaiting expert verification')}</p>}
         </div>
       </div>
 
       <div className={`mb-5 rounded-lg border p-3 text-sm leading-5 ${requiresReview ? 'border-amber-500/40 bg-amber-500/10 text-amber-100' : 'border-zinc-700 bg-zinc-900/60 text-zinc-300'}`}>
         {requiresReview
-          ? 'AI ยังไม่สามารถระบุชนิดได้อย่างน่าเชื่อถือ จึงไม่แสดงข้อมูลพิษหรือคำแนะนำเฉพาะชนิด โปรดหลีกเลี่ยงการสัมผัสและให้ผู้เชี่ยวชาญตรวจสอบเพิ่มเติม'
-          : 'ผลลัพธ์นี้เป็นการคัดกรองด้วย AI ไม่ใช่คำวินิจฉัยทางการแพทย์'}
+          ? locale === 'th'
+            ? 'AI ยังไม่สามารถระบุชนิดได้อย่างน่าเชื่อถือ จึงไม่แสดงข้อมูลพิษหรือคำแนะนำเฉพาะชนิด โปรดหลีกเลี่ยงการสัมผัสและให้ผู้เชี่ยวชาญตรวจสอบเพิ่มเติม'
+            : 'The AI cannot identify the species reliably, so species-specific venom information is not shown. Avoid contact and request an expert review.'
+          : locale === 'th'
+            ? 'ผลลัพธ์นี้เป็นการคัดกรองด้วย AI ไม่ใช่คำวินิจฉัยทางการแพทย์'
+            : 'This AI result is a screening aid, not a medical diagnosis.'}
       </div>
 
       <div className="flex-1">
         {requiresReview ? <p className="rounded-lg border border-zinc-800 bg-zinc-900/30 p-3 text-sm text-zinc-400">The detected region is retained for expert review. No species-specific reference is shown for low-confidence results.</p> : result.reference ? <>
           {(result.reference.venom_type || result.reference.danger_level) && <div className="grid grid-cols-2 overflow-hidden rounded-lg border border-zinc-800 bg-zinc-900/30 py-1">
-            {result.reference.venom_type && <div className="flex min-w-0 items-center gap-3 border-r border-zinc-800 px-3 py-2"><Droplets size={16} className="shrink-0 text-cyan-400" /><div className="min-w-0"><p className="text-[10px] uppercase tracking-[0.14em] text-zinc-500">Venom type</p><p className="mt-0.5 truncate text-sm font-medium text-zinc-200">{result.reference.venom_type}</p></div></div>}
-            {result.reference.danger_level && <div className="flex min-w-0 items-center gap-3 px-3 py-2"><ShieldCheck size={16} className={`shrink-0 ${riskAccent}`} /><div className="min-w-0"><p className="text-[10px] uppercase tracking-[0.14em] text-zinc-500">Danger level</p><p className={`mt-0.5 truncate text-sm font-medium ${riskAccent}`}>{result.reference.danger_level}</p></div></div>}
+            {result.reference.venom_type && <div className="flex min-w-0 items-center gap-3 border-r border-zinc-800 px-3 py-2"><Droplets size={16} className="shrink-0 text-cyan-400" /><div className="min-w-0"><p className="text-[10px] uppercase tracking-[0.14em] text-zinc-500">Venom type</p><p className="mt-0.5 truncate text-sm font-medium text-zinc-200">{locale === 'th' ? result.reference.venom_type : venomTypeEnglish[result.reference.venom_type] ?? result.reference.venom_type}</p></div></div>}
+            {result.reference.danger_level && <div className="flex min-w-0 items-center gap-3 px-3 py-2"><ShieldCheck size={16} className={`shrink-0 ${riskAccent}`} /><div className="min-w-0"><p className="text-[10px] uppercase tracking-[0.14em] text-zinc-500">Danger level</p><p className={`mt-0.5 truncate text-sm font-medium ${riskAccent}`}>{locale === 'th' ? result.reference.danger_level : dangerLevelEnglish[result.reference.danger_level] ?? result.reference.danger_level}</p></div></div>}
           </div>}
-          {result.reference.danger_level === 'อันตรายสูง' && <p className="mt-5 rounded-lg border border-red-500/30 bg-red-500/10 p-3 text-sm leading-5 text-red-100">หากถูกกัด ให้ไปห้องฉุกเฉินทันที และอย่าพยายามจับงู</p>}
+          {result.reference.danger_level === 'อันตรายสูง' && <p className="mt-5 rounded-lg border border-red-500/30 bg-red-500/10 p-3 text-sm leading-5 text-red-100">{locale === 'th' ? 'หากถูกกัด ให้ไปห้องฉุกเฉินทันที และอย่าพยายามจับงู' : 'If bitten, seek emergency medical care immediately. Do not attempt to catch the snake.'}</p>}
           <details open className="group mt-5 overflow-hidden rounded-lg border border-zinc-800 bg-zinc-900/20">
             <summary className="flex cursor-pointer list-none items-center justify-between px-3 py-3 text-sm text-zinc-400 transition-colors hover:text-zinc-200 [&::-webkit-details-marker]:hidden">
               Details &amp; reference
@@ -81,7 +101,7 @@ export default function PredictionResult({ result, noDetection = false, noDetect
               {taxonomySourceUrl && <a href={taxonomySourceUrl} target="_blank" rel="noreferrer" className="mb-2 inline-flex w-fit items-center gap-1.5 text-sm text-emerald-400 transition-colors hover:text-emerald-300"><ExternalLink size={14} />View taxonomy source</a>}
             </div>
           </details>
-        </> : <p className="rounded-lg border border-amber-500/30 bg-amber-500/5 p-3 text-sm text-amber-200">พบชนิดจากโมเดลแล้ว แต่ยังไม่มีข้อมูลคำเตือนที่ผ่านการอ้างอิงในระบบ โปรดหลีกเลี่ยงการสัมผัสและติดต่อหน่วยแพทย์หากถูกกัด</p>}
+        </> : <p className="rounded-lg border border-amber-500/30 bg-amber-500/5 p-3 text-sm text-amber-200">{locale === 'th' ? 'พบชนิดจากโมเดลแล้ว แต่ยังไม่มีข้อมูลคำเตือนที่ผ่านการอ้างอิงในระบบ โปรดหลีกเลี่ยงการสัมผัสและติดต่อหน่วยแพทย์หากถูกกัด' : 'The model found a possible species, but verified safety guidance is not available. Avoid contact and seek medical care if bitten.'}</p>}
       </div>
     </div>
   )

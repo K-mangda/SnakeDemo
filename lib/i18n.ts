@@ -361,6 +361,7 @@ const thai: Record<string, string> = {
   'Access': 'สิทธิ์เข้าใช้',
   'No expert accounts yet.': 'ยังไม่มีบัญชีผู้เชี่ยวชาญ',
   'Updating access…': 'กำลังอัปเดตสิทธิ์…',
+  'Updating access...': 'กำลังอัปเดตสิทธิ์...',
   'Active': 'ใช้งานอยู่',
   'Pending setup': 'รอตั้งค่าบัญชี',
   'Inactive': 'ปิดใช้งาน',
@@ -371,8 +372,12 @@ const thai: Record<string, string> = {
   'Re-activating…': 'กำลังเปิดใช้ใหม่…',
   'Re-activate': 'เปิดใช้งานอีกครั้ง',
   'Remove': 'นำออก',
+  'Expert reviewer': 'ผู้เชี่ยวชาญตรวจสอบ',
+  'Administrator': 'ผู้ดูแลระบบ',
+  'Sleep': 'การนอนหลับ',
   'No box submitted': 'ไม่ได้ส่งกรอบตำแหน่ง',
   'Not comparable': 'เปรียบเทียบไม่ได้',
+  'Leading boxes overlap by less than 50% IoU.': 'กรอบตำแหน่งหลักทับซ้อนกันน้อยกว่า 50% IoU',
   'One-time GitHub publisher setup is still required before this button can start jobs.': 'ต้องตั้งค่า GitHub publisher เพียงครั้งเดียวก่อนจึงจะเริ่มงานจากปุ่มนี้ได้',
   'Published successfully': 'เผยแพร่สำเร็จ',
   'Open GitHub Actions job': 'เปิดงาน GitHub Actions',
@@ -674,6 +679,24 @@ const thai: Record<string, string> = {
   'verified images ·': 'ภาพที่ยืนยันแล้ว ·',
   'images': 'ภาพ',
   'image': 'ภาพ',
+  'Sending link…': 'กำลังส่งลิงก์…',
+  'Send reset link': 'ส่งลิงก์รีเซ็ตรหัสผ่าน',
+  'Workspace initialized': 'ตั้งค่าพื้นที่ทำงานแล้ว',
+  'The first administrator account has been configured. Continue with secure sign-in.': 'ตั้งค่าบัญชีผู้ดูแลระบบคนแรกแล้ว โปรดเข้าสู่ระบบเพื่อใช้งาน',
+  'First-time setup': 'ตั้งค่าระบบครั้งแรก',
+  'Create the first administrator account. This setup is available once only.': 'สร้างบัญชีผู้ดูแลระบบคนแรก โดยสามารถตั้งค่าได้เพียงครั้งเดียว',
+  'Administrator account created. Confirm your email, then return here to sign in.': 'สร้างบัญชีผู้ดูแลระบบแล้ว โปรดยืนยันอีเมลก่อนกลับมาเข้าสู่ระบบ',
+  'Your independent review is needed': 'รอผลตรวจจากคุณ',
+  'AI prediction ·': 'ผลคาดการณ์จาก AI ·',
+  'Verified reviews ·': 'ผลตรวจที่ยืนยันแล้ว ·',
+  'Escalated for taxonomy review · Updated': 'ส่งต่อเพื่อตรวจสอบอนุกรมวิธาน · อัปเดตเมื่อ',
+  'New Class': 'ชนิดใหม่',
+  'classes ·': 'คลาส ·',
+  'species have at least one verified image (': 'ชนิดมีภาพที่ยืนยันแล้วอย่างน้อยหนึ่งภาพ (',
+  'Could not load consensus audit.': 'ไม่สามารถโหลดข้อมูลการตรวจสอบข้อสรุปร่วมได้',
+  'Your account is not active. Contact an administrator.': 'บัญชีของคุณยังไม่เปิดใช้งาน โปรดติดต่อผู้ดูแลระบบ',
+  'You do not have permission to access this workspace.': 'คุณไม่มีสิทธิ์เข้าถึงพื้นที่ทำงานนี้',
+  'e.g. Herpetology': 'เช่น สัตว์เลื้อยคลานวิทยา',
 }
 
 export function translate(text: string, locale: AppLocale) {
@@ -686,6 +709,9 @@ export function translate(text: string, locale: AppLocale) {
 
   const dynamic = core.match(/^(\d+) expert reviews?$/)
   if (dynamic) return `${leading}${dynamic[1]} ผลตรวจจากผู้เชี่ยวชาญ${trailing}`
+
+  const reviewCount = core.match(/^(\d+) reviews?$/)
+  if (reviewCount) return `${leading}${reviewCount[1]} ผลตรวจ${trailing}`
 
   const referenceSpecies = core.match(/^(\d+) reference species$/)
   if (referenceSpecies) return `${leading}${referenceSpecies[1]} ชนิดงูอ้างอิง${trailing}`
@@ -704,6 +730,9 @@ export function translate(text: string, locale: AppLocale) {
 
   const savedReview = core.match(/^Your review saved · (\d+) total reviews?$/)
   if (savedReview) return `${leading}บันทึกผลตรวจของคุณแล้ว · ตรวจทั้งหมด ${savedReview[1]} ครั้ง${trailing}`
+
+  const pendingConsensus = core.match(/^Your review saved · (\d+) total reviews? · Consensus pending$/)
+  if (pendingConsensus) return `${leading}บันทึกผลตรวจของคุณแล้ว · ตรวจทั้งหมด ${pendingConsensus[1]} ครั้ง · รอข้อสรุปร่วม${trailing}`
 
   const verifiedReview = core.match(/^Verified · (\d+) expert reviews?$/)
   if (verifiedReview) return `${leading}ยืนยันแล้ว · ผลตรวจจากผู้เชี่ยวชาญ ${verifiedReview[1]} ครั้ง${trailing}`
@@ -740,6 +769,15 @@ export function translate(text: string, locale: AppLocale) {
 
   const restoreImages = core.match(/^Restore (\d+) images?$/)
   if (restoreImages) return `${leading}กู้คืน ${restoreImages[1]} ภาพ${trailing}`
+
+  const openForReview = core.match(/^Open (.+) for review$/)
+  if (openForReview) return `${leading}เปิดภาพ ${openForReview[1]} เพื่อตรวจสอบ${trailing}`
+
+  const expertIdentity = core.match(/^(Expert reviewer|Administrator) · (.+)$/)
+  if (expertIdentity) {
+    const role = expertIdentity[1] === 'Administrator' ? 'ผู้ดูแลระบบ' : 'ผู้เชี่ยวชาญตรวจสอบ'
+    return `${leading}${role} · ${thai[expertIdentity[2]] ?? expertIdentity[2]}${trailing}`
+  }
 
   return text
 }
