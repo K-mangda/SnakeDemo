@@ -13,7 +13,7 @@ The hero uses the same Noto Sans Thai UI family as the rest of the product, with
 - `public/forest/forest-poster.webp`: the original illustration, retained as a reference but not loaded by the homepage.
 - `public/forest/downstream-poster.webp`: an earlier waterfall concept retained as a reference but not loaded by the homepage.
 
-The rejected riverbank image and 2.5D study remain outside the published homepage. The guide explains the actual image-analysis workflow with a result panel and three numbered steps inside one connected charcoal band, using emerald only for small markers and a fine edge. The species section displays all seven local `SNAKE_DATA` sample entries as compact disclosure rows in a field-reference index, with a separate research-export link below. These samples are explicitly not presented as the model's full live coverage.
+The rejected riverbank image and 2.5D study remain outside the published homepage. The guide explains the actual image-analysis workflow with a result panel and three numbered steps inside one connected charcoal band, using emerald only for small markers and a fine edge. The species section presents the 25 labels in Thai-Snake-Dataset v4 as a keyboard-scrollable, height-limited index with disclosure rows, followed by a separate research-export link. `lib/model-species.ts` follows the dataset class order and the names/families in `supabase/011_seed_model_species.sql`; these training labels are not a guarantee of the active deployed model's coverage or of a correct identification. Thai common names appear only where the reference seed verifies them.
 
 ## Runtime behavior
 

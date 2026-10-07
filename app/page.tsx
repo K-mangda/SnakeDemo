@@ -3,7 +3,7 @@ import Link from 'next/link'
 import { ArrowDown, ArrowRight, ArrowUpRight, Database, ScanLine, ShieldCheck, SlidersHorizontal, UploadCloud } from 'lucide-react'
 import ForestExperience from '@/components/home/ForestExperience'
 import styles from '@/components/home/forest.module.css'
-import { SNAKE_DATA } from '@/lib/data'
+import { MODEL_SPECIES } from '@/lib/model-species'
 
 export const metadata: Metadata = {
   title: 'NSTRUVision — AI-assisted snake photo analysis',
@@ -66,25 +66,26 @@ export default function Home() {
           <div className={styles.speciesInner}>
             <div className={styles.speciesIntro}>
               <div>
-                <p className={styles.eyebrow}>FIELD REFERENCES / {String(SNAKE_DATA.length).padStart(2, '0')} EXAMPLES</p>
+                <p className={styles.eyebrow}>MODEL CLASS INDEX / {MODEL_SPECIES.length} LABELS</p>
                 <h2 id="species-title">Species in focus.</h2>
               </div>
               <div>
-                <p className={styles.bodyCopy}>Browse the {SNAKE_DATA.length} sample species entries included with this site. Their names and families are useful context, but a photograph still needs careful analysis.</p>
-                <p className={styles.caption}>HOMEPAGE EXAMPLES · NOT THE FULL MODEL COVERAGE LIST</p>
+                <p className={styles.bodyCopy}>Explore the {MODEL_SPECIES.length} labels in the research model&apos;s training set. Predictions are suggestions, not confirmed identifications.</p>
+                <p className={styles.caption}>TRAINING LABELS · THE ACTIVE DEPLOYED MODEL MAY DIFFER</p>
               </div>
             </div>
-            <div className={styles.speciesList}>
-              {SNAKE_DATA.map((snake, index) => (
-                <details key={snake.id} className={styles.speciesItem}>
+            <div className={styles.speciesListMeta}><span>01–{MODEL_SPECIES.length} / MODEL LABELS</span><span>SCROLL TO EXPLORE <ArrowDown size={14} aria-hidden="true" /></span></div>
+            <div className={styles.speciesList} role="region" aria-label={`Model training class index, ${MODEL_SPECIES.length} entries`} tabIndex={0}>
+              {MODEL_SPECIES.map((snake, index) => (
+                <details key={snake.scientific} className={styles.speciesItem}>
                   <summary>
                     <span className={styles.speciesIndex}>{String(index + 1).padStart(2, '0')}</span>
-                    <span className={styles.speciesName}><strong>{snake.name_en}</strong><i>{snake.scientific}</i></span>
-                    <span className={styles.speciesThai} lang="th">{snake.name_th}</span>
+                    <span className={styles.speciesName}><strong>{snake.nameEn}</strong><i>{snake.scientific}</i></span>
+                    <span className={`${styles.speciesThai} ${snake.nameTh ? '' : styles.speciesThaiMissing}`} lang={snake.nameTh ? 'th' : undefined} title={snake.nameTh ?? 'Thai common name not verified'}>{snake.nameTh ?? '—'}</span>
                     <span className={styles.speciesFamily}>{snake.family}</span>
                     <span className={styles.plus} aria-hidden="true">+</span>
                   </summary>
-                  <div className={styles.speciesDetail}><p>A reference example, not a confirmed identification or a safety assessment.</p><Link href="/predict">Analyze your photo <ArrowUpRight size={14} /></Link></div>
+                  <div className={styles.speciesDetail}><p>A training label, not a confirmed identification or a safety assessment.</p><Link href="/predict">Analyze your photo <ArrowUpRight size={14} /></Link></div>
                 </details>
               ))}
             </div>
