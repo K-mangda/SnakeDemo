@@ -21,7 +21,12 @@ export default function Home() {
     <ForestExperience>
       <section className={styles.hero} id="discover" aria-labelledby="forest-title">
         <div className={styles.heroContent}>
-          <p className={styles.eyebrow}><span /> NSTRU VISION / AI-ASSISTED SNAKE ANALYSIS</p>
+          <p className={styles.heroEyebrow}>
+            <span className={styles.heroEyebrowMark} aria-hidden="true" />
+            <strong>NSTRU VISION</strong>
+            <span className={styles.heroEyebrowDivider} aria-hidden="true" />
+            <span className={styles.heroEyebrowDescription}>AI-assisted snake analysis</span>
+          </p>
           <h1 id="forest-title"><span>Analyze a snake photo.</span><span>Understand the result.</span></h1>
           <p className={styles.intro}>Upload a photo for a possible species match. Review the detected area, model confidence, and supporting references.</p>
           <div className={styles.actions}>
