@@ -697,6 +697,48 @@ const thai: Record<string, string> = {
   'Your account is not active. Contact an administrator.': 'บัญชีของคุณยังไม่เปิดใช้งาน โปรดติดต่อผู้ดูแลระบบ',
   'You do not have permission to access this workspace.': 'คุณไม่มีสิทธิ์เข้าถึงพื้นที่ทำงานนี้',
   'e.g. Herpetology': 'เช่น สัตว์เลื้อยคลานวิทยา',
+  'First expert review accepted.': 'ยอมรับผลตรวจจากผู้เชี่ยวชาญคนแรกแล้ว',
+  'Consensus reached from matching reviews.': 'ได้ข้อสรุปร่วมจากผลตรวจที่สอดคล้องกันแล้ว',
+  'All submitted reviews marked this image unclear.': 'ผลตรวจที่ส่งทั้งหมดระบุว่าภาพนี้ไม่ชัดเจน',
+  'An expert requested a new reference class.': 'ผู้เชี่ยวชาญขอเพิ่มชนิดอ้างอิงใหม่',
+  'Awaiting another independent review.': 'รอผลตรวจอิสระจากผู้เชี่ยวชาญเพิ่มเติม',
+  'Reviews are unclear and need follow-up.': 'ผลตรวจยังไม่ชัดเจนและต้องติดตามต่อ',
+  'No species has a strict majority.': 'ยังไม่มีชนิดใดได้รับเสียงข้างมากอย่างชัดเจน',
+  'Updating…': 'กำลังอัปเดต…',
+  'Scientific name': 'ชื่อวิทยาศาสตร์',
+  'Thai name': 'ชื่อไทย',
+  'English name': 'ชื่ออังกฤษ',
+  'Actions': 'การดำเนินการ',
+  'Loading catalogue…': 'กำลังโหลดรายการชนิดงู…',
+  'No species in the catalogue yet.': 'ยังไม่มีข้อมูลชนิดงูในรายการ',
+  'Edit': 'แก้ไข',
+  'No unclear images are currently queued.': 'ขณะนี้ไม่มีภาพไม่ชัดเจนในคิว',
+  'Previous page': 'หน้าก่อนหน้า',
+  'Next page': 'หน้าถัดไป',
+  'Unclear images': 'ภาพไม่ชัดเจน',
+  'Images experts could not identify confidently. Restore or remove selected queue items.': 'ภาพที่ผู้เชี่ยวชาญยังระบุชนิดได้ไม่มั่นใจ สามารถกู้คืนหรือลบรายการที่เลือกได้',
+  'Review queue': 'ตรวจสอบคิว',
+  'New class requests': 'คำขอเพิ่มชนิดใหม่',
+  'Images flagged for taxonomy review before a new species can be added.': 'ภาพที่ถูกส่งมาตรวจสอบอนุกรมวิธานก่อนเพิ่มชนิดใหม่',
+  'Inspect queue': 'ดูคิว',
+  'Restore selected images?': 'กู้คืนภาพที่เลือกหรือไม่?',
+  'Return image to expert review?': 'ส่งภาพกลับไปให้ผู้เชี่ยวชาญตรวจสอบหรือไม่?',
+  'Delete selected images permanently?': 'ลบภาพที่เลือกอย่างถาวรหรือไม่?',
+  'Non-destructive': 'ไม่ลบข้อมูลเดิม',
+  'Working…': 'กำลังดำเนินการ…',
+  'Return to pending review': 'ส่งกลับคิวรอตรวจ',
+  'Delete permanently': 'ลบอย่างถาวร',
+  'Published successfully': 'เผยแพร่สำเร็จ',
+  'Open GitHub Actions job': 'เปิดงาน GitHub Actions',
+  'No dataset publish job has run yet.': 'ยังไม่มีการรันงานเผยแพร่ชุดข้อมูล',
+  'One-time GitHub publisher setup is still required before this button can start jobs.': 'ต้องตั้งค่าผู้เผยแพร่ GitHub เพียงครั้งเดียวก่อนจึงจะเริ่มงานได้',
+  'Active registry': 'รุ่นที่ใช้งานอยู่',
+  'Set active': 'ตั้งเป็นรุ่นที่ใช้งาน',
+  'No model versions are registered yet.': 'ยังไม่มีรุ่นโมเดลที่ลงทะเบียนไว้',
+  'Add a released model to the model_versions table before it can be selected.': 'เพิ่มโมเดลที่เผยแพร่แล้วลงในตาราง model_versions ก่อนจึงจะเลือกใช้งานได้',
+  'Registered': 'ลงทะเบียนเมื่อ',
+  'Precision': 'ความแม่นยำ',
+  'Status': 'สถานะ',
 }
 
 export function translate(text: string, locale: AppLocale) {
@@ -712,6 +754,33 @@ export function translate(text: string, locale: AppLocale) {
 
   const reviewCount = core.match(/^(\d+) reviews?$/)
   if (reviewCount) return `${leading}${reviewCount[1]} ผลตรวจ${trailing}`
+
+  const taskRange = core.match(/^Showing (\d+)–(\d+) of (\d+) tasks$/)
+  if (taskRange) return `${leading}แสดง ${taskRange[1]}–${taskRange[2]} จากทั้งหมด ${taskRange[3]} งาน${trailing}`
+
+  const pagination = core.match(/^Page (\d+) \/ (\d+)$/)
+  if (pagination) return `${leading}หน้า ${pagination[1]} / ${pagination[2]}${trailing}`
+
+  const selectedCount = core.match(/^(\d+) selected$/)
+  if (selectedCount) return `${leading}เลือกแล้ว ${selectedCount[1]} รายการ${trailing}`
+
+  const catalogueRange = core.match(/^(\d+) shown · page (\d+) of (\d+)$/)
+  if (catalogueRange) return `${leading}แสดง ${catalogueRange[1]} รายการ · หน้า ${catalogueRange[2]} จาก ${catalogueRange[3]}${trailing}`
+
+  const datasetRelease = core.match(/^Release (.+) · ([\d,]+) verified images · (\d+) species$/)
+  if (datasetRelease) return `${leading}รุ่นเผยแพร่ ${datasetRelease[1]} · ภาพที่ยืนยันแล้ว ${datasetRelease[2]} ภาพ · ${datasetRelease[3]} ชนิด${trailing}`
+
+  const publisherJob = core.match(/^Publish job (.+)$/)
+  if (publisherJob) return `${leading}งานเผยแพร่: ${publisherJob[1]}${trailing}`
+
+  const updatedAt = core.match(/^Updated (.+)$/)
+  if (updatedAt) return `${leading}อัปเดตเมื่อ ${updatedAt[1]}${trailing}`
+
+  const editSpecies = core.match(/^Edit (.+)$/)
+  if (editSpecies) return `${leading}แก้ไข ${editSpecies[1]}${trailing}`
+
+  const deleteSpecies = core.match(/^Delete (.+)$/)
+  if (deleteSpecies) return `${leading}ลบ ${deleteSpecies[1]}${trailing}`
 
   const referenceSpecies = core.match(/^(\d+) reference species$/)
   if (referenceSpecies) return `${leading}${referenceSpecies[1]} ชนิดงูอ้างอิง${trailing}`
