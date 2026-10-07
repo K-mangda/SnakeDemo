@@ -7,6 +7,8 @@ import { supabase } from '@/lib/supabase/client'
 import { useToast } from '@/components/ui/Toast'
 import { readAdminCache, writeAdminCache } from '@/lib/admin-cache'
 import { onAdminRefresh } from '@/lib/admin-refresh'
+import { translate } from '@/lib/i18n'
+import { useLanguage } from '@/components/i18n/LanguageProvider'
 
 type Species = { id: number; scientific_name: string; name_th: string | null; name_en: string | null; family: string | null; created_at: string }
 type Draft = { scientificName: string; nameTh: string; nameEn: string; family: string }
@@ -18,6 +20,7 @@ function toDraft(species: Species): Draft {
 
 export default function SpeciesCatalogue() {
   const { showToast } = useToast()
+  const { locale } = useLanguage()
   const [catalogue, setCatalogue] = useState<CatalogueResponse>(() => readAdminCache<CatalogueResponse>('species-catalogue') ?? { species: [], page: 1, pageSize: 10, total: 0, totalPages: 1 })
   const [loading, setLoading] = useState(() => readAdminCache<CatalogueResponse>('species-catalogue') === null)
   const [search, setSearch] = useState('')
@@ -112,10 +115,10 @@ export default function SpeciesCatalogue() {
   return <section className="mb-12 rounded-xl border border-zinc-800 bg-zinc-900/20 p-6">
     <div className="flex flex-wrap items-start justify-between gap-4 border-b border-zinc-800 pb-5">
       <div><h2 className="flex items-center gap-2 text-lg font-medium text-zinc-100"><BookOpen size={19} className="text-zinc-400" /> Species catalogue</h2><p className="mt-2 text-sm text-zinc-500">Edit names and taxonomy details here. Deletion is available only while a species has no saved image or expert review.</p></div>
-      <span className="text-sm tabular-nums text-zinc-500">{loading ? 'Loading…' : catalogue.total.toLocaleString() + ' species'}</span>
+      <span className="text-sm tabular-nums text-zinc-500">{translate(loading ? 'Loading…' : `${catalogue.total.toLocaleString()} species`, locale)}</span>
     </div>
 
-    <div className="mt-4 flex flex-wrap items-center justify-between gap-3"><label className="relative block w-full max-w-sm"><Search size={15} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500" /><input value={search} onChange={(event) => searchCatalogue(event.target.value)} placeholder="Search species, name, or family" className="w-full rounded-lg border border-zinc-800 bg-zinc-950 py-2 pl-9 pr-3 text-sm text-zinc-100 outline-none placeholder:text-zinc-600 focus:border-emerald-500" /></label><p className="text-xs text-zinc-500">{loading ? 'Updating…' : species.length + ' shown · page ' + catalogue.page + ' of ' + catalogue.totalPages}</p></div>
+    <div className="mt-4 flex flex-wrap items-center justify-between gap-3"><label className="relative block w-full max-w-sm"><Search size={15} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500" /><input value={search} onChange={(event) => searchCatalogue(event.target.value)} placeholder="Search species, name, or family" className="w-full rounded-lg border border-zinc-800 bg-zinc-950 py-2 pl-9 pr-3 text-sm text-zinc-100 outline-none placeholder:text-zinc-600 focus:border-emerald-500" /></label><p className="text-xs text-zinc-500">{translate(loading ? 'Updating…' : `${species.length} shown · page ${catalogue.page} of ${catalogue.totalPages}`, locale)}</p></div>
 
     <div className="mt-4 overflow-x-auto rounded-lg border border-zinc-800">
       <table className="w-full min-w-[660px] text-left text-sm"><thead className="border-b border-zinc-800 bg-zinc-900/60 text-[11px] uppercase tracking-wide text-zinc-500"><tr><th className="px-4 py-3 font-medium">Scientific name</th><th className="px-4 py-3 font-medium">Thai name</th><th className="px-4 py-3 font-medium">English name</th><th className="px-4 py-3 font-medium">Family</th><th className="w-36 px-4 py-3 text-right font-medium">Actions</th></tr></thead><tbody>{loading ? <tr><td colSpan={5} className="px-4 py-8 text-center text-zinc-500">Loading catalogue…</td></tr> : species.length ? species.map((item) => <tr key={item.id} className="group border-b border-zinc-800/80 transition-colors hover:bg-zinc-900/60 last:border-0"><td className="px-4 py-3 font-medium italic text-zinc-200">{item.scientific_name}</td><td className="px-4 py-3 text-zinc-400">{item.name_th ?? '—'}</td><td className="px-4 py-3 text-zinc-400">{item.name_en ?? '—'}</td><td className="px-4 py-3 text-zinc-400">{item.family ?? '—'}</td><td className="px-4 py-3"><div className="flex justify-end gap-1"><Button size="sm" variant="ghost" className="group-hover:text-zinc-100" onClick={() => openEdit(item)} aria-label={'Edit ' + item.scientific_name}><Pencil size={14} /> Edit</Button><Button size="sm" variant="ghost" className="text-zinc-500 hover:text-red-300" onClick={() => setDeleting(item)} aria-label={'Delete ' + item.scientific_name}><Trash2 size={14} /></Button></div></td></tr>) : <tr><td colSpan={5} className="px-4 py-8 text-center text-zinc-500">No species in the catalogue yet.</td></tr>}</tbody></table>

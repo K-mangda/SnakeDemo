@@ -764,6 +764,12 @@ export function translate(text: string, locale: AppLocale) {
   const selectedCount = core.match(/^(\d+) selected$/)
   if (selectedCount) return `${leading}เลือกแล้ว ${selectedCount[1]} รายการ${trailing}`
 
+  const speciesCount = core.match(/^([\d,]+) species$/)
+  if (speciesCount) return `${leading}${speciesCount[1]} ชนิด${trailing}`
+
+  const queueImageCount = core.match(/^([\d,]+) images? in queue$/)
+  if (queueImageCount) return `${leading}${queueImageCount[1]} ภาพในคิว${trailing}`
+
   const catalogueRange = core.match(/^(\d+) shown · page (\d+) of (\d+)$/)
   if (catalogueRange) return `${leading}แสดง ${catalogueRange[1]} รายการ · หน้า ${catalogueRange[2]} จาก ${catalogueRange[3]}${trailing}`
 
@@ -771,7 +777,10 @@ export function translate(text: string, locale: AppLocale) {
   if (datasetRelease) return `${leading}รุ่นเผยแพร่ ${datasetRelease[1]} · ภาพที่ยืนยันแล้ว ${datasetRelease[2]} ภาพ · ${datasetRelease[3]} ชนิด${trailing}`
 
   const publisherJob = core.match(/^Publish job (.+)$/)
-  if (publisherJob) return `${leading}งานเผยแพร่: ${publisherJob[1]}${trailing}`
+  if (publisherJob) {
+    const status = ({ queued: 'อยู่ในคิว', in_progress: 'กำลังดำเนินการ', completed: 'เสร็จสิ้น', success: 'สำเร็จ', failure: 'ไม่สำเร็จ', cancelled: 'ยกเลิกแล้ว' } as Record<string, string>)[publisherJob[1]] ?? publisherJob[1]
+    return `${leading}งานเผยแพร่: ${status}${trailing}`
+  }
 
   const updatedAt = core.match(/^Updated (.+)$/)
   if (updatedAt) return `${leading}อัปเดตเมื่อ ${updatedAt[1]}${trailing}`

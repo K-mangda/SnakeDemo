@@ -5,6 +5,8 @@ import { useSearchParams } from 'next/navigation'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { supabase } from '@/lib/supabase/client'
 import { cacheWorkspacePage, getCachedWorkspacePage } from '@/lib/expert-workspace-cache'
+import { translate } from '@/lib/i18n'
+import { useLanguage } from '@/components/i18n/LanguageProvider'
 
 import ExpertHeader from '@/components/expert/ExpertHeader'
 import ExpertTabs, { FilterStatus, ViewMode, SortMode } from '@/components/expert/ExpertTabs'
@@ -61,6 +63,7 @@ async function fetchWorkspacePage(accessToken: string, filter: FilterStatus, pag
 
 export default function ExpertPage() {
   const searchParams = useSearchParams()
+  const { locale } = useLanguage()
   const initialFilter = searchParams.get('filter')
   const initialView = searchParams.get('view')
   const initialSort = searchParams.get('sort')
@@ -213,7 +216,7 @@ export default function ExpertPage() {
         {!loading && !loadError && viewMode === 'list' && <ImageList filtered={images} currentFilter={currentFilter} reviewHref={reviewHref} />}
 
         {!loading && !loadError && total > 0 && <div className="mt-8 flex flex-col-reverse gap-4 border-t border-zinc-800 pt-5 sm:flex-row sm:items-center sm:justify-between">
-          <p className="text-xs text-zinc-500">Showing <span className="text-zinc-300">{visibleStart}–{visibleEnd}</span> of <span className="text-zinc-300">{total}</span> tasks</p>
+          <p className="text-xs text-zinc-500">{translate(`Showing ${visibleStart}–${visibleEnd} of ${total} tasks`, locale)}</p>
           <div className="flex items-center justify-end gap-3">
             <div className="flex items-center rounded-lg border border-zinc-800 bg-zinc-900">
               <button type="button" aria-label="Previous page" disabled={page === 0} onClick={() => setPage((current) => current - 1)} className="p-1.5 text-zinc-400 transition hover:text-zinc-100 disabled:cursor-not-allowed disabled:opacity-30"><ChevronLeft size={16} /></button>

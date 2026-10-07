@@ -6,6 +6,8 @@ import Button from '@/components/ui/Button'
 import { supabase } from '@/lib/supabase/client'
 import { readAdminCache, writeAdminCache } from '@/lib/admin-cache'
 import { onAdminRefresh } from '@/lib/admin-refresh'
+import { translate } from '@/lib/i18n'
+import { useLanguage } from '@/components/i18n/LanguageProvider'
 
 type PublishRun = {
   status: string
@@ -19,6 +21,7 @@ type PublishRun = {
 type PublishStatus = { configured: boolean; run: PublishRun | null }
 
 export default function DatasetPublisher() {
+  const { locale } = useLanguage()
   const [publisher, setPublisher] = useState<PublishStatus | null>(() => readAdminCache<PublishStatus>('dataset-publisher') ?? null)
   const [version, setVersion] = useState('v1')
   const [loading, setLoading] = useState(() => readAdminCache<PublishStatus>('dataset-publisher') === null)
@@ -85,7 +88,7 @@ export default function DatasetPublisher() {
 
       <div className="lg:border-l lg:border-zinc-800 lg:pl-6">
         <p className="text-sm font-medium text-zinc-200">Latest publish job</p>
-        {loading ? <div aria-busy="true" aria-label="Loading publisher status" className="mt-4 animate-pulse"><div className="h-4 w-36 rounded bg-zinc-800" /><div className="mt-3 h-3 w-48 rounded bg-zinc-800/70" /></div> : error ? <p className="mt-4 flex gap-2 text-sm text-red-300"><CircleAlert size={17} className="shrink-0" />{error}</p> : !publisher?.configured ? <p className="mt-4 flex gap-2 text-sm leading-5 text-amber-200"><CircleAlert size={17} className="shrink-0" />One-time GitHub publisher setup is still required before this button can start jobs.</p> : run ? <div className="mt-4"><div className={`flex items-center gap-2 text-sm font-medium ${published ? 'text-emerald-200' : running ? 'text-sky-200' : 'text-red-200'}`}>{published ? <CheckCircle2 size={17} /> : running ? <LoaderCircle size={17} className="animate-spin" /> : <CircleAlert size={17} />}{published ? 'Published successfully' : running ? `Publish job ${run.status}` : `Publish job ${run.conclusion ?? run.status}`}</div><p className="mt-3 text-xs text-zinc-500">Updated <span className="ml-1 font-mono text-zinc-300">{new Date(run.updatedAt).toLocaleString()}</span></p>{run.url && <a href={run.url} target="_blank" rel="noreferrer" className="mt-4 inline-flex items-center gap-1.5 text-xs font-medium text-emerald-300 underline underline-offset-4">Open GitHub Actions job <ExternalLink size={13} /></a>}</div> : <p className="mt-4 text-sm text-zinc-500">No dataset publish job has run yet.</p>}
+        {loading ? <div aria-busy="true" aria-label="Loading publisher status" className="mt-4 animate-pulse"><div className="h-4 w-36 rounded bg-zinc-800" /><div className="mt-3 h-3 w-48 rounded bg-zinc-800/70" /></div> : error ? <p className="mt-4 flex gap-2 text-sm text-red-300"><CircleAlert size={17} className="shrink-0" />{error}</p> : !publisher?.configured ? <p className="mt-4 flex gap-2 text-sm leading-5 text-amber-200"><CircleAlert size={17} className="shrink-0" />One-time GitHub publisher setup is still required before this button can start jobs.</p> : run ? <div className="mt-4"><div className={`flex items-center gap-2 text-sm font-medium ${published ? 'text-emerald-200' : running ? 'text-sky-200' : 'text-red-200'}`}>{published ? <CheckCircle2 size={17} /> : running ? <LoaderCircle size={17} className="animate-spin" /> : <CircleAlert size={17} />}{translate(published ? 'Published successfully' : running ? `Publish job ${run.status}` : `Publish job ${run.conclusion ?? run.status}`, locale)}</div><p className="mt-3 text-xs text-zinc-500">{translate(`Updated ${new Date(run.updatedAt).toLocaleString(locale === 'th' ? 'th-TH' : 'en-US')}`, locale)}</p>{run.url && <a href={run.url} target="_blank" rel="noreferrer" className="mt-4 inline-flex items-center gap-1.5 text-xs font-medium text-emerald-300 underline underline-offset-4">Open GitHub Actions job <ExternalLink size={13} /></a>}</div> : <p className="mt-4 text-sm text-zinc-500">No dataset publish job has run yet.</p>}
       </div>
     </div>
     {showPublishConfirm && <div role="dialog" aria-modal="true" aria-labelledby="publish-confirm-title" className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm">

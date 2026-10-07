@@ -2,6 +2,8 @@ import { useState } from 'react'
 import { Archive, Check, Download, FileJson, FileSpreadsheet, Image as ImageIcon, ShieldCheck, X } from 'lucide-react'
 import { useToast } from '@/components/ui/Toast'
 import Button from '@/components/ui/Button'
+import { translate } from '@/lib/i18n'
+import { useLanguage } from '@/components/i18n/LanguageProvider'
 
 type DatasetFormat = 'YOLO' | 'COCO' | 'CSV'
 
@@ -49,6 +51,7 @@ const formatOptions: Array<{
 ]
 
 export default function DatasetExportModal({ onClose, release }: DatasetExportModalProps) {
+  const { locale } = useLanguage()
   const [format, setFormat] = useState<DatasetFormat>('YOLO')
   const [downloading, setDownloading] = useState(false)
   const { showToast } = useToast()
@@ -75,7 +78,7 @@ export default function DatasetExportModal({ onClose, release }: DatasetExportMo
             </div>
             <div>
               <h2 className="text-base font-semibold tracking-tight text-zinc-100">Export verified dataset</h2>
-              <p className="mt-1 text-sm leading-5 text-zinc-500">Release {release.version} · {release.imageCount.toLocaleString()} verified images · {release.classCount} species</p>
+              <p className="mt-1 text-sm leading-5 text-zinc-500">{translate(`Release ${release.version} · ${release.imageCount.toLocaleString()} verified images · ${release.classCount} species`, locale)}</p>
             </div>
           </div>
           <button onClick={onClose} aria-label="Close export dialog" className="grid size-9 shrink-0 place-items-center rounded-lg border border-zinc-800 text-zinc-500 transition hover:border-zinc-700 hover:bg-zinc-900 hover:text-zinc-200">
