@@ -115,4 +115,7 @@ test('homepage retains working destinations and original navigation theme', asyn
   const nav = await source('components/layout/Navbar.tsx')
   assert.match(nav, /bg-zinc-950\/80/)
   assert.match(nav, /text-emerald-500/)
+  assert.doesNotMatch(nav, /label: 'Field guide'|label: 'Species'/)
+  assert.match(nav, /label: 'Analysis'/)
+  assert.match(nav, /label: 'Export'/)
 })

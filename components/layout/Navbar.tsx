@@ -43,7 +43,6 @@ export default function Navbar() {
   }
 
   const links = [
-    ...(isForest ? [{ href: '/#guide', label: 'Field guide' }, { href: '/#species', label: 'Species' }] : []),
     { href: '/predict', label: 'Analysis' },
     { href: '/export', label: 'Export' },
     ...(role === 'expert' ? [{ href: '/expert', label: 'Workspace' }] : []),
@@ -65,10 +64,9 @@ export default function Navbar() {
         <div className="hidden md:flex items-center gap-8">
           <div className="flex items-center gap-6 text-sm font-medium">
             {links.map(link => {
-              const NavigationLink = link.href.startsWith('/#') ? 'a' : Link
-              return <NavigationLink
+              return <Link
                 key={link.href} 
-                href={link.href.startsWith('/#') ? link.href.slice(1) : link.href}
+                href={link.href}
                 className={cn(
                   'transition-all duration-200', 
                   pathname.startsWith(link.href) 
@@ -77,7 +75,7 @@ export default function Navbar() {
                 )}
               >
                 {link.label}
-              </NavigationLink>
+              </Link>
             })}
           </div>
           {role ? (
@@ -96,10 +94,9 @@ export default function Navbar() {
       {mobileMenu && (
         <div id="mobile-navigation" className="md:hidden absolute top-full left-0 w-full bg-zinc-950/95 backdrop-blur-md border-b border-zinc-800 p-4 flex flex-col gap-2 shadow-xl shadow-black/50">
           {links.map(link => {
-            const NavigationLink = link.href.startsWith('/#') ? 'a' : Link
-            return <NavigationLink
+            return <Link
               key={link.href} 
-              href={link.href.startsWith('/#') ? link.href.slice(1) : link.href}
+              href={link.href}
               onClick={() => setMobileMenuPath(null)}
               className={cn(
                 "text-base font-medium px-4 py-3 rounded-lg transition-colors",
@@ -109,7 +106,7 @@ export default function Navbar() {
               )}
             >
               {link.label}
-            </NavigationLink>
+            </Link>
           })}
           <div className="pt-4 pb-2 px-2 mt-2 border-t border-zinc-800/50">
             {role ? (
