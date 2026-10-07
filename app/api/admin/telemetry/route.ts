@@ -62,7 +62,7 @@ export async function GET(request: Request) {
         .eq('status', 'verified')
         .eq('final_species_id', species.id)
       if (error) throw error
-      return { name: species.name_en || species.name_th || species.scientific_name, count: count ?? 0 }
+      return { name: species.name_th || species.name_en || species.scientific_name, count: count ?? 0 }
     }))
 
     return Response.json({
