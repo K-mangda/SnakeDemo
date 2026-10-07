@@ -1,24 +1,35 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { readFile } from 'node:fs/promises'
-
-const asset = name => new URL(`../public/forest/${name}`, import.meta.url)
-
-test('the homepage loop ships locally as a small, fast-start H.264 MP4', async () => {
-  const video = await readFile(asset('forest-loop.mp4'))
+const source = path => readFile(new URL('../' + path, import.meta.url), 'utf8')
+test('approved river loop remains a local fast-start H264 asset', async () => {
+  const video = await readFile(new URL('../public/forest/forest-loop.mp4', import.meta.url))
   assert.equal(video.toString('ascii', 4, 8), 'ftyp')
-  assert.ok(video.includes(Buffer.from('avc1')), 'H.264 is required for browser compatibility')
-  const movie = video.indexOf(Buffer.from('moov'))
-  const media = video.indexOf(Buffer.from('mdat'))
-  assert.ok(movie >= 0 && movie < media, 'Metadata must precede frames for fast playback')
-  assert.ok(video.length < 1_000_000, 'Keep the ambient loop below 1 MB')
+  assert.ok(video.includes(Buffer.from('avc1')))
+  const moov = video.indexOf(Buffer.from('moov'))
+  assert.ok(moov >= 0 && moov < video.indexOf(Buffer.from('mdat')))
+  assert.ok(video.length < 1000000)
 })
-
-for (const filename of ['forest-poster.webp', 'downstream-poster.webp']) {
-  test(`${filename} is a local, compressed fallback`, async () => {
-    const image = await readFile(asset(filename))
-    assert.equal(image.toString('ascii', 0, 4), 'RIFF')
-    assert.equal(image.toString('ascii', 8, 12), 'WEBP')
-    assert.ok(image.length < 500_000)
-  })
-}
+test('homepage uses approved video without the rejected depth scene', async () => {
+  const home = await source('components/home/ForestExperience.tsx')
+  assert.match(home, /<video/)
+  assert.match(home, /forest-loop.mp4/)
+  assert.doesNotMatch(home, /<ForestScene/)
+  assert.match(home, /data-testid="continuous-landscape"/)
+  assert.match(home, /prefers-reduced-motion/)
+})
+test('the homepage explains image suggestions without claiming certainty', async () => {
+  const page = await source('app/page.tsx')
+  assert.match(page, /possible species suggestion/)
+  assert.match(page, /not a medical diagnosis/)
+  assert.match(page, /not a safety decision/)
+})
+test('homepage retains working destinations and original navigation theme', async () => {
+  const page = await source('app/page.tsx')
+  assert.match(page, /href="\/predict"/)
+  assert.match(page, /id="guide"/)
+  assert.match(page, /id="species"/)
+  const nav = await source('components/layout/Navbar.tsx')
+  assert.match(nav, /bg-zinc-950\/80/)
+  assert.match(nav, /text-emerald-500/)
+})

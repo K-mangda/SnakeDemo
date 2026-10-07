@@ -2,25 +2,33 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { ArrowDown, ArrowUpRight, ScanLine } from 'lucide-react'
 import ForestExperience from '@/components/home/ForestExperience'
-import LivingStream from '@/components/home/LivingStream'
 import styles from '@/components/home/forest.module.css'
 import { SNAKE_DATA } from '@/lib/data'
 
 export const metadata: Metadata = {
-  title: 'NSTRUVision — A closer look at the natural world',
+  title: 'NSTRUVision — Snake photo identification and field guide',
   description: 'Explore Thai snakes and identify a snake from a photograph with NSTRUVision. An image-based research tool with expert review.',
 }
 
 export default function Home() {
+  const afterword = <>
+    <section className={styles.closing} aria-labelledby="closing-title">
+      <p className={styles.eyebrow}>A LITTLE KNOWLEDGE. A LITTLE MORE CARE.</p>
+      <h2 id="closing-title">See nature differently.</h2>
+      <Link href="/predict" className={styles.primaryLight}>Identify from a photo <ArrowUpRight size={18} /></Link>
+      <p className={styles.disclaimer}>A research and learning tool. Image predictions are not a medical diagnosis<br className={styles.desktopBreak} /> or a guarantee that an animal is safe.</p>
+    </section>
+    <footer className={styles.footer}><Link href="/">NSTRU<span>Vision</span></Link><p>Computer Science Research<br />Nakhon Si Thammarat Rajabhat University</p><a href="#discover">Back to the forest ↑</a></footer>
+  </>
   return (
-    <ForestExperience>
+    <ForestExperience afterword={afterword}>
       <section className={styles.hero} id="discover" aria-labelledby="forest-title">
         <div className={styles.heroContent}>
-          <p className={styles.eyebrow}><span /> NSTRU VISION · A FIELD GUIDE TO THAI SNAKES</p>
+          <p className={styles.eyebrow}><span /> NSTRU VISION · SNAKE PHOTO IDENTIFICATION</p>
           <h1 id="forest-title">A closer look.<br /><em>A safer distance.</em></h1>
-          <p className={styles.intro}>A little understanding changes how we see the wild.<br className={styles.desktopBreak} /> Discover the snakes around us, one photograph at a time.</p>
+          <p className={styles.intro}>Upload a snake photo for a possible species suggestion.<br className={styles.desktopBreak} /> Explore the field guide, and keep a safe distance in the wild.</p>
           <div className={styles.actions}>
-            <Link href="/predict" className={styles.primary}><ScanLine size={17} /> Identify a snake <ArrowUpRight size={18} /></Link>
+            <Link href="/predict" className={styles.primary}><ScanLine size={17} /> Identify from a photo <ArrowUpRight size={18} /></Link>
             <a href="#guide" className={styles.textLink}>Explore the field guide <ArrowDown size={15} /></a>
           </div>
           <p className={styles.heroNote}>Observe from a distance. Let wildlife stay wild.</p>
@@ -31,8 +39,6 @@ export default function Home() {
         </div>
       </section>
       <div className={styles.downstream}>
-        <LivingStream />
-        <div className={styles.mistLower} aria-hidden="true" />
         <section className={styles.guide} id="guide" aria-labelledby="guide-title">
           <div className={styles.chapterRight}>
             <p className={styles.eyebrow}>02 / OBSERVE & UNDERSTAND</p>
@@ -63,13 +69,6 @@ export default function Home() {
           </div>
         </section>
       </div>
-      <section className={styles.closing} aria-labelledby="closing-title">
-        <p className={styles.eyebrow}>A LITTLE KNOWLEDGE. A LITTLE MORE CARE.</p>
-        <h2 id="closing-title">See nature differently.</h2>
-        <Link href="/predict" className={styles.primaryLight}>Identify a snake <ArrowUpRight size={18} /></Link>
-        <p className={styles.disclaimer}>A research and learning tool. Image predictions are not a medical diagnosis<br className={styles.desktopBreak} /> or a guarantee that an animal is safe.</p>
-      </section>
-      <footer className={styles.footer}><Link href="/">NSTRU<span>Vision</span></Link><p>Computer Science Research<br />Nakhon Si Thammarat Rajabhat University</p><a href="#discover">Back to the forest ↑</a></footer>
     </ForestExperience>
   )
 }

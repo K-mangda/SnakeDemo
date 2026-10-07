@@ -1,10 +1,8 @@
 'use client'
 
-import { createContext, useEffect, useRef, useState, useSyncExternalStore, type ReactNode } from 'react'
+import { useEffect, useRef, useState, useSyncExternalStore, type ReactNode } from 'react'
 import { Pause, Play } from 'lucide-react'
 import styles from './forest.module.css'
-
-export const ForestMotionContext = createContext(false)
 
 type DataConnection = EventTarget & { saveData?: boolean }
 const connection = () => (navigator as Navigator & { connection?: DataConnection }).connection
@@ -26,7 +24,7 @@ function subscribePreferences(update: () => void) {
 }
 
 // The video has its own clock: scrolling never seeks or restarts it.
-export default function ForestExperience({ children }: { children: ReactNode }) {
+export default function ForestExperience({ children, afterword }: { children: ReactNode; afterword?: ReactNode }) {
   const hero = useRef<HTMLDivElement>(null)
   const video = useRef<HTMLVideoElement>(null)
   const [paused, setPaused] = useState(false)
@@ -63,18 +61,21 @@ export default function ForestExperience({ children }: { children: ReactNode }) 
   }, [motionAllowed, inView, loadVideo])
 
   return (
-    <ForestMotionContext value={motionAllowed}>
     <main className={styles.world} data-motion={motionAllowed ? 'on' : 'off'}>
       <a href="#forest-title" className={styles.skipLink}>Skip to content</a>
-      <div ref={hero} className={styles.heroBackdrop} aria-hidden="true">
-        <div className={styles.poster} />
-        {loadVideo && <video ref={video} className={`${styles.heroVideo} ${ready ? styles.videoReady : ''}`} muted loop playsInline preload="metadata" disablePictureInPicture tabIndex={-1} onPlaying={() => { setReady(true); setAutoplayBlocked(false) }} onError={() => { setFailed(true); setReady(false) }}>
-          <source src="/forest/forest-loop.mp4" type="video/mp4" onError={() => { setFailed(true); setReady(false) }} />
-        </video>}
-        <div className={styles.heroWash} />
-        <div className={styles.mist} />
+      <div className={styles.landscape} data-testid="continuous-landscape">
+        <div ref={hero} className={styles.heroBackdrop} aria-hidden="true">
+          <div className={styles.poster} />
+          {loadVideo && <video ref={video} className={`${styles.heroVideo} ${ready ? styles.videoReady : ''}`} muted loop playsInline preload="metadata" disablePictureInPicture tabIndex={-1} onPlaying={() => { setReady(true); setAutoplayBlocked(false) }} onError={() => { setFailed(true); setReady(false) }}>
+            <source src="/forest/forest-loop.mp4" type="video/mp4" onError={() => { setFailed(true); setReady(false) }} />
+          </video>}
+          <div className={styles.skyTone} />
+          <div className={styles.heroWash} />
+          <div className={styles.mist} />
+        </div>
+        {children}
       </div>
-      {children}
+      {afterword}
       <button type="button" className={styles.motionControl} onClick={() => {
         if (autoplayBlocked) {
           setPaused(false)
@@ -84,6 +85,5 @@ export default function ForestExperience({ children }: { children: ReactNode }) 
         {paused || reduced || saveData || autoplayBlocked ? <Play size={14} /> : <Pause size={14} />}<span>{reduced || saveData ? 'Still mode' : paused || autoplayBlocked ? 'Resume motion' : 'Pause motion'}</span>
       </button>
     </main>
-    </ForestMotionContext>
   )
 }

@@ -1,20 +1,18 @@
 .world { --ink: #173438; --paper: #e8ece2; position: relative; overflow: clip; isolation: isolate; background: #142b2d; color: var(--paper); font-family: 'Segoe UI','Leelawadee UI',sans-serif; }
-.forestNav { background-color: #142b2de8; border-color: #d3e0d31c; }
-.forestNav > div:first-child { max-width: none; padding-left: max(6vw,24px); padding-right: max(6vw,24px); }
-.forestNavLight { background: #d8e1d9d9; backdrop-filter: blur(16px); border-color: #1734380d; }
-.forestNavLight a,.forestNavLight button,.forestNavLight a span { color: #173438; }
-.forestNavLight a:hover,.forestNavLight button:hover { color: #375747; }
-.forestNavLight svg { color: #355b48; }
-.forestNavLight a[href='/predict']:last-child { background: #183e3d; color: #f3f3e9; border-color: #183e3d; }
 .world a,.world button,.world summary { -webkit-tap-highlight-color: transparent; }
 .world :is(a,button,summary):focus-visible { outline: 2px solid #d9e4b3; outline-offset: 7px; border-radius: 2px; }
-.hero,.heroBackdrop { height: max(780px,100svh); }
-.heroBackdrop { position: absolute; inset: 0 0 auto; overflow: hidden; z-index: -1; }
+.landscape { position: relative; isolation: isolate; }
+.landscape::after { content: ''; position: absolute; z-index: 3; inset: auto 0 0; height: 200px; background: linear-gradient(transparent,#142b2d); pointer-events: none; }
+.hero { min-height: max(780px,100svh); }
+/* One continuously playing scene, shared by every chapter. No image splice. */
+.heroBackdrop { position: sticky; top: 0; height: 100svh; margin-bottom: -100svh; overflow: hidden; isolation: isolate; z-index: 0; pointer-events: none; }
 .poster,.heroVideo { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center; }
 .poster { background: url('/forest/forest-poster.webp') center / cover no-repeat; }
 .heroVideo { opacity: 0; transition: opacity 1.6s ease; }
 .videoReady { opacity: 1; }
-.heroWash { position: absolute; inset: 0; background: linear-gradient(90deg,#e0e7db42,transparent 67%),linear-gradient(0deg,#142b2d 0%,#142b2d7a 9%,transparent 31%); }
+/* Grade the bright sky on both video and fallback, without recoloring the river. */
+.skyTone { position: absolute; inset: 0; pointer-events: none; mix-blend-mode: multiply; background: linear-gradient(180deg,#8fa69fb8 0%,#a6b7ac85 32%,#b6c4b83d 52%,transparent 74%); mask-image: linear-gradient(90deg,#000 0%,#000 48%,transparent 88%); }
+.heroWash { position: absolute; inset: 0; background: linear-gradient(90deg,#b8c7bb14,transparent 67%),linear-gradient(0deg,#142b2d 0%,#142b2d7a 9%,transparent 31%); }
 .hero { position: relative; z-index: 2; display: flex; align-items: flex-start; padding: clamp(168px,22vh,260px) max(6vw,24px) 140px; color: var(--ink); }
 .heroContent { max-width: 800px; }
 .eyebrow { display: flex; align-items: center; gap: 12px; font-size: 10px; font-weight: 600; letter-spacing: .2em; line-height: 1.7; margin: 0 0 28px; }
@@ -33,15 +31,12 @@
 .scrollLine { width: 1px; height: 46px; background: linear-gradient(transparent,#dfe6dc); transform-origin: top; animation: streamCue 3s ease-in-out infinite; }
 .location { text-align: right; font-size: 9px; line-height: 2.3; letter-spacing: .17em; }
 .location span { font-size: 10px; letter-spacing: .025em; opacity: .75; }
-.downstream { position: relative; z-index: 1; margin-top: -1px; background: #142b2d; }
-.downstreamArt { position: absolute; z-index: -2; inset: 0; background: url('/forest/downstream-poster.webp') center 62% / cover no-repeat; }
-.streamCanvas { width: 100%; height: 100%; display: block; opacity: 0; pointer-events: none; }
-.downstream::before { content: ''; position: absolute; z-index: -1; inset: 0; background: linear-gradient(180deg,#142b2d 0%,#142b2d99 8%,transparent 23%,transparent 75%,#142b2d 100%),linear-gradient(90deg,#091c2024,#091c201f); }
+.downstream { position: relative; z-index: 1; }
+.downstream::before { content: ''; position: absolute; z-index: -1; inset: -160px 0 -100px; background: linear-gradient(180deg,transparent,#0b252bbf 240px,#0b252bbf calc(100% - 180px),transparent); pointer-events: none; }
 .guide,.species { position: relative; padding: 120px max(8vw,24px); scroll-margin-top: 90px; }
 .guide { min-height: 880px; display: flex; justify-content: flex-end; align-items: center; }
 .species { min-height: 760px; display: flex; align-items: center; padding-top: 70px; padding-bottom: 170px; }
-.chapterRight,.chapterLeft { width: 430px; max-width: 100%; position: relative; }
-.chapterRight::before,.chapterLeft::before { content: ''; position: absolute; z-index: -1; inset: -65px -70px; background: radial-gradient(ellipse,#11282de0 25%,#11282da6 55%,transparent 73%); pointer-events: none; }
+.chapterRight,.chapterLeft { width: 430px; max-width: 100%; position: relative; isolation: isolate; }
 .guide .eyebrow,.species .eyebrow { color: #c9d7b9; margin-bottom: 22px; }
 .world h2 { font-family: Georgia,'Times New Roman',serif; font-weight: 400; font-size: clamp(52px,5.4vw,82px); letter-spacing: -.05em; line-height: 1.06; margin: 0 0 25px; }
 .world h2 em { color: #d0dac6; font-weight: 400; }
@@ -80,8 +75,7 @@
 .footer > a:last-child { color: #c3d0bd; }
 .motionControl { position: fixed; z-index: 45; bottom: 21px; right: 22px; border: 1px solid #dce8d63b; border-radius: 30px; background: #163638e8; color: #e2eadb; font-size: 10px; letter-spacing: .025em; display: flex; align-items: center; gap: 9px; padding: 10px 15px; box-shadow: 0 2px 12px #00000015; }
 .motionControl:disabled { opacity: .8; }
-.mist,.mistLower { pointer-events: none; position: absolute; inset: 0; opacity: .14; background: radial-gradient(ellipse at 30% 52%,#e7eee1 0%,transparent 55%); animation: drift 24s ease-in-out infinite alternate; }
-.mistLower { z-index: -1; opacity: .08; background: radial-gradient(ellipse at 38% 30%,#c4dcd1,transparent 48%); }
+.mist { pointer-events: none; position: absolute; inset: 0; opacity: .14; background: radial-gradient(ellipse at 30% 52%,#e7eee1 0%,transparent 55%); animation: drift 24s ease-in-out infinite alternate; }
 .skipLink { position: fixed; top: -100px; left: 20px; z-index: 100; background: #eef0df; color: #142b2d; padding: 15px; }
 .skipLink:focus { top: 15px; }
 .world[data-motion='off'] *,.world[data-motion='off'] *::before,.world[data-motion='off'] *::after { animation-play-state: paused !important; }
@@ -89,7 +83,7 @@
 @keyframes streamCue { 0%,100% { opacity: .4; transform: scaleY(.8); } 50% { opacity: 1; transform: scaleY(1); } }
 @media (min-width: 1700px) { .hero { padding-left: calc((100vw - 1450px)/2); } .guide,.species { padding-left: calc((100vw - 1350px)/2); padding-right: calc((100vw - 1350px)/2); } }
 @media (max-width: 900px) {
-  .hero,.heroBackdrop { height: max(760px,100svh); }
+  .hero { min-height: max(760px,100svh); }
   .hero { padding-top: 185px; }
   .hero h1 { font-size: clamp(62px,9vw,88px); }
   .poster { background-position: 58% center; }
@@ -97,15 +91,14 @@
   .guide { min-height: 780px; }
   .species { min-height: 760px; }
   .chapterRight,.chapterLeft { width: 390px; }
-  .downstreamArt { background-size: auto 100%; }
 }
 @media (max-width: 600px) {
-  .hero,.heroBackdrop { height: max(800px,100svh); }
+  .hero { min-height: max(800px,100svh); }
   .hero { padding: 157px 25px 140px; }
   .heroContent { width: 100%; }
   .hero .eyebrow { font-size: 8px; letter-spacing: .14em; max-width: 290px; margin-bottom: 28px; }
   .hero h1 { font-size: clamp(48px,11.8vw,70px); letter-spacing: -.065em; line-height: 1.12; }
-  .heroWash { background: linear-gradient(180deg,#c8d5cc65,transparent 75%,#142b2d),linear-gradient(90deg,#d2dbd085,transparent); }
+  .heroWash { background: linear-gradient(180deg,#b9c9be24,transparent 75%,#142b2d),linear-gradient(90deg,#c0cec038,transparent); }
   .poster { background-position: 42% center; }
   .heroVideo { object-position: 42% center; }
   .intro { font-size: 13px; max-width: 300px; }
@@ -117,10 +110,8 @@
   .guide,.species { padding: 100px 27px; min-height: 760px; }
   .guide { padding-top: 145px; }
   .chapterRight,.chapterLeft { width: 100%; }
-  .chapterRight::before,.chapterLeft::before { inset: -40px -50px; background: radial-gradient(ellipse,#102c30e8 20%,#102c30b5 58%,transparent 77%); }
   .world h2 { font-size: 56px; }
   .bodyCopy { font-size: 13px; }
-  .downstreamArt { background-position: 45% center; }
   .closing { padding: 60px 25px 75px; }
   .closing h2 { font-size: 45px; }
   .closing .eyebrow { font-size: 8px; letter-spacing: .13em; }

@@ -6,7 +6,6 @@ import { Menu, X, Hexagon, LogOut } from 'lucide-react'
 import Button from '@/components/ui/Button'
 import { cn } from '@/lib/utils'
 import { supabase } from '@/lib/supabase/client'
-import forest from '@/components/home/forest.module.css'
 
 export default function Navbar() {
   const pathname = usePathname()
@@ -54,9 +53,8 @@ export default function Navbar() {
   return (
     <nav className={cn(
       'fixed top-0 left-0 right-0 z-50 transition-all duration-300 border-b',
-      scrolled ? 'bg-zinc-950/80 backdrop-blur-md border-zinc-800/80 py-3' : 'bg-transparent border-transparent py-5',
-      isForest && forest.forestNav,
-      isForest && !scrolled && !mobileMenu && forest.forestNavLight
+      scrolled || isForest || mobileMenu ? 'bg-zinc-950/80 backdrop-blur-md border-zinc-800/80' : 'bg-transparent border-transparent',
+      scrolled ? 'py-3' : 'py-5'
     )}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 flex items-center justify-between">
         <Link href="/" className="group flex items-center gap-2 transition">
