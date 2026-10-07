@@ -23,7 +23,7 @@ function subscribePreferences(update: () => void) {
 }
 
 // The video has its own clock: scrolling never seeks or restarts it.
-export default function ForestExperience({ children, fontClassName = '' }: { children: ReactNode; fontClassName?: string }) {
+export default function ForestExperience({ children }: { children: ReactNode }) {
   const hero = useRef<HTMLDivElement>(null)
   const video = useRef<HTMLVideoElement>(null)
   const preferences = useSyncExternalStore(subscribePreferences, getPreferences, serverPreferences)
@@ -56,7 +56,7 @@ export default function ForestExperience({ children, fontClassName = '' }: { chi
   }, [motionAllowed, inView, loadVideo])
 
   return (
-    <main className={`${styles.world} ${fontClassName}`} data-motion={motionAllowed ? 'on' : 'off'}>
+    <main className={styles.world} data-motion={motionAllowed ? 'on' : 'off'}>
       <a href="#forest-title" className={styles.skipLink}>Skip to content</a>
       <div className={styles.landscape} data-testid="forest-hero">
         <div ref={hero} className={styles.heroBackdrop} aria-hidden="true">

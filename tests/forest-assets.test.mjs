@@ -38,14 +38,18 @@ test('the animated scene ends with the hero and lower sections use regular layou
   assert.doesNotMatch(home, /preventDefault/)
   assert.doesNotMatch(css, /forest-bank-transition\.webp/)
 })
-test('home typography supports Thai UI and a distinctive hero heading', async () => {
+test('home typography uses a strong shared UI font without the former italic display face', async () => {
   const layout = await source('app/layout.tsx')
   const page = await source('app/page.tsx')
   const css = await source('components/home/forest.module.css')
   assert.match(layout, /Noto_Sans_Thai/)
-  assert.match(page, /Newsreader/)
+  assert.doesNotMatch(page, /Newsreader|<em>/)
+  assert.match(page, /Analyze a snake photo\./)
+  assert.match(page, /Understand the result\./)
   assert.match(css, /var\(--font-ui\)/)
-  assert.match(css, /var\(--font-display\)/)
+  assert.doesNotMatch(css, /var\(--font-display\)/)
+  assert.match(css, /\.hero h1 \{[^}]*font-weight:700/)
+  assert.match(css, /\.heroNote \{[^}]*background:/)
 })
 test('the homepage explains image suggestions without claiming certainty', async () => {
   const page = await source('app/page.tsx')

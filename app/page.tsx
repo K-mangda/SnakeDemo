@@ -1,17 +1,9 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { Newsreader } from 'next/font/google'
 import { ArrowDown, ArrowRight, ArrowUpRight, Database, ScanLine, ShieldCheck, SlidersHorizontal, UploadCloud } from 'lucide-react'
 import ForestExperience from '@/components/home/ForestExperience'
 import styles from '@/components/home/forest.module.css'
 import { SNAKE_DATA } from '@/lib/data'
-
-const displayFont = Newsreader({
-  subsets: ['latin'],
-  style: ['normal', 'italic'],
-  variable: '--font-display',
-  display: 'swap',
-})
 
 export const metadata: Metadata = {
   title: 'NSTRUVision — AI-assisted snake photo analysis',
@@ -26,17 +18,17 @@ const workflow = [
 
 export default function Home() {
   return (
-    <ForestExperience fontClassName={displayFont.variable}>
+    <ForestExperience>
       <section className={styles.hero} id="discover" aria-labelledby="forest-title">
         <div className={styles.heroContent}>
           <p className={styles.eyebrow}><span /> NSTRU VISION / AI-ASSISTED SNAKE ANALYSIS</p>
-          <h1 id="forest-title">Identify a snake.<br /><em>Understand the result.</em></h1>
-          <p className={styles.intro}>Upload a photo to explore a possible species match, see model confidence, and find the context behind the result.</p>
+          <h1 id="forest-title"><span>Analyze a snake photo.</span><span>Understand the result.</span></h1>
+          <p className={styles.intro}>Upload a photo for a possible species match. Review the detected area, model confidence, and supporting references.</p>
           <div className={styles.actions}>
-            <Link href="/predict" className={styles.primary}><ScanLine size={17} /> Analyze a photo <ArrowUpRight size={18} /></Link>
+            <Link href="/predict" className={styles.primary}><ScanLine size={17} /> Start analysis <ArrowUpRight size={18} /></Link>
             <a href="#guide" className={styles.textLink}>How it works <ArrowDown size={15} /></a>
           </div>
-          <p className={styles.heroNote}>Observe from a distance. AI suggestions are not safety decisions.</p>
+          <p className={styles.heroNote}>AI suggestions are not safety decisions. Observe wildlife from a distance.</p>
         </div>
         <div className={styles.heroFoot}>
           <a href="#guide" className={styles.scrollCue}><span className={styles.scrollLine} /> EXPLORE THE TOOL</a>
