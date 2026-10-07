@@ -41,12 +41,12 @@ export default function Home() {
           <div className={styles.guideInner}>
             <div className={styles.guideIntro}>
               <p className={styles.eyebrow}>IMAGE ANALYSIS / HOW IT WORKS</p>
-              <h2 id="guide-title">From photograph<br />to a clearer picture.</h2>
-              <p className={styles.bodyCopy}>NSTRUVision helps you examine what appears in an image. The result is a starting point for learning, with uncertainty kept visible.</p>
+              <h2 id="guide-title">See what the<br /><span className={styles.guideEmphasis}>model sees.</span></h2>
+              <p className={styles.bodyCopy}>The analysis brings the detected area, a possible species match, confidence, and available references together. Uncertain results stay visible—not hidden behind a confident label.</p>
               <Link href="/predict" className={styles.lightLink}>Go to analysis <ArrowUpRight size={17} /></Link>
             </div>
             <div className={styles.resultPanel}>
-              <div className={styles.resultPanelTop}><span className={styles.panelIcon}><SlidersHorizontal size={17} /></span><span>WHAT YOU CAN REVIEW</span><span className={styles.panelDot} /></div>
+              <div className={styles.resultPanelTop}><span className={styles.panelIcon}><SlidersHorizontal size={17} /></span><span>INSIDE AN ANALYSIS</span><span className={styles.panelDot} /></div>
               <div className={styles.resultRows}>
                 <div><span>01</span><strong>Detected region</strong><p>Locate the potential snake in your photo.</p></div>
                 <div><span>02</span><strong>Species suggestion</strong><p>See a possible match when the model has one.</p></div>
@@ -66,19 +66,23 @@ export default function Home() {
         <section className={styles.species} id="species" aria-labelledby="species-title">
           <div className={styles.speciesInner}>
             <div className={styles.speciesIntro}>
-              <p className={styles.eyebrow}>REFERENCE COLLECTION / EXPLORE</p>
-              <h2 id="species-title">Know what you&apos;re looking at.</h2>
-              <p className={styles.bodyCopy}>Explore example species in the reference collection. Similar-looking snakes can differ, so use these entries to learn—not to judge safety from appearance alone.</p>
-              <p className={styles.caption}>REFERENCE ENTRIES ARE NOT A LIVE MODEL COVERAGE LIST</p>
+              <div>
+                <p className={styles.eyebrow}>FIELD REFERENCES / {String(SNAKE_DATA.length).padStart(2, '0')} EXAMPLES</p>
+                <h2 id="species-title">Species in focus.</h2>
+              </div>
+              <div>
+                <p className={styles.bodyCopy}>Browse the {SNAKE_DATA.length} sample species entries included with this site. Their names and families are useful context, but a photograph still needs careful analysis.</p>
+                <p className={styles.caption}>HOMEPAGE EXAMPLES · NOT THE FULL MODEL COVERAGE LIST</p>
+              </div>
             </div>
             <div className={styles.speciesList}>
-              {[SNAKE_DATA[0], SNAKE_DATA[2], SNAKE_DATA[4]].map((snake, index) => (
+              {SNAKE_DATA.map((snake, index) => (
                 <details key={snake.id} className={styles.speciesItem}>
-                  <summary><span className={styles.speciesIndex}>0{index + 1}</span><span><strong>{snake.name_en}</strong><i>{snake.scientific}</i></span><span className={styles.plus} aria-hidden="true">+</span></summary>
-                  <div className={styles.speciesDetail}><span lang="th">{snake.name_th}</span><span>{snake.family}</span><p>This is a reference entry, not a confirmed identification of a photograph.</p><Link href="/predict">Analyze your own photo <ArrowUpRight size={14} /></Link></div>
+                  <summary><span className={styles.speciesCardTop}><span className={styles.speciesIndex}>0{index + 1} / REFERENCE</span><span className={styles.plus} aria-hidden="true">+</span></span><strong>{snake.name_en}</strong><i>{snake.scientific}</i><span className={styles.speciesThai} lang="th">{snake.name_th}</span></summary>
+                  <div className={styles.speciesDetail}><span>Family: {snake.family}</span><p>A reference example, not a confirmed identification or a safety assessment.</p><Link href="/predict">Analyze your photo <ArrowUpRight size={14} /></Link></div>
                 </details>
               ))}
-              <Link href="/export" className={styles.dataLink}><Database size={17} /> Explore research exports <ArrowRight size={16} /></Link>
+              <Link href="/export" className={styles.dataLink}><Database size={23} /><span><strong>Research resources</strong><small>Explore model and dataset exports</small></span><ArrowRight size={18} /></Link>
             </div>
           </div>
         </section>

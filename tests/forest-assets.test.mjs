@@ -32,7 +32,8 @@ test('the animated scene ends with the hero and lower sections use regular layou
   const css = await source('components/home/forest.module.css')
   const page = await source('app/page.tsx')
   assert.match(css, /heroBackdrop\s*\{\s*position:\s*absolute/)
-  assert.match(css, /guideInner,\.speciesInner\s*\{[^}]*display:\s*grid/)
+  assert.match(css, /\.guideInner\s*\{[^}]*display:\s*grid/)
+  assert.match(css, /\.speciesList\s*\{[^}]*display:\s*grid/)
   assert.match(page, /className=\{styles\.guideInner\}/)
   assert.match(page, /className=\{styles\.speciesInner\}/)
   assert.doesNotMatch(home, /preventDefault/)
@@ -67,6 +68,13 @@ test('homepage connects to real analysis and export flows without a motion contr
   assert.match(page, /href="\/export"/)
   assert.doesNotMatch(player, /motionControl|Pause motion|Resume motion/)
   assert.doesNotMatch(css, /\.motionControl/)
+})
+test('species section shows every local sample rather than three handpicked entries', async () => {
+  const page = await source('app/page.tsx')
+  assert.match(page, /SNAKE_DATA\.map/)
+  assert.match(page, /SNAKE_DATA\.length/)
+  assert.doesNotMatch(page, /SNAKE_DATA\[0\], SNAKE_DATA\[2\], SNAKE_DATA\[4\]/)
+  assert.match(page, /NOT THE FULL MODEL COVERAGE LIST/)
 })
 test('homepage uses the shared dark footer with scoped source attribution', async () => {
   const page = await source('app/page.tsx')

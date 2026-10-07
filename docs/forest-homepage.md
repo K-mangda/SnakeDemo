@@ -13,7 +13,7 @@ The hero uses the same Noto Sans Thai UI family as the rest of the product, with
 - `public/forest/forest-poster.webp`: the original illustration, retained as a reference but not loaded by the homepage.
 - `public/forest/downstream-poster.webp`: an earlier waterfall concept retained as a reference but not loaded by the homepage.
 
-The rejected riverbank image and 2.5D study remain outside the published homepage. The guide explains the actual image-analysis workflow with a result preview and three numbered steps. The species collection uses dark disclosure rows and links to the research export page.
+The rejected riverbank image and 2.5D study remain outside the published homepage. The guide explains the actual image-analysis workflow with a result panel and three numbered steps inside one connected evergreen band. The species section displays all seven local `SNAKE_DATA` sample entries as disclosure cards in a responsive grid, alongside a research-export link. These samples are explicitly not presented as the model's full live coverage.
 
 ## Runtime behavior
 
