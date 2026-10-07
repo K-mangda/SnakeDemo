@@ -24,7 +24,7 @@ function subscribePreferences(update: () => void) {
 }
 
 // The video has its own clock: scrolling never seeks or restarts it.
-export default function ForestExperience({ children, afterword }: { children: ReactNode; afterword?: ReactNode }) {
+export default function ForestExperience({ children, afterword, fontClassName = '' }: { children: ReactNode; afterword?: ReactNode; fontClassName?: string }) {
   const hero = useRef<HTMLDivElement>(null)
   const video = useRef<HTMLVideoElement>(null)
   const [paused, setPaused] = useState(false)
@@ -61,9 +61,9 @@ export default function ForestExperience({ children, afterword }: { children: Re
   }, [motionAllowed, inView, loadVideo])
 
   return (
-    <main className={styles.world} data-motion={motionAllowed ? 'on' : 'off'}>
+    <main className={`${styles.world} ${fontClassName}`} data-motion={motionAllowed ? 'on' : 'off'}>
       <a href="#forest-title" className={styles.skipLink}>Skip to content</a>
-      <div className={styles.landscape} data-testid="continuous-landscape">
+      <div className={styles.landscape} data-testid="forest-hero">
         <div ref={hero} className={styles.heroBackdrop} aria-hidden="true">
           <div className={styles.poster} />
           {loadVideo && <video ref={video} className={`${styles.heroVideo} ${ready ? styles.videoReady : ''}`} poster="/forest/forest-loop-poster.webp" muted loop playsInline preload="metadata" disablePictureInPicture tabIndex={-1} onPlaying={() => { setReady(true); setAutoplayBlocked(false) }} onError={() => { setFailed(true); setReady(false) }}>

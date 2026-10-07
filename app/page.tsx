@@ -1,9 +1,17 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
+import { Newsreader } from 'next/font/google'
 import { ArrowDown, ArrowUpRight, ScanLine } from 'lucide-react'
 import ForestExperience from '@/components/home/ForestExperience'
 import styles from '@/components/home/forest.module.css'
 import { SNAKE_DATA } from '@/lib/data'
+
+const displayFont = Newsreader({
+  subsets: ['latin'],
+  style: ['normal', 'italic'],
+  variable: '--font-display',
+  display: 'swap',
+})
 
 export const metadata: Metadata = {
   title: 'NSTRUVision — Snake photo identification and field guide',
@@ -21,7 +29,7 @@ export default function Home() {
     <footer className={styles.footer}><Link href="/">NSTRU<span>Vision</span></Link><p>Computer Science Research<br />Nakhon Si Thammarat Rajabhat University</p><a href="#discover">Back to the forest ↑</a></footer>
   </>
   return (
-    <ForestExperience afterword={afterword}>
+    <ForestExperience afterword={afterword} fontClassName={displayFont.variable}>
       <section className={styles.hero} id="discover" aria-labelledby="forest-title">
         <div className={styles.heroContent}>
           <p className={styles.eyebrow}><span /> NSTRU VISION · SNAKE PHOTO IDENTIFICATION</p>
@@ -40,23 +48,28 @@ export default function Home() {
       </section>
       <div className={styles.downstream}>
         <section className={styles.guide} id="guide" aria-labelledby="guide-title">
-          <div className={styles.chapterRight}>
-            <p className={styles.eyebrow}>02 / OBSERVE & UNDERSTAND</p>
-            <h2 id="guide-title">Curiosity.<br /><em>With care.</em></h2>
-            <p className={styles.bodyCopy}>Every pattern tells a story. Start with a photograph you already have, and let image analysis help you explore a possible identification.</p>
+          <div className={styles.guideInner}>
+            <div className={styles.guideIntro}>
+              <p className={styles.eyebrow}>02 / OBSERVE & UNDERSTAND</p>
+              <h2 id="guide-title">Curiosity.<br /><em>With care.</em></h2>
+              <p className={styles.bodyCopy}>Every pattern tells a story. Start with a photograph you already have, and let image analysis help you explore a possible identification.</p>
+              <Link href="/predict" className={styles.lightLink}>Start with an image <ArrowUpRight size={18} /></Link>
+            </div>
             <ol className={styles.steps}>
               <li><span>01</span><div><h3>Bring a photograph</h3><p>Choose a clear image. Never approach or handle a snake to get a better shot.</p></div></li>
               <li><span>02</span><div><h3>Look a little closer</h3><p>Review the detected snake, suggested species and model confidence.</p></div></li>
               <li><span>03</span><div><h3>Keep the uncertainty in view</h3><p>An AI suggestion can be wrong. Use it as a starting point, not a safety decision.</p></div></li>
             </ol>
-            <Link href="/predict" className={styles.lightLink}>Start with an image <ArrowUpRight size={18} /></Link>
           </div>
         </section>
         <section className={styles.species} id="species" aria-labelledby="species-title">
-          <div className={styles.chapterLeft}>
-            <p className={styles.eyebrow}>03 / LIFE ALONG THE STREAM</p>
-            <h2 id="species-title">Part of a<br /><em>bigger world.</em></h2>
-            <p className={styles.bodyCopy}>Meet a few of the species in our reference collection. Small differences matter; appearance alone does not establish whether a snake is safe.</p>
+          <div className={styles.speciesInner}>
+            <div className={styles.speciesIntro}>
+              <p className={styles.eyebrow}>03 / LIFE ALONG THE STREAM</p>
+              <h2 id="species-title">Part of a<br /><em>bigger world.</em></h2>
+              <p className={styles.bodyCopy}>Meet a few of the species in our reference collection. Small differences matter; appearance alone does not establish whether a snake is safe.</p>
+              <p className={styles.caption}>REFERENCE COLLECTION · NOT A LIVE MODEL COVERAGE LIST</p>
+            </div>
             <div className={styles.speciesList}>
               {[SNAKE_DATA[0], SNAKE_DATA[2], SNAKE_DATA[4]].map((snake, index) => (
                 <details key={snake.id} className={styles.speciesItem}>
@@ -65,7 +78,6 @@ export default function Home() {
                 </details>
               ))}
             </div>
-            <p className={styles.caption}>REFERENCE COLLECTION · NOT A LIVE MODEL COVERAGE LIST</p>
           </div>
         </section>
       </div>

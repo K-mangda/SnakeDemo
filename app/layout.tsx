@@ -1,8 +1,15 @@
 import type { Metadata } from 'next'
+import { Noto_Sans_Thai } from 'next/font/google'
 import './globals.css'
 import AppChrome from '@/components/layout/AppChrome'
 import { ToastProvider } from '@/components/ui/Toast'
 import { Toaster } from 'sonner'
+
+const uiFont = Noto_Sans_Thai({
+  subsets: ['latin', 'thai'],
+  variable: '--font-ui',
+  display: 'swap',
+})
 
 export const metadata: Metadata = {
   title: 'Thai Snake Classifier',
@@ -15,7 +22,7 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en" className="dark">
+    <html lang="en" className={`dark ${uiFont.variable}`}>
       <body className="bg-zinc-950 text-zinc-100 antialiased">
         <ToastProvider>
           <AppChrome>{children}</AppChrome>
