@@ -14,6 +14,7 @@ function isTranslatableText(node: Text) {
 
 export function LanguageProvider({ children }: { children: React.ReactNode }) {
   const [locale, setLocaleState] = useState<AppLocale>('th')
+  const [domReady, setDomReady] = useState(false)
   const sourceText = useRef(new WeakMap<Text, string>())
   const sourceAttributes = useRef(new WeakMap<Element, Map<string, string>>())
 
@@ -47,19 +48,37 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
   }, [])
 
   useEffect(() => {
-    const saved = window.localStorage.getItem(storageKey)
-    if (saved !== 'en') {
-      applyLocale('th')
-      return
+    let readyTimer = 0
+
+    const markDomReady = () => {
+      // Route content behind Suspense can hydrate shortly after the layout.
+      // Keep the DOM translator idle until that work has settled, otherwise it
+      // can replace SSR text before React compares it during hydration.
+      readyTimer = window.setTimeout(() => setDomReady(true), 600)
     }
 
-    // Defer the persisted-language update so the default Thai SSR markup can
-    // hydrate first without triggering a cascading render.
-    const timer = window.setTimeout(() => setLocaleState('en'), 0)
-    return () => window.clearTimeout(timer)
-  }, [applyLocale])
+    if (document.readyState === 'complete') {
+      markDomReady()
+    } else {
+      window.addEventListener('load', markDomReady, { once: true })
+    }
+
+    return () => {
+      window.removeEventListener('load', markDomReady)
+      if (readyTimer) window.clearTimeout(readyTimer)
+    }
+  }, [])
 
   useEffect(() => {
+    if (!domReady || window.localStorage.getItem(storageKey) !== 'en') return
+
+    const timer = window.setTimeout(() => setLocaleState('en'), 0)
+    return () => window.clearTimeout(timer)
+  }, [domReady])
+
+  useEffect(() => {
+    if (!domReady) return
+
     applyLocale(locale)
     const observer = new MutationObserver((mutations) => {
       for (const mutation of mutations) {
@@ -76,7 +95,7 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
     })
     observer.observe(document.body, { subtree: true, childList: true, characterData: true })
     return () => observer.disconnect()
-  }, [applyLocale, locale])
+  }, [applyLocale, domReady, locale])
 
   const setLocale = useCallback((nextLocale: AppLocale) => {
     window.localStorage.setItem(storageKey, nextLocale)

@@ -510,6 +510,169 @@ const thai: Record<string, string> = {
   'Showing': 'กำลังแสดง',
   'tasks': 'รายการ',
   'Updated': 'อัปเดตเมื่อ',
+  'Back to Admin': 'กลับไปหน้าผู้ดูแล',
+  'Inspect the original image and every submitted boundary. Editing is intentionally unavailable here.': 'ตรวจดูภาพต้นฉบับและกรอบตำแหน่งที่ส่งเข้ามาทั้งหมด หน้านี้ตั้งใจให้ดูข้อมูลได้อย่างเดียวและไม่สามารถแก้ไขได้',
+  'Reviewed scan': 'ภาพที่ตรวจสอบแล้ว',
+  'Colored solid boxes are individual expert reviews. The dashed green box is the final dataset box, when one exists.': 'กรอบสีทึบแต่ละกรอบคือผลตรวจจากผู้เชี่ยวชาญ ส่วนกรอบสีเขียวเส้นประคือกรอบสุดท้ายสำหรับชุดข้อมูลเมื่อมีผลสรุป',
+  'New class': 'ชนิดใหม่',
+  'Your session has expired. Please sign in again.': 'เซสชันของคุณหมดอายุแล้ว โปรดเข้าสู่ระบบอีกครั้ง',
+  'Could not load saved scan.': 'ไม่สามารถโหลดภาพที่บันทึกไว้ได้',
+  'Choose the species you believe is in this image.': 'เลือกชนิดงูที่คุณคิดว่าอยู่ในภาพนี้',
+  'Create a box around the snake before saving this species.': 'วาดกรอบรอบงูก่อนบันทึกชนิดนี้',
+  'Your review was saved.': 'บันทึกผลตรวจของคุณแล้ว',
+  'Review box': 'กรอบตรวจสอบ',
+  'Saving review…': 'กำลังบันทึกผลตรวจ…',
+  'Save & next': 'บันทึกและไปภาพถัดไป',
+  'Save & return to Workspace': 'บันทึกและกลับไปพื้นที่ผู้เชี่ยวชาญ',
+  'Ready to verify': 'พร้อมยืนยันผล',
+  'Review box needed': 'ต้องระบุกรอบตรวจสอบ',
+  'Draw a box around the subject before saving.': 'วาดกรอบรอบวัตถุก่อนบันทึก',
+  'Choose a reference species': 'เลือกชนิดงูอ้างอิง',
+  'Select the species you identified before saving.': 'เลือกชนิดงูที่คุณระบุก่อนบันทึก',
+  'Save as unclear': 'บันทึกเป็นภาพไม่ชัดเจน',
+  'No species or review box will be saved.': 'ระบบจะไม่บันทึกชนิดงูหรือกรอบตรวจสอบ',
+  'Request a new class': 'ขอเพิ่มชนิดใหม่',
+  'This image will be sent for a new reference class.': 'ภาพนี้จะถูกส่งเพื่อเพิ่มชนิดงูอ้างอิงใหม่',
+  'Saved scan not found.': 'ไม่พบภาพที่บันทึกไว้',
+  'Saved subject for Expert review': 'ภาพที่บันทึกไว้สำหรับการตรวจโดยผู้เชี่ยวชาญ',
+  'Drag over the snake to draw a box': 'ลากเหนือบริเวณงูเพื่อวาดกรอบ',
+  'No AI box · click Add box to create one': 'AI ไม่พบกรอบ · กดเพิ่มกรอบเพื่อสร้างกรอบใหม่',
+  'Loading image…': 'กำลังโหลดภาพ…',
+  'The image could not be loaded, so the review box is hidden.': 'ไม่สามารถโหลดภาพได้ จึงซ่อนกรอบตรวจสอบไว้',
+  'Click and drag over the snake to draw a review box.': 'คลิกและลากเหนือบริเวณงูเพื่อวาดกรอบตรวจสอบ',
+  'No box was detected by AI. Add one only if you identify a snake.': 'AI ไม่พบกรอบตำแหน่ง ให้เพิ่มกรอบเมื่อคุณระบุได้ว่ามีงูในภาพเท่านั้น',
+  'Resize from top left': 'ปรับขนาดจากมุมซ้ายบน',
+  'Resize from top': 'ปรับขนาดจากด้านบน',
+  'Resize from top right': 'ปรับขนาดจากมุมขวาบน',
+  'Resize from right': 'ปรับขนาดจากด้านขวา',
+  'Resize from bottom right': 'ปรับขนาดจากมุมขวาล่าง',
+  'Resize from bottom': 'ปรับขนาดจากด้านล่าง',
+  'Resize from bottom left': 'ปรับขนาดจากมุมซ้ายล่าง',
+  'Resize from left': 'ปรับขนาดจากด้านซ้าย',
+  'Could not load this review.': 'ไม่สามารถโหลดผลตรวจนี้ได้',
+  'Review not found.': 'ไม่พบผลตรวจ',
+  'Could not load model release.': 'ไม่สามารถโหลดรุ่นโมเดลได้',
+  'Could not load the published dataset.': 'ไม่สามารถโหลดชุดข้อมูลที่เผยแพร่ได้',
+  'An image file is required.': 'ต้องเลือกไฟล์ภาพ',
+  'Only JPEG and PNG images are accepted.': 'รองรับเฉพาะภาพ JPEG และ PNG',
+  'Image size must not exceed 10 MB.': 'ขนาดภาพต้องไม่เกิน 10 MB',
+  'AI inference service is not configured.': 'ยังไม่ได้ตั้งค่าบริการทำนาย AI',
+  'Could not load system telemetry.': 'ไม่สามารถโหลดข้อมูลสถานะระบบได้',
+  'Could not load review queue images.': 'ไม่สามารถโหลดภาพในคิวตรวจสอบได้',
+  'Could not load review queues.': 'ไม่สามารถโหลดคิวตรวจสอบได้',
+  'Select one or more review queue images.': 'เลือกภาพในคิวตรวจสอบอย่างน้อยหนึ่งภาพ',
+  'Could not return new-class images to review.': 'ไม่สามารถส่งภาพคำขอเพิ่มชนิดใหม่กลับไปตรวจสอบได้',
+  'Could not restore unclear images.': 'ไม่สามารถกู้คืนภาพไม่ชัดเจนได้',
+  'A scientific name is required to create a species.': 'ต้องระบุชื่อวิทยาศาสตร์เพื่อสร้างชนิดงู',
+  'Species details must be valid text.': 'รายละเอียดชนิดงูต้องเป็นข้อความที่ถูกต้อง',
+  'Could not prepare this new-class request.': 'ไม่สามารถเตรียมคำขอเพิ่มชนิดใหม่นี้ได้',
+  'This request is no longer waiting for a new class.': 'คำขอนี้ไม่ได้อยู่ในสถานะรอเพิ่มชนิดใหม่แล้ว',
+  'A species with this scientific name already exists in the catalogue.': 'มีชนิดงูชื่อนี้อยู่ในรายการแล้ว',
+  'Could not create the species.': 'ไม่สามารถสร้างชนิดงูได้',
+  'Could not send the image back to expert review. The species was not saved.': 'ไม่สามารถส่งภาพกลับไปให้ผู้เชี่ยวชาญตรวจสอบได้ และยังไม่ได้บันทึกชนิดงู',
+  'Select one or more unclear images to delete.': 'เลือกภาพไม่ชัดเจนอย่างน้อยหนึ่งภาพเพื่อลบ',
+  'Could not prepare unclear images for deletion.': 'ไม่สามารถเตรียมภาพไม่ชัดเจนเพื่อลบได้',
+  'No selected unclear images are available to delete.': 'ไม่มีภาพไม่ชัดเจนที่เลือกไว้สำหรับลบ',
+  'Could not delete unclear images.': 'ไม่สามารถลบภาพไม่ชัดเจนได้',
+  'Image records were deleted, but some storage files could not be removed.': 'ลบข้อมูลภาพแล้ว แต่ไม่สามารถลบไฟล์ในพื้นที่จัดเก็บบางส่วนได้',
+  'Missing Supabase project URL.': 'ไม่พบ URL ของโปรเจกต์ Supabase',
+  'No model releases were found.': 'ไม่พบรุ่นโมเดลที่เผยแพร่',
+  'No downloadable model releases were found.': 'ไม่พบรุ่นโมเดลที่พร้อมดาวน์โหลด',
+  'Could not load model releases.': 'ไม่สามารถโหลดรุ่นโมเดลได้',
+  'Could not load review history.': 'ไม่สามารถโหลดประวัติการตรวจได้',
+  'Could not load reviewed images.': 'ไม่สามารถโหลดภาพที่ตรวจสอบแล้วได้',
+  'Could not read the publish job status from GitHub.': 'ไม่สามารถอ่านสถานะงานเผยแพร่จาก GitHub ได้',
+  'Could not load publish status.': 'ไม่สามารถโหลดสถานะการเผยแพร่ได้',
+  'Dataset publisher is not configured yet.': 'ยังไม่ได้ตั้งค่าระบบเผยแพร่ชุดข้อมูล',
+  'Use a version like v1, v2.0, or v2.0.0.': 'ใช้เลขเวอร์ชันรูปแบบ v1, v2.0 หรือ v2.0.0',
+  'Could not start the dataset publish job. Check the GitHub publisher configuration.': 'ไม่สามารถเริ่มงานเผยแพร่ชุดข้อมูลได้ โปรดตรวจสอบการตั้งค่า GitHub publisher',
+  'A valid scientific name is required.': 'ต้องระบุชื่อวิทยาศาสตร์ที่ถูกต้อง',
+  'A species with this scientific name already exists.': 'มีชนิดงูชื่อนี้อยู่แล้ว',
+  'A valid species is required.': 'ต้องระบุชนิดงูที่ถูกต้อง',
+  'This species is already used by saved images or reviews and cannot be deleted.': 'ชนิดงูนี้ถูกใช้กับภาพที่บันทึกไว้หรือผลตรวจแล้ว จึงไม่สามารถลบได้',
+  'Could not load the model registry.': 'ไม่สามารถโหลดทะเบียนโมเดลได้',
+  'A model version is required.': 'ต้องระบุรุ่นโมเดล',
+  'That model version could not be found.': 'ไม่พบรุ่นโมเดลนี้',
+  'Could not update the active model.': 'ไม่สามารถอัปเดตโมเดลที่ใช้งานได้',
+  'Could not activate this model version.': 'ไม่สามารถเปิดใช้รุ่นโมเดลนี้ได้',
+  'Could not find a published dataset release.': 'ไม่พบชุดข้อมูลที่เผยแพร่',
+  'No dataset release is available yet.': 'ยังไม่มีชุดข้อมูลที่พร้อมดาวน์โหลด',
+  'Could not read the dataset release manifest.': 'ไม่สามารถอ่านข้อมูลกำกับชุดข้อมูลได้',
+  'Workspace configuration is incomplete.': 'การตั้งค่าพื้นที่ผู้เชี่ยวชาญไม่สมบูรณ์',
+  'You do not have access to this workspace.': 'คุณไม่มีสิทธิ์เข้าถึงพื้นที่ผู้เชี่ยวชาญนี้',
+  'Could not load verified dataset records.': 'ไม่สามารถโหลดข้อมูลชุดข้อมูลที่ยืนยันแล้วได้',
+  'Saved scan image is unavailable.': 'ไม่สามารถแสดงภาพที่บันทึกไว้ได้',
+  'Gmail SMTP is not configured.': 'ยังไม่ได้ตั้งค่า Gmail SMTP',
+  'Request failed.': 'คำขอไม่สำเร็จ',
+  'Invitation sent. Access will activate after password setup.': 'ส่งคำเชิญแล้ว สิทธิ์จะเปิดใช้หลังตั้งรหัสผ่าน',
+  'Could not invite expert.': 'ไม่สามารถเชิญผู้เชี่ยวชาญได้',
+  'A new password link was sent.': 'ส่งลิงก์ตั้งรหัสผ่านใหม่แล้ว',
+  'Could not resend the invitation.': 'ไม่สามารถส่งคำเชิญอีกครั้งได้',
+  'Could not update account.': 'ไม่สามารถอัปเดตบัญชีได้',
+  'Expert account removed.': 'นำบัญชีผู้เชี่ยวชาญออกแล้ว',
+  'Could not remove expert account.': 'ไม่สามารถนำบัญชีผู้เชี่ยวชาญออกได้',
+  'Unable to sign in': 'ไม่สามารถเข้าสู่ระบบได้',
+  'This account has not been assigned access. Contact an administrator.': 'บัญชีนี้ยังไม่ได้รับสิทธิ์เข้าใช้ โปรดติดต่อผู้ดูแลระบบ',
+  'This account is not active': 'บัญชีนี้ยังไม่เปิดใช้งาน',
+  'Signed in successfully': 'เข้าสู่ระบบสำเร็จ',
+  'Unable to send a reset link right now.': 'ไม่สามารถส่งลิงก์รีเซ็ตรหัสผ่านได้ในขณะนี้',
+  'If this email has an account, a reset link has been sent. Check Gmail and Spam.': 'หากอีเมลนี้มีบัญชีอยู่ ระบบได้ส่งลิงก์รีเซ็ตรหัสผ่านแล้ว โปรดตรวจ Gmail และโฟลเดอร์ Spam',
+  'Could not load verified species data.': 'ไม่สามารถโหลดข้อมูลชนิดงูที่ยืนยันแล้วได้',
+  'Could not update the review queue.': 'ไม่สามารถอัปเดตคิวตรวจสอบได้',
+  'Could not load unclear images.': 'ไม่สามารถโหลดภาพไม่ชัดเจนได้',
+  'You can select up to 100 images per action.': 'เลือกภาพได้สูงสุด 100 ภาพต่อการดำเนินการหนึ่งครั้ง',
+  'Some storage files could not be removed.': 'ไม่สามารถลบไฟล์ในพื้นที่จัดเก็บบางส่วนได้',
+  'Enter your password': 'กรอกรหัสผ่าน',
+  'This invitation link has expired or has already been used. Ask an administrator to send you a new invitation link.': 'ลิงก์คำเชิญนี้หมดอายุหรือถูกใช้งานแล้ว โปรดขอให้ผู้ดูแลระบบส่งลิงก์คำเชิญใหม่',
+  'Invitation link expired': 'ลิงก์คำเชิญหมดอายุ',
+  'Verifying your invitation…': 'กำลังตรวจสอบคำเชิญ…',
+  'This invitation link is invalid or has expired.': 'ลิงก์คำเชิญนี้ไม่ถูกต้องหรือหมดอายุแล้ว',
+  'Preview mode only — no password was changed.': 'โหมดตัวอย่างเท่านั้น ระบบไม่ได้เปลี่ยนรหัสผ่าน',
+  'Password was set, but Workspace access could not be enabled. Please contact an administrator.': 'ตั้งรหัสผ่านแล้ว แต่ไม่สามารถเปิดสิทธิ์พื้นที่ผู้เชี่ยวชาญได้ โปรดติดต่อผู้ดูแลระบบ',
+  'Password updated. You can now sign in.': 'อัปเดตรหัสผ่านแล้ว คุณสามารถเข้าสู่ระบบได้',
+  'character remaining': 'ตัวอักษรที่เหลือ',
+  'characters remaining': 'ตัวอักษรที่เหลือ',
+  'Setup complete': 'ตั้งค่าระบบเสร็จสิ้น',
+  'Initialize workspace': 'เริ่มตั้งค่าพื้นที่ทำงาน',
+  'Your full name': 'ชื่อ-นามสกุลของคุณ',
+  'Loading data review queues': 'กำลังโหลดคิวตรวจสอบข้อมูล',
+  'Loading system telemetry': 'กำลังโหลดข้อมูลสถานะระบบ',
+  'Grid view': 'มุมมองตาราง',
+  'List view': 'มุมมองรายการ',
+  'Snake to verify': 'ภาพงูสำหรับตรวจสอบ',
+  'Saved subject': 'ภาพที่บันทึกไว้',
+  'Close export dialog': 'ปิดหน้าต่างส่งออก',
+  'Model Weights Export': 'ส่งออกไฟล์น้ำหนักโมเดล',
+  'Select Model Version': 'เลือกรุ่นโมเดล',
+  'Search version...': 'ค้นหารุ่นโมเดล...',
+  'Model Format': 'รูปแบบโมเดล',
+  'Additional Options': 'ตัวเลือกเพิ่มเติม',
+  'classes': 'คลาส',
+  'train imgs': 'ภาพสำหรับฝึก',
+  'Full Name': 'ชื่อ-นามสกุล',
+  'Email Address': 'ที่อยู่อีเมล',
+  'Edit Expert Account': 'แก้ไขบัญชีผู้เชี่ยวชาญ',
+  'Add New Expert': 'เพิ่มผู้เชี่ยวชาญ',
+  'Save Changes': 'บันทึกการเปลี่ยนแปลง',
+  'Create Account': 'สร้างบัญชี',
+  'Set active?': 'ตั้งเป็นรุ่นที่ใช้งานหรือไม่?',
+  'Start Training Pipeline?': 'เริ่มกระบวนการฝึกโมเดลหรือไม่?',
+  'Start Training with Auto-Balancing?': 'เริ่มฝึกโมเดลด้วยการปรับสมดุลอัตโนมัติหรือไม่?',
+  'This will initiate a new model training job on the GPU cluster using the balanced, verified dataset. The process may take several hours.': 'ระบบจะเริ่มงานฝึกโมเดลใหม่บน GPU โดยใช้ชุดข้อมูลที่สมดุลและยืนยันแล้ว ซึ่งอาจใช้เวลาหลายชั่วโมง',
+  'The dataset is currently imbalanced. The system will automatically apply class-weight balancing during training. Proceed?': 'ชุดข้อมูลยังมีความไม่สมดุล ระบบจะปรับน้ำหนักของแต่ละคลาสอัตโนมัติระหว่างฝึกโมเดล ต้องการดำเนินการต่อหรือไม่?',
+  'Confirm Training': 'ยืนยันการฝึกโมเดล',
+  'Registered model versions and their recorded validation metrics.': 'รุ่นโมเดลที่ลงทะเบียนและค่าประเมินผลที่บันทึกไว้',
+  'Setting an active version updates the Supabase registry. The prediction service must be configured to read this registry before it can switch the running inference model.': 'การตั้งรุ่นที่ใช้งานจะอัปเดตทะเบียนใน Supabase โดยบริการทำนายต้องถูกตั้งค่าให้อ่านทะเบียนนี้ก่อนจึงจะสลับโมเดลที่กำลังทำงานได้',
+  '/ STEP': '/ ขั้นตอน',
+  'Set': 'ตั้ง',
+  'as active?': 'เป็นรุ่นที่ใช้งานหรือไม่?',
+  'For': 'สำหรับ',
+  'expert reviews · Updated': 'ผลตรวจจากผู้เชี่ยวชาญ · อัปเดตเมื่อ',
+  'reference species': 'ชนิดงูอ้างอิง',
+  'Page': 'หน้า',
+  'Release': 'รุ่นเผยแพร่',
+  'verified images ·': 'ภาพที่ยืนยันแล้ว ·',
+  'images': 'ภาพ',
 }
 
 export function translate(text: string, locale: AppLocale) {
@@ -518,5 +681,55 @@ export function translate(text: string, locale: AppLocale) {
   const trailing = text.match(/\s*$/)?.[0] ?? ''
   const core = text.trim()
   const translated = thai[core]
-  return translated ? `${leading}${translated}${trailing}` : text
+  if (translated) return `${leading}${translated}${trailing}`
+
+  const dynamic = core.match(/^(\d+) expert reviews?$/)
+  if (dynamic) return `${leading}${dynamic[1]} ผลตรวจจากผู้เชี่ยวชาญ${trailing}`
+
+  const referenceSpecies = core.match(/^(\d+) reference species$/)
+  if (referenceSpecies) return `${leading}${referenceSpecies[1]} ชนิดงูอ้างอิง${trailing}`
+
+  const confidence = core.match(/^(\d+(?:\.\d+)?)% confidence$/)
+  if (confidence) return `${leading}ความมั่นใจ ${confidence[1]}%${trailing}`
+
+  const originalFile = core.match(/^Original file: (.+)$/)
+  if (originalFile) return `${leading}ไฟล์ต้นฉบับ: ${originalFile[1]}${trailing}`
+
+  const finalConsensus = core.match(/^Final consensus: (.+) · (\d+) expert reviews?\.$/)
+  if (finalConsensus) return `${leading}ข้อสรุปสุดท้าย: ${finalConsensus[1]} · ${finalConsensus[2]} ผลตรวจจากผู้เชี่ยวชาญ${trailing}`
+
+  const reviewBox = core.match(/^(\d+) review box$/)
+  if (reviewBox) return `${leading}กรอบตรวจสอบ ${reviewBox[1]} กรอบ${trailing}`
+
+  const savedReview = core.match(/^Your review saved · (\d+) total reviews?$/)
+  if (savedReview) return `${leading}บันทึกผลตรวจของคุณแล้ว · ตรวจทั้งหมด ${savedReview[1]} ครั้ง${trailing}`
+
+  const verifiedReview = core.match(/^Verified · (\d+) expert reviews?$/)
+  if (verifiedReview) return `${leading}ยืนยันแล้ว · ผลตรวจจากผู้เชี่ยวชาญ ${verifiedReview[1]} ครั้ง${trailing}`
+
+  const removedImages = core.match(/^(\d+) images? deleted permanently\.$/)
+  if (removedImages) return `${leading}ลบภาพ ${removedImages[1]} ภาพอย่างถาวรแล้ว${trailing}`
+
+  const returnedImages = core.match(/^(\d+) images? returned to the pending review queue\.$/)
+  if (returnedImages) return `${leading}ส่งภาพ ${returnedImages[1]} ภาพกลับไปยังคิวรอตรวจแล้ว${trailing}`
+
+  const createdSpecies = core.match(/^(.+) was added to the catalogue\. The image is back in expert review\.$/)
+  if (createdSpecies) return `${leading}เพิ่ม ${createdSpecies[1]} ลงในรายการแล้ว และส่งภาพกลับไปให้ผู้เชี่ยวชาญตรวจสอบ${trailing}`
+
+  const accountStatus = core.match(/^Account marked (active|inactive|pending)\.$/)
+  if (accountStatus) {
+    const status = accountStatus[1] === 'active' ? 'ใช้งานอยู่' : accountStatus[1] === 'inactive' ? 'ปิดใช้งาน' : 'รอตั้งค่า'
+    return `${leading}ตั้งสถานะบัญชีเป็น ${status} แล้ว${trailing}`
+  }
+
+  const activeModel = core.match(/^(.+) is now the active model version in the registry\.$/)
+  if (activeModel) return `${leading}${activeModel[1]} เป็นรุ่นโมเดลที่ใช้งานอยู่ในทะเบียนแล้ว${trailing}`
+
+  const datasetDownload = core.match(/^(.+) ZIP download started\.$/)
+  if (datasetDownload) return `${leading}เริ่มดาวน์โหลดไฟล์ ${datasetDownload[1]} ZIP แล้ว${trailing}`
+
+  const modelDownload = core.match(/^Model (.+) downloaded as (.+)!$/)
+  if (modelDownload) return `${leading}ดาวน์โหลดโมเดล ${modelDownload[1]} ในรูปแบบ ${modelDownload[2]} แล้ว${trailing}`
+
+  return text
 }
