@@ -13,13 +13,7 @@
 
 .hero { position:relative; z-index:1; min-height:var(--hero-height); display:flex; align-items:flex-start; padding:clamp(165px,21vh,235px) max(24px,calc((100vw - 1280px)/2 + 24px)) 140px; color:var(--ink); }
 .heroContent { width:min(920px,100%); }
-.heroEyebrow { display:flex; align-items:center; gap:11px; width:max-content; max-width:100%; margin:0 0 26px; padding:0 0 11px; border-bottom:1px solid #17343870; color:#173438; line-height:1.4; }
-.heroEyebrowMark { flex:none; width:19px; height:2px; background:#047857; border-radius:2px; }
-.heroEyebrow strong { flex:none; font-size:11px; font-weight:800; letter-spacing:.08em; }
-.heroEyebrowDivider { flex:none; width:1px; height:14px; background:#17343888; }
-.heroEyebrowDescription { font-size:11px; font-weight:600; letter-spacing:.01em; }
 .eyebrow { display:flex; align-items:center; gap:12px; font-size:10px; font-weight:700; letter-spacing:.18em; line-height:1.7; margin:0 0 25px; }
-.eyebrow > span { width:6px; height:6px; background:currentColor; border-radius:50%; }
 .hero h1 { max-width:940px; font-family:var(--font-ui),'Leelawadee UI',sans-serif; font-size:clamp(52px,5.25vw,82px); font-weight:700; letter-spacing:-.058em; line-height:1.11; margin:0 0 27px; text-wrap:balance; }
 .hero h1 span { display:block; }
 .intro { max-width:520px; font-size:16px; font-weight:500; line-height:1.7; color:#193b3e; margin:0 0 29px; }
@@ -122,8 +116,6 @@
   .landscape { --hero-height:max(800px,100svh); }
   .hero { padding:155px 25px 140px; }
   .heroContent { width:100%; }
-  .heroEyebrow { gap:8px; margin-bottom:24px; }
-  .heroEyebrow strong,.heroEyebrowDescription { font-size:10px; }
   .hero h1 { font-size:clamp(39px,10vw,56px); line-height:1.14; letter-spacing:-.055em; }
   .heroWash { background:linear-gradient(180deg,#b9c9be24,transparent 75%,#09090b),linear-gradient(90deg,#c0cec038,transparent); }
   .poster { background-position:42% center; }

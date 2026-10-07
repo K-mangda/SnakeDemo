@@ -51,9 +51,8 @@ test('home typography uses a strong shared UI font without the former italic dis
   assert.doesNotMatch(css, /var\(--font-display\)/)
   assert.match(css, /\.hero h1 \{[^}]*font-weight:700/)
   assert.match(css, /\.heroNote \{[^}]*background:/)
-  assert.match(page, /className=\{styles\.heroEyebrow\}/)
-  assert.match(page, /className=\{styles\.heroEyebrowDescription\}/)
-  assert.match(css, /\.heroEyebrow \{[^}]*border-bottom:1px/)
+  assert.doesNotMatch(page, /styles\.heroEyebrow|AI-assisted snake analysis<\/span>/)
+  assert.doesNotMatch(css, /\.heroEyebrow/)
 })
 test('the homepage explains image suggestions without claiming certainty', async () => {
   const page = await source('app/page.tsx')
