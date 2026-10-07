@@ -119,15 +119,6 @@ select:disabled {
   animation: thumbnail-shimmer 1.6s ease-in-out infinite;
 }
 
-.thumbnail-skeleton::after {
-  content: '';
-  position: absolute;
-  inset: auto 12% 8px;
-  height: 1px;
-  background: rgba(16, 185, 129, 0.5);
-  box-shadow: 0 0 8px rgba(16, 185, 129, 0.45);
-}
-
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
   .thumbnail-skeleton::before { animation: none; }
