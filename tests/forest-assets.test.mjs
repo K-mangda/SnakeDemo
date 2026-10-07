@@ -76,6 +76,13 @@ test('species section shows every local sample rather than three handpicked entr
   assert.doesNotMatch(page, /SNAKE_DATA\[0\], SNAKE_DATA\[2\], SNAKE_DATA\[4\]/)
   assert.match(page, /NOT THE FULL MODEL COVERAGE LIST/)
 })
+test('lower homepage sections keep dark surfaces with emerald accents', async () => {
+  const css = await source('components/home/forest.module.css')
+  assert.match(css, /\.resultPanel \{[^}]*background:#18181b/)
+  assert.match(css, /\.steps \{[^}]*border-top:2px solid #059669[^}]*background:linear-gradient\(115deg,#202023,#18181b\)/)
+  assert.match(css, /\.speciesItem \{[^}]*background:#18181b/)
+  assert.match(css, /\.dataLink \{[^}]*background:#202023/)
+})
 test('homepage uses the shared dark footer with scoped source attribution', async () => {
   const page = await source('app/page.tsx')
   const chrome = await source('components/layout/AppChrome.tsx')
