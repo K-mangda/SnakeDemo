@@ -6,6 +6,7 @@ import { Menu, X, Hexagon, LogOut } from 'lucide-react'
 import Button from '@/components/ui/Button'
 import { cn } from '@/lib/utils'
 import { supabase } from '@/lib/supabase/client'
+import LanguageToggle from '@/components/i18n/LanguageToggle'
 
 export default function Navbar() {
   const pathname = usePathname()
@@ -78,6 +79,7 @@ export default function Navbar() {
               </Link>
             })}
           </div>
+          <LanguageToggle />
           {role ? (
             <Button variant="ghost" size="sm" onClick={signOut}>Sign out <LogOut size={14} /></Button>
           ) : (
@@ -109,6 +111,7 @@ export default function Navbar() {
             </Link>
           })}
           <div className="pt-4 pb-2 px-2 mt-2 border-t border-zinc-800/50">
+            <div className="mb-3 flex justify-center"><LanguageToggle /></div>
             {role ? (
               <Button variant="ghost" onClick={signOut} className="w-full justify-center py-3">Sign out <LogOut size={14} /></Button>
             ) : (
