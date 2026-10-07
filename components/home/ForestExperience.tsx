@@ -42,19 +42,6 @@ export default function ForestExperience({ children }: { children: ReactNode }) 
     }
   }, [])
 
-  useEffect(() => {
-    const guide = document.getElementById('guide')
-    if (!guide) return
-    const observer = new IntersectionObserver(([entry]) => {
-      if (entry.isIntersecting) {
-        guide.dataset.revealed = 'true'
-        observer.disconnect()
-      }
-    }, { threshold: 0.15 })
-    observer.observe(guide)
-    return () => observer.disconnect()
-  }, [])
-
   const motionAllowed = !reduced && !saveData && visible
   const loadVideo = !reduced && !saveData && !failed
 

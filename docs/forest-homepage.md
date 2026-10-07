@@ -19,7 +19,7 @@ The rejected riverbank image and 2.5D study remain outside the published homepag
 
 `ForestExperience` owns the hero's ambient-motion preference. Native anchor links provide smooth section navigation; there is no scroll interception, scroll lock or video seeking.
 
-The guide uses one restrained entrance when it first reaches the viewport: its content rises slightly, the three steps follow in sequence, and their accent rule draws across. The section stays fully readable without JavaScript and has no entrance animation when reduced motion or data saving is enabled. Step hover effects are decorative only.
+The guide is visible immediately when scrolled into view, with no fade-in, staggered entrance, or animated accent rule. Step hover effects are decorative only.
 
 - The video stays behind its matching poster until playback begins. A failed file leaves the poster visible.
 - Autoplay rejection leaves the matching still poster visible. There is no floating motion button.

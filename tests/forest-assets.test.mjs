@@ -40,13 +40,12 @@ test('the animated scene ends with the hero and lower sections use regular layou
   assert.doesNotMatch(home, /preventDefault/)
   assert.doesNotMatch(css, /forest-bank-transition\.webp/)
 })
-test('guide motion is a one-time scroll reveal with a static reduced-motion fallback', async () => {
+test('guide is visible immediately without a scroll-triggered entrance', async () => {
   const home = await source('components/home/ForestExperience.tsx')
   const css = await source('components/home/forest.module.css')
-  assert.match(home, /document\.getElementById\('guide'\)/)
-  assert.match(home, /guide\.dataset\.revealed = 'true'/)
-  assert.match(css, /\.world\[data-motion='on'\] \.guide\[data-revealed='true'\]/)
-  assert.match(css, /@keyframes guideLine/)
+  assert.doesNotMatch(home, /document\.getElementById\('guide'\)|dataset\.revealed/)
+  assert.doesNotMatch(css, /data-revealed|guideEnter|guideLine/)
+  assert.match(css, /\.steps \{[^}]*border-top:2px solid #059669/)
   assert.match(css, /@media \(prefers-reduced-motion:reduce\)/)
 })
 test('home typography uses a strong shared UI font without the former italic display face', async () => {
