@@ -27,17 +27,12 @@ const workflow = [
 export default function Home() {
   const afterword = <>
     <section className={styles.closing} aria-labelledby="closing-title">
-      <div className={styles.closingInner}>
-        <div>
-          <p className={styles.eyebrow}>READY TO BEGIN?</p>
-          <h2 id="closing-title">Start with a photo.<br />Stay with the evidence.</h2>
-          <p>Use NSTRUVision to explore a possible identification, then check the confidence and reference details before drawing conclusions.</p>
-        </div>
-        <Link href="/predict" className={styles.primaryLight}>Open image analysis <ArrowUpRight size={17} /></Link>
-      </div>
-      <p className={styles.disclaimer}>For research and learning. Predictions are not a medical diagnosis or a guarantee that an animal is safe.</p>
+      <p className={styles.eyebrow}>A LITTLE KNOWLEDGE. A LITTLE MORE CARE.</p>
+      <h2 id="closing-title">See nature differently.</h2>
+      <Link href="/predict" className={styles.primaryLight}>Identify a snake <ArrowUpRight size={18} /></Link>
+      <p className={styles.disclaimer}>A research and learning tool. Image predictions are not a medical diagnosis<br className={styles.desktopBreak} /> or a guarantee that an animal is safe.</p>
     </section>
-    <footer className={styles.footer}><Link href="/">NSTRU<span>Vision</span></Link><p>Computer Science Research<br />Nakhon Si Thammarat Rajabhat University</p><a href="#discover">Back to top ↑</a></footer>
+    <footer className={styles.footer}><Link href="/">NSTRU<span>Vision</span></Link><p>Computer Science Research<br />Nakhon Si Thammarat Rajabhat University</p><a href="#discover">Back to the forest ↑</a></footer>
   </>
 
   return (

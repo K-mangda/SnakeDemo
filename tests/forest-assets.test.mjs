@@ -63,6 +63,14 @@ test('homepage connects to real analysis and export flows without a motion contr
   assert.doesNotMatch(player, /motionControl|Pause motion|Resume motion/)
   assert.doesNotMatch(css, /\.motionControl/)
 })
+test('homepage restores the original forest closing and footer', async () => {
+  const page = await source('app/page.tsx')
+  const css = await source('components/home/forest.module.css')
+  assert.match(page, /See nature differently\./)
+  assert.match(page, /Back to the forest/)
+  assert.match(css, /\.closing \{[^}]*text-align:center;[^}]*background:#142b2d/)
+  assert.match(css, /\.footer \{[^}]*background:#142b2d/)
+})
 test('homepage retains working destinations and original navigation theme', async () => {
   const page = await source('app/page.tsx')
   assert.match(page, /href="\/predict"/)

@@ -4,7 +4,7 @@
 
 The approved river scene is the only animated landscape. It fills the opening hero, then scrolls away naturally. The guide, species reference collection, identification CTA and footer are ordinary responsive HTML/CSS sections with no second scenic image or scroll-controlled camera movement. This keeps the identification workflow clear, avoids visible image seams and makes the lower content readable on desktop and mobile.
 
-The hero keeps Newsreader display lettering and Noto Sans Thai UI text. The lower sections now use the same sans-serif typography, zinc surfaces, emerald accents, compact cards and product language as Analysis and Export. Headings and buttons remain real text, not part of an image. Reference species are not advertised as live model coverage, and no accuracy statistics are invented.
+The hero keeps Newsreader display lettering and Noto Sans Thai UI text. The guide and species sections use the same sans-serif typography, zinc surfaces, emerald accents, compact cards and product language as Analysis and Export. The original centered green closing and footer return as a visual bookend. Headings and buttons remain real text, not part of an image. Reference species are not advertised as live model coverage, and no accuracy statistics are invented.
 
 ## Assets
 
