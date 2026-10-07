@@ -6,7 +6,8 @@ The homepage uses one continuous sticky forest scene behind the forest edge, obs
 
 All artwork is decorative. Navigation, headings, and buttons are real HTML, not text baked into images. The visual direction is muted editorial gouache: mist gray, olive and deep blue-green, a small background snake, no people, logos or watermarks.
 
-- `public/forest/forest-poster.webp`: 1672 × 941, 290,452 bytes; approved original forest illustration.
+- `public/forest/forest-poster.webp`: 1672 × 941, 290,452 bytes; approved original forest illustration, retained as a reference.
+- `public/forest/forest-loop-poster.webp`: 1600 × 900, 174,910 bytes; exact first video frame used while the video loads, so the crossfade cannot appear to zoom out.
 - `public/forest/downstream-poster.webp`: 1086 × 1448, 360,028 bytes; previous continuation artwork retained for reference, not loaded by the homepage.
 - `public/forest/forest-loop.mp4`: 1600 × 900, 24 fps, H.264/yuv420p, silent, 7.25 seconds, 484,777 bytes. Higgsfield Seedance animation based on the original artwork, using the same start and end reference. Transcoded with fast-start metadata and a 0.75-second seam crossfade. Assets are served locally; no signed URLs or runtime Higgsfield credentials are needed.
 

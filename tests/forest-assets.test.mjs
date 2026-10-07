@@ -10,6 +10,15 @@ test('approved river loop remains a local fast-start H264 asset', async () => {
   assert.ok(moov >= 0 && moov < video.indexOf(Buffer.from('mdat')))
   assert.ok(video.length < 1000000)
 })
+test('homepage uses a video-frame image while the clip loads', async () => {
+  const poster = await readFile(new URL('../public/forest/forest-loop-poster.webp', import.meta.url))
+  assert.equal(poster.toString('ascii', 8, 12), 'WEBP')
+  assert.ok(poster.length < 300000)
+  const css = await source('components/home/forest.module.css')
+  const player = await source('components/home/ForestExperience.tsx')
+  assert.match(css, /forest-loop-poster\.webp/)
+  assert.match(player, /poster="\/forest\/forest-loop-poster\.webp"/)
+})
 test('homepage uses approved video without the rejected depth scene', async () => {
   const home = await source('components/home/ForestExperience.tsx')
   assert.match(home, /<video/)

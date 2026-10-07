@@ -66,7 +66,7 @@ export default function ForestExperience({ children, afterword }: { children: Re
       <div className={styles.landscape} data-testid="continuous-landscape">
         <div ref={hero} className={styles.heroBackdrop} aria-hidden="true">
           <div className={styles.poster} />
-          {loadVideo && <video ref={video} className={`${styles.heroVideo} ${ready ? styles.videoReady : ''}`} muted loop playsInline preload="metadata" disablePictureInPicture tabIndex={-1} onPlaying={() => { setReady(true); setAutoplayBlocked(false) }} onError={() => { setFailed(true); setReady(false) }}>
+          {loadVideo && <video ref={video} className={`${styles.heroVideo} ${ready ? styles.videoReady : ''}`} poster="/forest/forest-loop-poster.webp" muted loop playsInline preload="metadata" disablePictureInPicture tabIndex={-1} onPlaying={() => { setReady(true); setAutoplayBlocked(false) }} onError={() => { setFailed(true); setReady(false) }}>
             <source src="/forest/forest-loop.mp4" type="video/mp4" onError={() => { setFailed(true); setReady(false) }} />
           </video>}
           <div className={styles.skyTone} />

@@ -7,7 +7,7 @@
 /* One continuously playing scene, shared by every chapter. No image splice. */
 .heroBackdrop { position: sticky; top: 0; height: 100svh; margin-bottom: -100svh; overflow: hidden; isolation: isolate; z-index: 0; pointer-events: none; }
 .poster,.heroVideo { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center; }
-.poster { background: url('/forest/forest-poster.webp') center / cover no-repeat; }
+.poster { background: url('/forest/forest-loop-poster.webp') center / cover no-repeat; }
 .heroVideo { opacity: 0; transition: opacity 1.6s ease; }
 .videoReady { opacity: 1; }
 /* Grade the bright sky on both video and fallback, without recoloring the river. */
