@@ -25,18 +25,8 @@ const workflow = [
 ]
 
 export default function Home() {
-  const afterword = <>
-    <section className={styles.closing} aria-labelledby="closing-title">
-      <p className={styles.eyebrow}>A LITTLE KNOWLEDGE. A LITTLE MORE CARE.</p>
-      <h2 id="closing-title">See nature differently.</h2>
-      <Link href="/predict" className={styles.primaryLight}>Identify a snake <ArrowUpRight size={18} /></Link>
-      <p className={styles.disclaimer}>A research and learning tool. Image predictions are not a medical diagnosis<br className={styles.desktopBreak} /> or a guarantee that an animal is safe.</p>
-    </section>
-    <footer className={styles.footer}><Link href="/">NSTRU<span>Vision</span></Link><p>Computer Science Research<br />Nakhon Si Thammarat Rajabhat University</p><a href="#discover">Back to the forest ↑</a></footer>
-  </>
-
   return (
-    <ForestExperience afterword={afterword} fontClassName={displayFont.variable}>
+    <ForestExperience fontClassName={displayFont.variable}>
       <section className={styles.hero} id="discover" aria-labelledby="forest-title">
         <div className={styles.heroContent}>
           <p className={styles.eyebrow}><span /> NSTRU VISION / AI-ASSISTED SNAKE ANALYSIS</p>

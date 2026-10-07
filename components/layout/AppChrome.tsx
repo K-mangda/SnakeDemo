@@ -12,7 +12,7 @@ export default function AppChrome({ children }: { children: React.ReactNode }) {
     <>
       {!isAccessPage && <Navbar />}
       {children}
-      {!isAccessPage && pathname !== '/' && <Footer />}
+      {!isAccessPage && <Footer />}
     </>
   )
 }

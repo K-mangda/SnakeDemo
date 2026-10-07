@@ -23,7 +23,7 @@ function subscribePreferences(update: () => void) {
 }
 
 // The video has its own clock: scrolling never seeks or restarts it.
-export default function ForestExperience({ children, afterword, fontClassName = '' }: { children: ReactNode; afterword?: ReactNode; fontClassName?: string }) {
+export default function ForestExperience({ children, fontClassName = '' }: { children: ReactNode; fontClassName?: string }) {
   const hero = useRef<HTMLDivElement>(null)
   const video = useRef<HTMLVideoElement>(null)
   const preferences = useSyncExternalStore(subscribePreferences, getPreferences, serverPreferences)
@@ -70,7 +70,6 @@ export default function ForestExperience({ children, afterword, fontClassName = 
         </div>
         {children}
       </div>
-      {afterword}
     </main>
   )
 }
