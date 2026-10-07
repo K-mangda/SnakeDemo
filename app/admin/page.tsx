@@ -31,7 +31,8 @@ export default function AdminPage() {
   const [activeTab, setActiveTab] = useState<AdminTab>('overview')
 
   useEffect(() => {
-    setActiveTab(storedAdminTab())
+    const timer = window.setTimeout(() => setActiveTab(storedAdminTab()), 0)
+    return () => window.clearTimeout(timer)
   }, [])
 
   function selectTab(tab: AdminTab) {
@@ -40,7 +41,7 @@ export default function AdminPage() {
   }
 
   return (
-    <main className="min-h-screen bg-zinc-950 p-6 md:p-12 font-sans selection:bg-emerald-500/30">
+    <main className="min-h-screen bg-zinc-950 p-6 md:p-12 selection:bg-emerald-500/30">
       <div className="max-w-6xl mx-auto">
         <header className="mb-10">
           <div>
