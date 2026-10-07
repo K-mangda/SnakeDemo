@@ -91,9 +91,19 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
           sourceText.current.set(mutation.target, mutation.target.nodeValue ?? '')
           applyLocale(locale, mutation.target.parentNode ?? document.body)
         }
+        if (mutation.type === 'attributes' && mutation.target instanceof Element && mutation.attributeName) {
+          const current = mutation.target.getAttribute(mutation.attributeName)
+          if (current === null) continue
+          const remembered = sourceAttributes.current.get(mutation.target) ?? new Map<string, string>()
+          const original = remembered.get(mutation.attributeName)
+          if (original && current === translate(original, locale)) continue
+          remembered.set(mutation.attributeName, current)
+          sourceAttributes.current.set(mutation.target, remembered)
+          applyLocale(locale, mutation.target)
+        }
       }
     })
-    observer.observe(document.body, { subtree: true, childList: true, characterData: true })
+    observer.observe(document.body, { subtree: true, childList: true, characterData: true, attributes: true, attributeFilter: ['placeholder', 'aria-label', 'title'] })
     return () => observer.disconnect()
   }, [applyLocale, domReady, locale])
 

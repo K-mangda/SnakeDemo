@@ -673,6 +673,7 @@ const thai: Record<string, string> = {
   'Release': 'รุ่นเผยแพร่',
   'verified images ·': 'ภาพที่ยืนยันแล้ว ·',
   'images': 'ภาพ',
+  'image': 'ภาพ',
 }
 
 export function translate(text: string, locale: AppLocale) {
@@ -730,6 +731,15 @@ export function translate(text: string, locale: AppLocale) {
 
   const modelDownload = core.match(/^Model (.+) downloaded as (.+)!$/)
   if (modelDownload) return `${leading}ดาวน์โหลดโมเดล ${modelDownload[1]} ในรูปแบบ ${modelDownload[2]} แล้ว${trailing}`
+
+  const selectedForRestore = core.match(/^(\d+) selected images? will return to the pending expert review queue\. Existing review history will be preserved\.$/)
+  if (selectedForRestore) return `${leading}ภาพที่เลือก ${selectedForRestore[1]} ภาพจะกลับไปยังคิวรอตรวจโดยผู้เชี่ยวชาญ โดยเก็บประวัติการตรวจเดิมไว้${trailing}`
+
+  const selectedForDelete = core.match(/^(\d+) selected unclear images? and their stored files will be permanently deleted\.$/)
+  if (selectedForDelete) return `${leading}ภาพไม่ชัดเจนที่เลือก ${selectedForDelete[1]} ภาพและไฟล์ที่จัดเก็บไว้จะถูกลบอย่างถาวร${trailing}`
+
+  const restoreImages = core.match(/^Restore (\d+) images?$/)
+  if (restoreImages) return `${leading}กู้คืน ${restoreImages[1]} ภาพ${trailing}`
 
   return text
 }
