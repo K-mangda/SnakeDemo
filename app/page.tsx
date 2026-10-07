@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { Newsreader } from 'next/font/google'
-import { ArrowDown, ArrowUpRight, ScanLine } from 'lucide-react'
+import { ArrowDown, ArrowRight, ArrowUpRight, Database, ScanLine, ShieldCheck, SlidersHorizontal, UploadCloud } from 'lucide-react'
 import ForestExperience from '@/components/home/ForestExperience'
 import styles from '@/components/home/forest.module.css'
 import { SNAKE_DATA } from '@/lib/data'
@@ -14,69 +14,94 @@ const displayFont = Newsreader({
 })
 
 export const metadata: Metadata = {
-  title: 'NSTRUVision — Snake photo identification and field guide',
-  description: 'Explore Thai snakes and identify a snake from a photograph with NSTRUVision. An image-based research tool with expert review.',
+  title: 'NSTRUVision — AI-assisted snake photo analysis',
+  description: 'Analyze a snake photograph, review possible species and model confidence, and explore references with NSTRUVision.',
 }
+
+const workflow = [
+  { number: '01', icon: UploadCloud, title: 'Upload a photograph', text: 'Start with a clear JPEG or PNG you already have. Keep your distance; never approach a snake for a better photo.' },
+  { number: '02', icon: ScanLine, title: 'Review the detection', text: 'See the region detected in the image, a possible species and the model confidence when a match is available.' },
+  { number: '03', icon: ShieldCheck, title: 'Read the result carefully', text: 'Low-confidence and no-detection cases need more review. An AI result is not proof that a snake is safe.' },
+]
 
 export default function Home() {
   const afterword = <>
     <section className={styles.closing} aria-labelledby="closing-title">
-      <p className={styles.eyebrow}>A LITTLE KNOWLEDGE. A LITTLE MORE CARE.</p>
-      <h2 id="closing-title">See nature differently.</h2>
-      <Link href="/predict" className={styles.primaryLight}>Identify from a photo <ArrowUpRight size={18} /></Link>
-      <p className={styles.disclaimer}>A research and learning tool. Image predictions are not a medical diagnosis<br className={styles.desktopBreak} /> or a guarantee that an animal is safe.</p>
+      <div className={styles.closingInner}>
+        <div>
+          <p className={styles.eyebrow}>READY TO BEGIN?</p>
+          <h2 id="closing-title">Start with a photo.<br />Stay with the evidence.</h2>
+          <p>Use NSTRUVision to explore a possible identification, then check the confidence and reference details before drawing conclusions.</p>
+        </div>
+        <Link href="/predict" className={styles.primaryLight}>Open image analysis <ArrowUpRight size={17} /></Link>
+      </div>
+      <p className={styles.disclaimer}>For research and learning. Predictions are not a medical diagnosis or a guarantee that an animal is safe.</p>
     </section>
-    <footer className={styles.footer}><Link href="/">NSTRU<span>Vision</span></Link><p>Computer Science Research<br />Nakhon Si Thammarat Rajabhat University</p><a href="#discover">Back to the forest ↑</a></footer>
+    <footer className={styles.footer}><Link href="/">NSTRU<span>Vision</span></Link><p>Computer Science Research<br />Nakhon Si Thammarat Rajabhat University</p><a href="#discover">Back to top ↑</a></footer>
   </>
+
   return (
     <ForestExperience afterword={afterword} fontClassName={displayFont.variable}>
       <section className={styles.hero} id="discover" aria-labelledby="forest-title">
         <div className={styles.heroContent}>
-          <p className={styles.eyebrow}><span /> NSTRU VISION · SNAKE PHOTO IDENTIFICATION</p>
-          <h1 id="forest-title">A closer look.<br /><em>A safer distance.</em></h1>
-          <p className={styles.intro}>Upload a snake photo for a possible species suggestion.<br className={styles.desktopBreak} /> Explore the field guide, and keep a safe distance in the wild.</p>
+          <p className={styles.eyebrow}><span /> NSTRU VISION / AI-ASSISTED SNAKE ANALYSIS</p>
+          <h1 id="forest-title">Identify a snake.<br /><em>Understand the result.</em></h1>
+          <p className={styles.intro}>Upload a photo to explore a possible species match, see model confidence, and find the context behind the result.</p>
           <div className={styles.actions}>
-            <Link href="/predict" className={styles.primary}><ScanLine size={17} /> Identify from a photo <ArrowUpRight size={18} /></Link>
-            <a href="#guide" className={styles.textLink}>Explore the field guide <ArrowDown size={15} /></a>
+            <Link href="/predict" className={styles.primary}><ScanLine size={17} /> Analyze a photo <ArrowUpRight size={18} /></Link>
+            <a href="#guide" className={styles.textLink}>How it works <ArrowDown size={15} /></a>
           </div>
-          <p className={styles.heroNote}>Observe from a distance. Let wildlife stay wild.</p>
+          <p className={styles.heroNote}>Observe from a distance. AI suggestions are not safety decisions.</p>
         </div>
         <div className={styles.heroFoot}>
-          <a href="#guide" className={styles.scrollCue}><span className={styles.scrollLine} /> FOLLOW THE STREAM</a>
+          <a href="#guide" className={styles.scrollCue}><span className={styles.scrollLine} /> EXPLORE THE TOOL</a>
           <span className={styles.location}>01 / THE FOREST EDGE<br /><span>Inspired by the forests of southern Thailand</span></span>
         </div>
       </section>
+
       <div className={styles.downstream}>
         <section className={styles.guide} id="guide" aria-labelledby="guide-title">
           <div className={styles.guideInner}>
             <div className={styles.guideIntro}>
-              <p className={styles.eyebrow}>02 / OBSERVE & UNDERSTAND</p>
-              <h2 id="guide-title">Curiosity.<br /><em>With care.</em></h2>
-              <p className={styles.bodyCopy}>Every pattern tells a story. Start with a photograph you already have, and let image analysis help you explore a possible identification.</p>
-              <Link href="/predict" className={styles.lightLink}>Start with an image <ArrowUpRight size={18} /></Link>
+              <p className={styles.eyebrow}>IMAGE ANALYSIS / HOW IT WORKS</p>
+              <h2 id="guide-title">From photograph<br />to a clearer picture.</h2>
+              <p className={styles.bodyCopy}>NSTRUVision helps you examine what appears in an image. The result is a starting point for learning, with uncertainty kept visible.</p>
+              <Link href="/predict" className={styles.lightLink}>Go to analysis <ArrowUpRight size={17} /></Link>
             </div>
-            <ol className={styles.steps}>
-              <li><span>01</span><div><h3>Bring a photograph</h3><p>Choose a clear image. Never approach or handle a snake to get a better shot.</p></div></li>
-              <li><span>02</span><div><h3>Look a little closer</h3><p>Review the detected snake, suggested species and model confidence.</p></div></li>
-              <li><span>03</span><div><h3>Keep the uncertainty in view</h3><p>An AI suggestion can be wrong. Use it as a starting point, not a safety decision.</p></div></li>
-            </ol>
+            <div className={styles.resultPanel}>
+              <div className={styles.resultPanelTop}><span className={styles.panelIcon}><SlidersHorizontal size={17} /></span><span>WHAT YOU CAN REVIEW</span><span className={styles.panelDot} /></div>
+              <div className={styles.resultRows}>
+                <div><span>01</span><strong>Detected region</strong><p>Locate the potential snake in your photo.</p></div>
+                <div><span>02</span><strong>Species suggestion</strong><p>See a possible match when the model has one.</p></div>
+                <div><span>03</span><strong>Confidence &amp; reference</strong><p>Check uncertainty and available source details.</p></div>
+              </div>
+              <p className={styles.panelCaution}><ShieldCheck size={15} /> Low-confidence results may need expert review.</p>
+            </div>
           </div>
+          <ol className={styles.steps}>
+            {workflow.map(step => <li key={step.number}>
+              <div className={styles.stepTop}><span>{step.number} / STEP</span><step.icon size={20} aria-hidden="true" /></div>
+              <h3>{step.title}</h3><p>{step.text}</p>
+            </li>)}
+          </ol>
         </section>
+
         <section className={styles.species} id="species" aria-labelledby="species-title">
           <div className={styles.speciesInner}>
             <div className={styles.speciesIntro}>
-              <p className={styles.eyebrow}>03 / LIFE ALONG THE STREAM</p>
-              <h2 id="species-title">Part of a<br /><em>bigger world.</em></h2>
-              <p className={styles.bodyCopy}>Meet a few of the species in our reference collection. Small differences matter; appearance alone does not establish whether a snake is safe.</p>
-              <p className={styles.caption}>REFERENCE COLLECTION · NOT A LIVE MODEL COVERAGE LIST</p>
+              <p className={styles.eyebrow}>REFERENCE COLLECTION / EXPLORE</p>
+              <h2 id="species-title">Know what you&apos;re looking at.</h2>
+              <p className={styles.bodyCopy}>Explore example species in the reference collection. Similar-looking snakes can differ, so use these entries to learn—not to judge safety from appearance alone.</p>
+              <p className={styles.caption}>REFERENCE ENTRIES ARE NOT A LIVE MODEL COVERAGE LIST</p>
             </div>
             <div className={styles.speciesList}>
               {[SNAKE_DATA[0], SNAKE_DATA[2], SNAKE_DATA[4]].map((snake, index) => (
                 <details key={snake.id} className={styles.speciesItem}>
                   <summary><span className={styles.speciesIndex}>0{index + 1}</span><span><strong>{snake.name_en}</strong><i>{snake.scientific}</i></span><span className={styles.plus} aria-hidden="true">+</span></summary>
-                  <div className={styles.speciesDetail}><span lang="th">{snake.name_th}</span><span>{snake.family}</span><p>Reference entry for learning. For an image-based suggestion, use the identification tool.</p><Link href="/predict">Identify from a photograph <ArrowUpRight size={14} /></Link></div>
+                  <div className={styles.speciesDetail}><span lang="th">{snake.name_th}</span><span>{snake.family}</span><p>This is a reference entry, not a confirmed identification of a photograph.</p><Link href="/predict">Analyze your own photo <ArrowUpRight size={14} /></Link></div>
                 </details>
               ))}
+              <Link href="/export" className={styles.dataLink}><Database size={17} /> Explore research exports <ArrowRight size={16} /></Link>
             </div>
           </div>
         </section>
