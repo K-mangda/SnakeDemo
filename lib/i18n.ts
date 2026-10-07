@@ -776,6 +776,15 @@ export function translate(text: string, locale: AppLocale) {
   const speciesCount = core.match(/^([\d,]+) species$/)
   if (speciesCount) return `${leading}${speciesCount[1]} ชนิด${trailing}`
 
+  const referenceCatalogue = core.match(/^REFERENCE CATALOGUE \/ (\d+) SPECIES$/)
+  if (referenceCatalogue) return `${leading}รายการชนิดงูอ้างอิง / ${referenceCatalogue[1]} ชนิด${trailing}`
+
+  const referenceEntryRange = core.match(/^01–(\d+) \/ REFERENCE ENTRIES$/)
+  if (referenceEntryRange) return `${leading}01–${referenceEntryRange[1]} / รายการอ้างอิง${trailing}`
+
+  const referenceRegion = core.match(/^Species reference catalogue, (\d+) entries$/)
+  if (referenceRegion) return `${leading}รายการชนิดงูอ้างอิง ${referenceRegion[1]} รายการ${trailing}`
+
   const queueImageCount = core.match(/^([\d,]+) images? in queue$/)
   if (queueImageCount) return `${leading}${queueImageCount[1]} ภาพในคิว${trailing}`
 
@@ -784,6 +793,9 @@ export function translate(text: string, locale: AppLocale) {
 
   const datasetRelease = core.match(/^Release (.+) · ([\d,]+) verified images · (\d+) species$/)
   if (datasetRelease) return `${leading}รุ่นเผยแพร่ ${datasetRelease[1]} · ภาพที่ยืนยันแล้ว ${datasetRelease[2]} ภาพ · ${datasetRelease[3]} ชนิด${trailing}`
+
+  const publishedDataset = core.match(/^(\d+) species · (.+) published on Hugging Face$/)
+  if (publishedDataset) return `${leading}${publishedDataset[1]} ชนิด · รุ่น ${publishedDataset[2]} เผยแพร่บน Hugging Face${trailing}`
 
   const publisherJob = core.match(/^Publish job (.+)$/)
   if (publisherJob) {

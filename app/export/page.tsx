@@ -4,6 +4,8 @@ import { useEffect, useState } from 'react'
 import { ArrowUpRight, BrainCircuit, CheckCircle2, ChevronDown, Database, Download, FileCode2, FileJson, Image as ImageIcon, Package, ShieldCheck } from 'lucide-react'
 import Button from '@/components/ui/Button'
 import DatasetExportModal, { type DatasetRelease } from '@/components/export/DatasetExportModal'
+import { translate } from '@/lib/i18n'
+import { useLanguage } from '@/components/i18n/LanguageProvider'
 
 type ModelArtifact = {
   name: string
@@ -40,6 +42,7 @@ function getCachedRelease() {
 }
 
 export default function ExportPage() {
+  const { locale } = useLanguage()
   const initialRelease = getCachedRelease()
   const initialDataset = getCachedDataset()
   const [showDatasetModal, setShowDatasetModal] = useState(false)
@@ -211,7 +214,7 @@ export default function ExportPage() {
             <div className={alternativeArtifacts.length === 0 ? 'mt-6 lg:mt-0' : ''}>
               <div className="border-y border-zinc-800 py-4">
               <p className="text-2xl font-semibold tracking-tight text-zinc-100">{datasetRelease ? datasetRelease.imageCount.toLocaleString() : '—'}</p>
-              <p className="mt-1 text-xs text-zinc-500">{datasetRelease ? `${datasetRelease.classCount} species · ${datasetRelease.version} published on Hugging Face` : datasetStatus === 'error' ? 'Dataset release could not be loaded.' : 'Loading published dataset…'}</p>
+              <p className="mt-1 text-xs text-zinc-500">{translate(datasetRelease ? `${datasetRelease.classCount} species · ${datasetRelease.version} published on Hugging Face` : datasetStatus === 'error' ? 'Dataset release could not be loaded.' : 'Loading published dataset…', locale)}</p>
               </div>
               <Button onClick={() => setShowDatasetModal(true)} disabled={!datasetRelease} variant="outline" className="mt-6 w-full justify-center"><Database size={16} /> Download dataset</Button>
               {datasetRelease && <a href={datasetRelease.repositoryUrl} target="_blank" rel="noreferrer" className="mt-3 inline-flex text-xs font-medium text-emerald-400 transition hover:text-emerald-300">View release on Hugging Face <ArrowUpRight className="ml-1" size={13} /></a>}
