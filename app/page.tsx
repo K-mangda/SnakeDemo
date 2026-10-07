@@ -5,7 +5,6 @@ import { ArrowDown, ArrowRight, ArrowUpRight, Database, ScanLine, ShieldCheck, S
 import ForestExperience from '@/components/home/ForestExperience'
 import SpeciesIndex from '@/components/home/SpeciesIndex'
 import styles from '@/components/home/forest.module.css'
-import { MODEL_CLASS_LABELS } from '@/lib/model-species'
 
 export const metadata: Metadata = {
   title: 'NSTRUVision — AI-assisted snake photo analysis',
@@ -66,17 +65,7 @@ export default function Home() {
 
         <section className={styles.species} id="species" aria-labelledby="species-title">
           <div className={styles.speciesInner}>
-            <div className={styles.speciesIntro}>
-              <div>
-                <p className={styles.eyebrow}>MODEL CLASS INDEX / {MODEL_CLASS_LABELS.length} LABELS</p>
-                <h2 id="species-title">Species in focus.</h2>
-              </div>
-              <div>
-                <p className={styles.bodyCopy}>Explore the {MODEL_CLASS_LABELS.length} labels in the research model&apos;s training set. Names and families are kept in the reference catalogue; predictions are not confirmed identifications.</p>
-                <p className={styles.caption}>TRAINING LABELS · THE ACTIVE DEPLOYED MODEL MAY DIFFER</p>
-              </div>
-            </div>
-            <Suspense fallback={<p className={styles.speciesStatus} role="status">Loading reference names…</p>}>
+            <Suspense fallback={<div className={styles.speciesIntro}><div><p className={styles.eyebrow}>REFERENCE CATALOGUE</p><h2 id="species-title">Species in focus.</h2></div><p className={styles.bodyCopy} role="status">Loading species references…</p></div>}>
               <SpeciesIndex />
             </Suspense>
             <Link href="/export" className={styles.dataLink}><Database size={23} /><span><strong>Research resources</strong><small>Explore model and dataset exports</small></span><ArrowRight size={18} /></Link>
