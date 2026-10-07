@@ -77,12 +77,18 @@ export default function Home() {
             <div className={styles.speciesList}>
               {SNAKE_DATA.map((snake, index) => (
                 <details key={snake.id} className={styles.speciesItem}>
-                  <summary><span className={styles.speciesCardTop}><span className={styles.speciesIndex}>0{index + 1} / REFERENCE</span><span className={styles.plus} aria-hidden="true">+</span></span><strong>{snake.name_en}</strong><i>{snake.scientific}</i><span className={styles.speciesThai} lang="th">{snake.name_th}</span></summary>
-                  <div className={styles.speciesDetail}><span>Family: {snake.family}</span><p>A reference example, not a confirmed identification or a safety assessment.</p><Link href="/predict">Analyze your photo <ArrowUpRight size={14} /></Link></div>
+                  <summary>
+                    <span className={styles.speciesIndex}>{String(index + 1).padStart(2, '0')}</span>
+                    <span className={styles.speciesName}><strong>{snake.name_en}</strong><i>{snake.scientific}</i></span>
+                    <span className={styles.speciesThai} lang="th">{snake.name_th}</span>
+                    <span className={styles.speciesFamily}>{snake.family}</span>
+                    <span className={styles.plus} aria-hidden="true">+</span>
+                  </summary>
+                  <div className={styles.speciesDetail}><p>A reference example, not a confirmed identification or a safety assessment.</p><Link href="/predict">Analyze your photo <ArrowUpRight size={14} /></Link></div>
                 </details>
               ))}
-              <Link href="/export" className={styles.dataLink}><Database size={23} /><span><strong>Research resources</strong><small>Explore model and dataset exports</small></span><ArrowRight size={18} /></Link>
             </div>
+            <Link href="/export" className={styles.dataLink}><Database size={23} /><span><strong>Research resources</strong><small>Explore model and dataset exports</small></span><ArrowRight size={18} /></Link>
           </div>
         </section>
       </div>

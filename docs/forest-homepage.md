@@ -4,7 +4,7 @@
 
 The approved river scene is the only animated landscape. It fills the opening hero, then scrolls away naturally. The guide and species reference collection are ordinary responsive HTML/CSS sections with no second scenic image or scroll-controlled camera movement. The homepage now uses the same shared dark footer as the rest of the app. This keeps the identification workflow clear, avoids visible image seams and makes the lower content readable on desktop and mobile.
 
-The hero uses the same Noto Sans Thai UI family as the rest of the product, with a strong non-italic two-line heading aligned to the navigation content width, clearer supporting copy and a visible safety note. The guide and species sections use zinc surfaces, emerald accents, compact cards and product language as Analysis and Export. The preferred original footer is the black site-wide one with research attribution. The shared footer links the actual species and selected clinical reference sources without implying that they endorse AI predictions. Headings and buttons remain real text, not part of an image. Reference species are not advertised as live model coverage, and no accuracy statistics are invented.
+The hero uses the same Noto Sans Thai UI family as the rest of the product, with a strong non-italic two-line heading aligned to the navigation content width, clearer supporting copy and a visible safety note. The guide and species sections use zinc surfaces, emerald accents, a compact reference index and product language as Analysis and Export. The preferred original footer is the black site-wide one with research attribution. The shared footer links the actual species and selected clinical reference sources without implying that they endorse AI predictions. Headings and buttons remain real text, not part of an image. Reference species are not advertised as live model coverage, and no accuracy statistics are invented.
 
 ## Assets
 
@@ -13,7 +13,7 @@ The hero uses the same Noto Sans Thai UI family as the rest of the product, with
 - `public/forest/forest-poster.webp`: the original illustration, retained as a reference but not loaded by the homepage.
 - `public/forest/downstream-poster.webp`: an earlier waterfall concept retained as a reference but not loaded by the homepage.
 
-The rejected riverbank image and 2.5D study remain outside the published homepage. The guide explains the actual image-analysis workflow with a result panel and three numbered steps inside one connected charcoal band, using emerald only for small markers and a fine edge. The species section displays all seven local `SNAKE_DATA` sample entries as dark disclosure cards in a responsive grid, alongside a research-export link. These samples are explicitly not presented as the model's full live coverage.
+The rejected riverbank image and 2.5D study remain outside the published homepage. The guide explains the actual image-analysis workflow with a result panel and three numbered steps inside one connected charcoal band, using emerald only for small markers and a fine edge. The species section displays all seven local `SNAKE_DATA` sample entries as compact disclosure rows in a field-reference index, with a separate research-export link below. These samples are explicitly not presented as the model's full live coverage.
 
 ## Runtime behavior
 
